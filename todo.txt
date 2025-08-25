@@ -1,0 +1,5 @@
+[x] population tick system
+[ ] stabilities tick system
+[ ] constructions tick system
+[ ] payloads tick system
+[ ] core game loop lol
