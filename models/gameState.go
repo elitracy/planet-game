@@ -5,8 +5,8 @@ import (
 )
 
 type GameState struct {
-	CurrentTick int
-	StarSystems []StarSystem
-	MessagePayLoads []Payload[string]
+	CurrentTick      int
+	StarSystems      []*StarSystem
+	MessagePayLoads  []Payload[string]
 	ResourcePayLoads []Payload[resources.Resource]
 }

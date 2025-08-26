@@ -2,8 +2,9 @@ package models
 
 type Payload[T any] struct {
 	Data        T
-	Origin      Coordinates
-	Destination Coordinates
+	Origin      Location
+	Destination Location
 	TimeSent    int
 	TimeArrival int
+	Arrived     bool
 }

@@ -1,7 +1,7 @@
 package models
 
 type StarSystem struct {
-	Name     string
-	Planets  []Planet
-	Location Coordinates
+	Name    string
+	Planets []*Planet
+	Location
 }

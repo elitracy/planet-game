@@ -1,6 +1,9 @@
 package engine
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/systems"
 )
@@ -18,10 +21,18 @@ func RunGame(state *models.GameState) {
 		systems.TickPopulation(state)
 		systems.TickPayloads(state)
 
+		fmt.Println("\nTICK:", state.CurrentTick)
+		for _, s := range state.StarSystems {
+			for _, p := range s.Planets {
+				fmt.Println(p)
+			}
+		}
+
 		// render UI
 
 		// handle Input
 
+		time.Sleep(1 * time.Second)
 	}
 
 }

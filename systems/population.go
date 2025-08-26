@@ -1,8 +1,6 @@
 package systems
 
 import (
-	"math"
-
 	"github.com/elitracy/planets/models"
 )
 
