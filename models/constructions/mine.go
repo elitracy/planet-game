@@ -1,14 +1,14 @@
 package constructions
 
 type Mine struct {
-	Name     string
-	Quantity int
-}
-
-func (m *Mine) GetName() string {
-	return m.Name
+	Quantity       int
+	ProductionRate int
 }
 
 func (m *Mine) GetQuantity() int {
 	return m.Quantity
+}
+
+func (m *Mine) GetProductionRate() int {
+	return m.ProductionRate
 }

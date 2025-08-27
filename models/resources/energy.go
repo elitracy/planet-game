@@ -1,13 +1,8 @@
 package resources
 
 type Energy struct {
-	Name            string
 	Quantity        int
 	ConsumptionRate int
-}
-
-func (e *Energy) GetName() string {
-	return e.Name
 }
 
 func (e *Energy) GetQuantity() int {

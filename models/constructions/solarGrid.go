@@ -1,14 +1,14 @@
 package constructions
 
 type SolarGrid struct {
-	Name     string
-	Quantity int
-}
-
-func (sg *SolarGrid) GetName() string {
-	return sg.Name
+	Quantity       int
+	ProductionRate int
 }
 
 func (sg *SolarGrid) GetQuantity() int {
 	return sg.Quantity
+}
+
+func (sg *SolarGrid) GetProductionRate() int {
+	return sg.ProductionRate
 }

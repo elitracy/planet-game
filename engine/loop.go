@@ -8,6 +8,8 @@ import (
 	"github.com/elitracy/planets/systems"
 )
 
+const TICK_SLEEP = 2 * time.Second
+
 func RunGame(state *models.GameState) {
 
 	for {
@@ -32,7 +34,7 @@ func RunGame(state *models.GameState) {
 
 		// handle Input
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(TICK_SLEEP)
 	}
 
 }

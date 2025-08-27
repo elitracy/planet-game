@@ -1,13 +1,8 @@
 package resources
 
 type Mineral struct {
-	Name            string
 	Quantity        int
 	ConsumptionRate int
-}
-
-func (f *Mineral) GetName() string {
-	return f.Name
 }
 
 func (f *Mineral) GetQuantity() int {

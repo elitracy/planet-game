@@ -1,14 +1,14 @@
 package constructions
 
 type Farm struct {
-	Name     string
-	Quantity int
-}
-
-func (f *Farm) GetName() string {
-	return f.Name
+	Quantity       int
+	ProductionRate int
 }
 
 func (f *Farm) GetQuantity() int {
 	return f.Quantity
+}
+
+func (f *Farm) GetProductionRate() int {
+	return f.ProductionRate
 }
