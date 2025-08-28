@@ -17,7 +17,6 @@ func RunGame(state *models.GameState) {
 		state.CurrentTick++
 
 		// update systems
-
 		systems.TickConstructions(state)
 		systems.TickStabilities(state)
 		systems.TickPopulation(state)
@@ -29,7 +28,6 @@ func RunGame(state *models.GameState) {
 				fmt.Println(p)
 			}
 		}
-
 		// render UI
 
 		// handle Input
