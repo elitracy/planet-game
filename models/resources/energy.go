@@ -5,10 +5,10 @@ type Energy struct {
 	ConsumptionRate int
 }
 
-func (e *Energy) GetQuantity() int {
+func (e Energy) GetQuantity() int {
 	return e.Quantity
 }
 
-func (e *Energy) GetConsumptionRate() int {
+func (e Energy) GetConsumptionRate() int {
 	return e.ConsumptionRate
 }

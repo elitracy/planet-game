@@ -23,11 +23,7 @@ func RunGame(state *models.GameState) {
 		systems.TickPayloads(state)
 
 		fmt.Println("\nTICK:", state.CurrentTick)
-		for _, s := range state.StarSystems {
-			for _, p := range s.Planets {
-				fmt.Println(p)
-			}
-		}
+
 		// render UI
 
 		// handle Input

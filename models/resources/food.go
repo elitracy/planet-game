@@ -5,10 +5,10 @@ type Food struct {
 	ConsumptionRate int
 }
 
-func (f *Food) GetQuantity() int {
+func (f Food) GetQuantity() int {
 	return f.Quantity
 }
 
-func (f *Food) GetConsumptionRate() int {
+func (f Food) GetConsumptionRate() int {
 	return f.ConsumptionRate
 }
