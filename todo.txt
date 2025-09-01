@@ -1,7 +1,11 @@
 [x] population tick system
 [x] stabilities tick system
 [x] constructions tick system
-[ ] payloads tick system
+[x] payloads tick system
 [ ] player turn
 [ ] events? 
 [ ] core game loop lol
+
+Left Off:
+- how do we want player input to work
+- need to decide on core game loop

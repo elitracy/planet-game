@@ -1,12 +1,21 @@
 package models
 
-import (
-	"github.com/elitracy/planets/models/resources"
-)
-
 type GameState struct {
-	CurrentTick      int
-	StarSystems      []*StarSystem
-	MessagePayLoads  []Payload[string]
-	ResourcePayLoads []Payload[resources.Resource]
+	CurrentTick int
+	StarSystems []*StarSystem
+}
+
+func (gs *GameState) CreatePlayer(location Location) Player {
+	player := Player{Location: location}
+
+	for _, s := range gs.StarSystems {
+		for _, p := range s.Planets {
+			if p.Location.Coordinates == location.Coordinates {
+
+				p.Players = append(p.Players, &player)
+			}
+		}
+	}
+
+	return player
 }

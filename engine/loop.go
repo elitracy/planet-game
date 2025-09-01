@@ -17,18 +17,12 @@ func RunGame(state *models.GameState) {
 		state.CurrentTick++
 
 		// update systems
-
 		systems.TickConstructions(state)
 		systems.TickStabilities(state)
 		systems.TickPopulation(state)
 		systems.TickPayloads(state)
 
 		fmt.Println("\nTICK:", state.CurrentTick)
-		for _, s := range state.StarSystems {
-			for _, p := range s.Planets {
-				fmt.Println(p)
-			}
-		}
 
 		// render UI
 

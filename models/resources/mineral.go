@@ -5,10 +5,10 @@ type Mineral struct {
 	ConsumptionRate int
 }
 
-func (f *Mineral) GetQuantity() int {
-	return f.Quantity
+func (m Mineral) GetQuantity() int {
+	return m.Quantity
 }
 
-func (f *Mineral) GetConsumptionRate() int {
-	return f.ConsumptionRate
+func (m Mineral) GetConsumptionRate() int {
+	return m.ConsumptionRate
 }

@@ -3,9 +3,22 @@ package main
 import (
 	"github.com/elitracy/planets/engine"
 	. "github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/constructions"
 	"github.com/elitracy/planets/models/resources"
 )
+
+const STARTING_POPULATION = 1000
+const STARTING_POPULATION_GROWTH_RATE = 100
+
+const STARTING_FARMS = 2
+const STARTING_MINES = 2
+const STARTING_SOLAR_GRIDS = 2
+
+const STARTING_FOOD = 5000
+const STARTING_FOOD_CONSUMPTION_RATE = 1
+const STARTING_MINERAL = 5000
+const STARTING_MINERAL_CONSUMPTION_RATE = 1
+const STARTING_ENERGY = 5000
+const STARTING_ENERGY_CONSUMPTION_RATE = 1
 
 func main() {
 
@@ -13,70 +26,13 @@ func main() {
 
 	systemA := &StarSystem{}
 	systemB := &StarSystem{}
-	earth := &Planet{
-		Name:                 "Earth",
-		Population:           1000,
-		PopulationGrowthRate: 5,
-		Resources: PlanetResources{
-			Food: resources.Food{
-				Quantity:        5000,
-				ConsumptionRate: 1,
-			},
-			Minerals: resources.Mineral{
-				Quantity:        5000,
-				ConsumptionRate: 1,
-			},
-			Energy: resources.Energy{
-				Quantity:        5000,
-				ConsumptionRate: 1,
-			},
-		},
-		Constructions: PlanetConstructions{
-			Farms: []constructions.Farm{
-				{Quantity: 500, ProductionRate: 10},
-				{Quantity: 500, ProductionRate: 10},
-				{Quantity: 500, ProductionRate: 10},
-			},
-			Mines: []constructions.Mine{
-				{Quantity: 500, ProductionRate: 10},
-				{Quantity: 500, ProductionRate: 10},
-			},
-			SolarGrids: []constructions.SolarGrid{
-				{Quantity: 500, ProductionRate: 10},
-				{Quantity: 500, ProductionRate: 10},
-				{Quantity: 500, ProductionRate: 10},
-				{Quantity: 500, ProductionRate: 10},
-			},
-		},
-	}
 
-	// james := &Planet{
-	// 	Name: "James",
-	// 	Location: Location{
-	// 		Coordinates: Coordinates{X: 100, Y: 500},
-	// 	},
-	// 	Popluation:           1000,
-	// 	PopulationGrowthRate: 5,
-	// 	Resources: PlanetResources{
-	// 		Food: resources.Food{
-	// 			Quantity:        5000,
-	// 			ConsumptionRate: 1,
-	// 		},
-	// 		Minerals: resources.Mineral{
-	// 			Quantity:        5000,
-	// 			ConsumptionRate: 1,
-	// 		},
-	// 		Energy: resources.Energy{
-	// 			Quantity:        5000,
-	// 			ConsumptionRate: 1,
-	// 		},
-	// 	},
-	// }
+	earth := CreatePlanet("EARTH", 0, 0, STARTING_POPULATION, STARTING_POPULATION_GROWTH_RATE, STARTING_FOOD, STARTING_MINERAL, STARTING_ENERGY, STARTING_FOOD_CONSUMPTION_RATE, STARTING_MINERAL_CONSUMPTION_RATE, STARTING_ENERGY_CONSUMPTION_RATE, STARTING_FARMS, STARTING_MINES, STARTING_SOLAR_GRIDS)
+	james := CreatePlanet("JAMES", 50, 25, STARTING_POPULATION, STARTING_POPULATION_GROWTH_RATE, STARTING_FOOD, STARTING_MINERAL, STARTING_ENERGY, STARTING_FOOD_CONSUMPTION_RATE, STARTING_MINERAL_CONSUMPTION_RATE, STARTING_ENERGY_CONSUMPTION_RATE, STARTING_FARMS, STARTING_MINES, STARTING_SOLAR_GRIDS)
+	james2 := CreatePlanet("JAMES2", 100, 25, STARTING_POPULATION, STARTING_POPULATION_GROWTH_RATE, STARTING_FOOD, STARTING_MINERAL, STARTING_ENERGY, STARTING_FOOD_CONSUMPTION_RATE, STARTING_MINERAL_CONSUMPTION_RATE, STARTING_ENERGY_CONSUMPTION_RATE, STARTING_FARMS, STARTING_MINES, STARTING_SOLAR_GRIDS)
 
-	systemA.Planets = append(systemA.Planets, earth)
-	// systemB.Planets = append(systemB.Planets, james)
-
-	gameState.StarSystems = append(gameState.StarSystems, systemA, systemB)
+	systemA.Planets = append(systemA.Planets, &earth)
+	systemB.Planets = append(systemB.Planets, &james, &james2)
 
 	engine.RunGame(&gameState)
 }
