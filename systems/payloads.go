@@ -1,7 +1,7 @@
 package systems
 
 import (
-	"fmt"
+	// "fmt"
 
 	"github.com/elitracy/planets/models"
 )
@@ -22,12 +22,12 @@ func TickPayloads(gs *models.GameState) {
 				}
 			}
 
-			ready_message_payloads := p.ReadMessagePayloads(gs.CurrentTick)
-			ready_resource_payloads := p.ReadResourcePayloads(gs.CurrentTick)
+			// ready_message_payloads := p.ReadMessagePayloads(gs.CurrentTick)
+			// ready_resource_payloads := p.ReadResourcePayloads(gs.CurrentTick)
 
 			// update for player input
-			fmt.Printf("%s: Message Payloads:\n%v\n", p.Name, ready_message_payloads)
-			fmt.Printf("%s: Resource Payloads:\n%v\n", p.Name, ready_resource_payloads)
+			// fmt.Printf("%s: Message Payloads:\n%v\n", p.Name, ready_message_payloads)
+			// fmt.Printf("%s: Resource Payloads:\n%v\n", p.Name, ready_resource_payloads)
 		}
 
 	}

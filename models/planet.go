@@ -8,8 +8,9 @@ import (
 	"github.com/elitracy/planets/models/stabilities"
 )
 
+// planets are a "colony"
 type Planet struct {
-	Name                 string
+	Name                 string // colony name
 	Population           int
 	PopulationGrowthRate int
 	Players              []*Player
@@ -18,6 +19,36 @@ type Planet struct {
 	Constructions
 	Location
 	PlanetPayloads
+}
+
+func (p Planet) GetTotalFarmProduction() int {
+	total_rate := 0
+
+	for _, p := range p.Constructions.Farms {
+		total_rate += p.GetProductionRate()
+	}
+
+	return total_rate
+}
+
+func (p Planet) GetTotalMineProduction() int {
+	total_rate := 0
+
+	for _, p := range p.Constructions.Mines {
+		total_rate += p.GetProductionRate()
+	}
+
+	return total_rate
+}
+
+func (p Planet) GetTotalSolarGridProduction() int {
+	total_rate := 0
+
+	for _, p := range p.Constructions.SolarGrids {
+		total_rate += p.GetProductionRate()
+	}
+
+	return total_rate
 }
 
 func (p Planet) String() string {

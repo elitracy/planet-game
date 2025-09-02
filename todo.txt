@@ -2,10 +2,73 @@
 [x] stabilities tick system
 [x] constructions tick system
 [x] payloads tick system
+[x] finish umls
 [ ] player turn
 [ ] events? 
-[ ] core game loop lol
+
+[ ] core game 
+    [ ] start player at (0,0)
+    [ ] gets list of planets in system
+     > chooses planet
+    [ ] player creates first colony
+     > name
+     > resources
+     > population
+    [ ] player travels to new planet
+     > chooses planet
+     > travel time
+    [ ] player is recieving reports from first planet/colony
+     > makes decisions while moving
+    [ ] player gets to new colony repeat
+
+
+                                ----------------------
+                                | Player Start (0,0) | 
+                                ----------------------
+                                          |
+                                          v
+                             -----------------------------
+                   |-------> | Select Planet to Colonize | 
+                   |         -----------------------------
+                   |                      |
+                   |               ---------------        
+                   |               | Travel time |
+                   |               ---------------        
+                   |                      |
+                   |                      v
+                   |      -------------------------------------
+                   |      | Allocate resources to that colony | 
+                   |      -------------------------------------
+                   |                      |
+                   |       --------------------------------
+                   |       | Recieve messages from colony |
+                   |       --------------------------------
+                   |                      |
+                   |     -------------------------------------
+                   |     | Send messages/resources to colony |
+                   |     -------------------------------------
+                   |                      |
+                   |                      |
+                   |______________________|
+
+Background Events
+ - too little food
+     - draught
+     - storms
+ - too little mineral
+    - can't get more energy 
+ - too little energy
+    - can't build more houses for people
+    - people get unhappy
+
 
 Left Off:
 - how do we want player input to work
 - need to decide on core game loop
+ - player starts in system
+ - choose planet to go to
+ - start colony
+ - go to another system
+ - get reports from colonies
+ - respond to events
+ - go to new colony

@@ -1,5 +1,40 @@
 package models
 
+import (
+	"math/rand"
+)
+
+var system_names = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Hohmann", "Horizon", "Oberth", "Parallax", "Aphelion"}
+var planet_names = []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
+var moon_names = []string{"Alpha", "Beta", "Gamma", "Delta", "Epsilon"}
+var world_type_names = []string{"Colony", "Station", "Outpost", "Relay", "Belt", "Gate"}
+
+const MIN_PLANETS = 2
+const MAX_PLANETS = 10
+
+// center of system
+const MIN_STAR_SYSTEM_DIST = 100
+const MAX_STAR_SYSTEM_DIST = 1000
+
+// from star system center
+const MIN_PLANET_DIST = 10
+const MAX_PLANET_DIST = 50
+
+const MIN_START_POP = 1000
+const MAX_START_POP = 1_000_000
+const STARTING_POPULATION_GROWTH_RATE = 100
+
+const STARTING_FARMS = 2
+const STARTING_MINES = 2
+const STARTING_SOLAR_GRIDS = 2
+
+const STARTING_FOOD = 5000
+const STARTING_FOOD_CONSUMPTION_RATE = 1
+const STARTING_MINERAL = 5000
+const STARTING_MINERAL_CONSUMPTION_RATE = 1
+const STARTING_ENERGY = 5000
+const STARTING_ENERGY_CONSUMPTION_RATE = 1
+
 type GameState struct {
 	CurrentTick int
 	StarSystems []*StarSystem
@@ -7,15 +42,57 @@ type GameState struct {
 
 func (gs *GameState) CreatePlayer(location Location) Player {
 	player := Player{Location: location}
+	return player
+}
 
-	for _, s := range gs.StarSystems {
-		for _, p := range s.Planets {
-			if p.Location.Coordinates == location.Coordinates {
+func (gs *GameState) GenerateStarSystem() StarSystem {
 
-				p.Players = append(p.Players, &player)
-			}
-		}
+	system_name_idx := rand.Intn(len(system_names))
+	system_name := system_names[system_name_idx]
+
+	// remove system name from list
+	system_names = append(system_names[:system_name_idx], system_names[system_name_idx+1:]...)
+
+	system_location := Location{
+		Coordinates: Coordinates{
+			X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
+			Y: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
+		},
 	}
 
-	return player
+	system := StarSystem{Name: system_name, Planets: []*Planet{}, Location: system_location}
+
+	num_planets := rand.Intn(MAX_PLANETS-MIN_PLANETS) + MIN_PLANETS
+	for i := range num_planets {
+
+		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
+
+		planet_location := Location{
+			Coordinates: Coordinates{
+				X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
+				Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
+			},
+		}
+
+		planet := CreatePlanet(
+			system_name+"-"+planet_names[i],
+			planet_location.Coordinates.X,
+			planet_location.Coordinates.Y,
+			starting_population,
+			STARTING_POPULATION_GROWTH_RATE,
+			STARTING_FOOD,
+			STARTING_MINERAL,
+			STARTING_ENERGY,
+			STARTING_FOOD_CONSUMPTION_RATE,
+			STARTING_MINERAL_CONSUMPTION_RATE,
+			STARTING_ENERGY_CONSUMPTION_RATE,
+			STARTING_FARMS,
+			STARTING_MINES,
+			STARTING_SOLAR_GRIDS,
+		)
+		system.Planets = append(system.Planets, &planet)
+	}
+
+	return system
+
 }
