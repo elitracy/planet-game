@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -19,7 +20,7 @@ func main() {
 		gameState.StarSystems = append(gameState.StarSystems, &system)
 	}
 
-	fmt.Println(gameState.StarSystems)
+	logging.Log(fmt.Sprint(gameState.StarSystems), "MAIN")
 
 	engine.RunGame(&gameState)
 }
