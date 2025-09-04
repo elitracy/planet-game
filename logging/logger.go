@@ -1,7 +1,8 @@
 package logging
 
 import (
-	"fmt"
+	"gopkg.in/natefinch/lumberjack.v2"
+	"log"
 	"time"
 )
 
@@ -15,21 +16,34 @@ type LogMessage struct {
 }
 
 type Logger struct {
-	queue chan LogMessage
+	queue    chan LogMessage
+	filepath string
 }
 
 var logger *Logger
 
 func (l *Logger) run() {
+	log.SetOutput(
+		&lumberjack.Logger{
+			Filename:   l.filepath,
+			MaxSize:    1,  // megabytes
+			MaxBackups: 3,  // number of old log files to keep
+			MaxAge:     28, // days to keep old logs
+			Compress:   true,
+		},
+	)
+
 	for msg := range l.queue {
-		fmt.Printf("[%s] [%s] [%s] %s\n", msg.Time.Format(time.RFC3339), msg.Level, msg.Package, msg.Message)
+		log.Printf("[%s] [%s] [%s] %s\n", msg.Time.Format(time.RFC3339), msg.Level, msg.Package, msg.Message)
 	}
 }
 
-func NewLogger() *Logger {
+func NewLogger(filepath string) *Logger {
 	l := &Logger{
-		queue: make(chan LogMessage, 10),
+		queue:    make(chan LogMessage, 10),
+		filepath: filepath,
 	}
+
 	go l.run()
 	return l
 }
@@ -49,5 +63,5 @@ func Log(message, pkg string, level ...string) {
 }
 
 func init() {
-	logger = NewLogger()
+	logger = NewLogger("logs/debug.log")
 }
