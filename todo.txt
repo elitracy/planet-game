@@ -5,7 +5,8 @@
 [x] finish umls
 [ ] player turn
 [ ] events? 
-
+[ ] UI layouts
+    [ ] bubbletea/lipgloss panes
 [ ] core game 
     [ ] start player at (0,0)
     [ ] gets list of planets in system
