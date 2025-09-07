@@ -21,7 +21,20 @@ func RunGame(state *models.GameState) {
 	quit := make(chan struct{})
 
 	// render UI
-	p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
+	// p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
+
+	grid := [][]ui.Pane{
+		{{0, "Top Left"}, {1, "Top Right"}},
+		{{2, "Bottom Left"}},
+	}
+
+	m := ui.Dashboard{
+		Grid:      grid,
+		ActiveRow: 0,
+		ActiveCol: 0,
+	}
+
+	p := tea.NewProgram(m)
 
 	go func() {
 		if _, err := p.Run(); err != nil {
