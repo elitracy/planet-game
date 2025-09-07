@@ -26,9 +26,9 @@ func (l *Logger) run() {
 	log.SetOutput(
 		&lumberjack.Logger{
 			Filename:   l.filepath,
-			MaxSize:    1,  // megabytes
-			MaxBackups: 3,  // number of old log files to keep
-			MaxAge:     28, // days to keep old logs
+			MaxSize:    30,
+			MaxBackups: 3,
+			MaxAge:     14,
 			Compress:   true,
 		},
 	)
