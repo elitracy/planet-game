@@ -34,7 +34,7 @@ func (l *Logger) run() {
 	)
 
 	for msg := range l.queue {
-		log.Printf("[%s] [%s] [%s] %s\n", msg.Time.Format(time.RFC3339), msg.Level, msg.Package, msg.Message)
+		log.Printf("[%s] [%s] %s\n", msg.Level, msg.Package, msg.Message)
 	}
 }
 
