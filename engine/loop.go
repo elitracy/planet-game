@@ -23,9 +23,9 @@ func RunGame(state *models.GameState) {
 	// render UI
 	// p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
 
-	grid := [][]ui.Pane{
-		{{0, "Top Left "}, {1, "Top Right"}},
-		{{2, "Here is a bunch of text inside the  \n I wish I knew!"}, {3, "Here is a bunch of text inside the  \n I wish I knew!"}},
+	grid := [][]tea.Model{
+		{ui.NewTitlePane("Top Left", 0), ui.NewTitlePane("Top Right", 1)},
+		{ui.NewTitlePane("Bottom Left", 2), ui.NewTitlePane("Bottom Right", 3)},
 	}
 
 	m := ui.Dashboard{

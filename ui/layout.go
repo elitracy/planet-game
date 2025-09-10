@@ -1,31 +1,50 @@
 package ui
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/logging"
 )
 
-type Pane struct {
-	Id    int
-	Label string
+type DashboardPane interface {
+	tea.Model
+	GetId() int
 }
 
-func (p Pane) Init() tea.Cmd                           { return nil }
-func (p Pane) Update(msg tea.Msg) (tea.Model, tea.Cmd) { return p, nil }
-func (p Pane) View() string                            { return p.Label }
+type BasePane struct {
+	id    int
+	title string
+}
+
+func (p BasePane) GetId() int {
+	return p.id
+}
+
+func (p BasePane) GetTitle() string {
+	return p.title
+}
 
 type Dashboard struct {
-	Grid      [][]Pane
+	Grid      [][]tea.Model
 	ActiveRow int
 	ActiveCol int
 }
 
-func (m Dashboard) Init() tea.Cmd { return nil }
+func (m Dashboard) Init() tea.Cmd {
+	var cmds []tea.Cmd
+
+	for r := range m.Grid {
+		for c := range m.Grid[r] {
+			cmds = append(cmds, m.Grid[r][c].Init())
+		}
+	}
+
+	return tea.Batch(cmds...)
+}
 
 func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -57,7 +76,28 @@ func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	}
-	return m, nil
+
+	for r := range m.Grid {
+		for c := range m.Grid[r] {
+			var cmd tea.Cmd
+			if r == m.ActiveRow && c == m.ActiveCol {
+				m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
+			} else {
+				// send specific messages for background tasks
+				switch msg.(type) {
+				case tickMsg:
+					logging.Log("Issusing tick msg", "LAYOUT")
+					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
+				}
+			}
+
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Dashboard) View() string {
@@ -74,76 +114,22 @@ func (m Dashboard) View() string {
 		Padding(1, 2).
 		Background(lipgloss.Color("235"))
 
-	prePaddingRender := make([][]string, len(m.Grid))
+	render := make([][]string, len(m.Grid))
 	for r := range m.Grid {
-		prePaddingRender[r] = make([]string, len(m.Grid[r]))
+		render[r] = make([]string, len(m.Grid[r]))
 		for c := range m.Grid[r] {
-			content := m.Grid[r][c].View()
 			if r == m.ActiveRow && c == m.ActiveCol {
-				prePaddingRender[r][c] = activeStyle.Render(content)
+				render[r][c] = activeStyle.Render(m.Grid[r][c].View())
 			} else {
-				prePaddingRender[r][c] = inactiveStyle.Render(content)
+				render[r][c] = inactiveStyle.Render(m.Grid[r][c].View())
 			}
-		}
-	}
-
-	maxRowWidth := 0
-	for r := range prePaddingRender {
-		rowWidth := 0
-		for c := range prePaddingRender[r] {
-			w := lipgloss.Width(prePaddingRender[r][c])
-			rowWidth += w
-		}
-		maxRowWidth = max(maxRowWidth, rowWidth)
-	}
-
-	// adjust padding for each cell to fit with max row width
-	rendered := make([][]string, len(m.Grid))
-	for r := range len(m.Grid) {
-		rendered[r] = make([]string, len(m.Grid[r]))
-		for c := range len(m.Grid[r]) {
-			content := m.Grid[r][c].View()
-
-			w := lipgloss.Width(prePaddingRender[r][c])
-
-			rowPadding := maxRowWidth - len(m.Grid[r])
-			paddingPerPane := rowPadding / w / 2
-
-			logging.Log(fmt.Sprintf("Row: %d", r), "LAYOUT")
-			logging.Log(fmt.Sprintf("Pre Padding Width: %d ", w), "LAYOUT")
-
-			if r == m.ActiveRow && c == m.ActiveCol {
-				rendered[r][c] = activeStyle.Copy().
-					PaddingLeft(paddingPerPane).
-					PaddingRight(paddingPerPane).
-					Render(content)
-			} else {
-				rendered[r][c] = inactiveStyle.Copy().
-					PaddingLeft(paddingPerPane).
-					PaddingRight(paddingPerPane).
-					Render(content)
-			}
-			logging.Log(fmt.Sprintf("Padding Width: %d ", lipgloss.Width(rendered[r][c])), "LAYOUT")
-
 		}
 	}
 
 	var rows []string
-	for r := range rendered {
-		for c := range rendered[r] {
-			w := lipgloss.Width(rendered[r][c])
-			h := lipgloss.Height(rendered[r][c])
-
-			rendered[r][c] = lipgloss.Place(
-				w,
-				h,
-				lipgloss.Left,
-				lipgloss.Top,
-				rendered[r][c],
-			)
-
-		}
-		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, rendered[r]...))
+	for r := range render {
+		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, render[r]...))
 	}
+
 	return lipgloss.JoinVertical(lipgloss.Left, rows...)
 }
