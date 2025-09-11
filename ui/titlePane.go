@@ -4,19 +4,20 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/logging"
 )
 
 type TitlePane struct {
 	BasePane
+	id    int
+	title string
 }
 
 func NewTitlePane(text string, id int) *TitlePane {
-	return &TitlePane{BasePane{title: text, id: id}}
+	return &TitlePane{title: text, id: id}
 }
 
-func (p TitlePane) Init() tea.Cmd { return tick(p.id) }
-func (p TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *TitlePane) Init() tea.Cmd { return tick(p.id) }
+func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tickMsg:
@@ -26,8 +27,9 @@ func (p TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			logging.Log("Innter escape", "LAYOUT")
 			return PopFocus(), nil
+		case "ctrl+c", "q":
+			return p, tea.Quit
 		}
 	}
 	return p, nil
@@ -39,6 +41,6 @@ func tick(id int) tea.Cmd {
 	return tea.Tick(time.Second, func(time.Time) tea.Msg { return tickMsg{id} })
 }
 
-func (p TitlePane) View() string { return p.title }
+func (p *TitlePane) View() string { return p.title }
 
 func (p TitlePane) GetId() int { return p.id }

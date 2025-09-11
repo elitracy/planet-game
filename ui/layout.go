@@ -1,42 +1,56 @@
 package ui
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/logging"
 )
 
-var FocusStack []tea.Model
-
-func PushFocus(pane tea.Model) (tea.Model, tea.Cmd) {
-	FocusStack = append(FocusStack, pane)
-	return pane, nil
-}
-
-func PopFocus() tea.Model {
-	if len(FocusStack) < 2 {
-		return FocusStack[0]
-	}
-
-	pane := FocusStack[len(FocusStack)-1]
-	FocusStack = FocusStack[:len(FocusStack)-1]
-	return pane
-}
-
-type DashboardPane interface {
-	tea.Model
-	GetId() int
-}
-
 type Dashboard struct {
+	id        int
+	title     string
 	Grid      [][]tea.Model
 	ActiveRow int
 	ActiveCol int
 }
 
-func (m Dashboard) Init() tea.Cmd {
+var FocusStack []tea.Model
+
+func PushFocus(pane tea.Model) {
+	FocusStack = append(FocusStack, pane)
+}
+
+func PopFocus() tea.Model {
+	if len(FocusStack) > 1 {
+		FocusStack = FocusStack[:len(FocusStack)-1]
+	}
+
+	pane := FocusStack[len(FocusStack)-1]
+	return pane
+}
+
+func (m *Dashboard) activePane() tea.Model {
+	if len(FocusStack) < 1 {
+		return m
+	}
+
+	return FocusStack[len(FocusStack)-1]
+}
+
+func (m Dashboard) GetId() int {
+	return m.id
+}
+
+func (m Dashboard) GetTitle() string {
+	return m.title
+}
+
+func (m *Dashboard) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
-	FocusStack = append(FocusStack, m)
+	PushFocus(m)
 
 	for r := range m.Grid {
 		for c := range m.Grid[r] {
@@ -47,15 +61,17 @@ func (m Dashboard) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			return PushFocus(m.Grid[m.ActiveRow][m.ActiveCol])
+			PushFocus(m.Grid[m.ActiveRow][m.ActiveCol])
 		case "esc":
+			PopFocus()
+			return m, nil
 		case "h":
 			if m.ActiveCol > 0 {
 				m.ActiveCol--
@@ -92,7 +108,7 @@ func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
 			} else {
 				// send specific messages for background tasks
-				switch msg.(type) {
+				switch msg := msg.(type) {
 				case tickMsg:
 					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
 				}
@@ -104,10 +120,12 @@ func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, tea.Batch(cmds...)
+	active := m.activePane()
+	logging.Log(fmt.Sprintf("Active Pane: %v", active.(BasePane).GetId()), "NAV")
+	return active, tea.Batch(cmds...)
 }
 
-func (m Dashboard) View() string {
+func (m *Dashboard) View() string {
 
 	activeStyle := lipgloss.NewStyle().
 		Border(lipgloss.ThickBorder()).
@@ -139,4 +157,14 @@ func (m Dashboard) View() string {
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, rows...)
+}
+
+func NewDashboard(grid [][]tea.Model, activeRow, activeCol, id int, title string) Dashboard {
+	return Dashboard{
+		Grid:      grid,
+		ActiveRow: activeRow,
+		ActiveCol: activeCol,
+		id:        id,
+		title:     title,
+	}
 }

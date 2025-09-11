@@ -28,13 +28,9 @@ func RunGame(state *models.GameState) {
 		{ui.NewTitlePane("Bottom Left", 2), ui.NewTitlePane("Bottom Right", 3)},
 	}
 
-	m := ui.Dashboard{
-		Grid:      grid,
-		ActiveRow: 0,
-		ActiveCol: 0,
-	}
+	m := ui.NewDashboard(grid, 0, 0, 0, "Dashboard")
 
-	p := tea.NewProgram(m)
+	p := tea.NewProgram(&m)
 
 	go func() {
 		if _, err := p.Run(); err != nil {
