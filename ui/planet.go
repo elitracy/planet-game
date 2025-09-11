@@ -13,7 +13,7 @@ type planetListModel struct {
 	selected map[int]struct{}
 }
 
-func CreatePlanetListInitialModel(planets []*models.Planet) planetListModel {
+func NewPlanetList(planets []*models.Planet) planetListModel {
 	return planetListModel{
 		choices:  planets,
 		selected: make(map[int]struct{}),

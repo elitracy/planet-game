@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -22,11 +21,14 @@ func (p TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tickMsg:
 		if msg.id == p.id {
-			logging.Log(fmt.Sprintf("Pane: %d @ %d", p.id, msg.id), "UI")
 			return p, tick(p.id)
 		}
 	case tea.KeyMsg:
-		logging.Log("Key Pressed: "+msg.String(), "UI")
+		switch msg.String() {
+		case "esc":
+			logging.Log("Innter escape", "LAYOUT")
+			return PopFocus(), nil
+		}
 	}
 	return p, nil
 }

@@ -3,25 +3,28 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/logging"
 )
+
+var FocusStack []tea.Model
+
+func PushFocus(pane tea.Model) (tea.Model, tea.Cmd) {
+	FocusStack = append(FocusStack, pane)
+	return pane, nil
+}
+
+func PopFocus() tea.Model {
+	if len(FocusStack) < 2 {
+		return FocusStack[0]
+	}
+
+	pane := FocusStack[len(FocusStack)-1]
+	FocusStack = FocusStack[:len(FocusStack)-1]
+	return pane
+}
 
 type DashboardPane interface {
 	tea.Model
 	GetId() int
-}
-
-type BasePane struct {
-	id    int
-	title string
-}
-
-func (p BasePane) GetId() int {
-	return p.id
-}
-
-func (p BasePane) GetTitle() string {
-	return p.title
 }
 
 type Dashboard struct {
@@ -32,6 +35,8 @@ type Dashboard struct {
 
 func (m Dashboard) Init() tea.Cmd {
 	var cmds []tea.Cmd
+
+	FocusStack = append(FocusStack, m)
 
 	for r := range m.Grid {
 		for c := range m.Grid[r] {
@@ -48,6 +53,9 @@ func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "enter":
+			return PushFocus(m.Grid[m.ActiveRow][m.ActiveCol])
+		case "esc":
 		case "h":
 			if m.ActiveCol > 0 {
 				m.ActiveCol--
@@ -86,7 +94,6 @@ func (m Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// send specific messages for background tasks
 				switch msg.(type) {
 				case tickMsg:
-					logging.Log("Issusing tick msg", "LAYOUT")
 					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
 				}
 			}
