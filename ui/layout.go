@@ -1,11 +1,8 @@
 package ui
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/logging"
 )
 
 type Dashboard struct {
@@ -31,9 +28,9 @@ func PopFocus() tea.Model {
 	return pane
 }
 
-func (m *Dashboard) activePane() tea.Model {
-	if len(FocusStack) < 1 {
-		return m
+func ActivePane() tea.Model {
+	if len(FocusStack) < 2 {
+		return FocusStack[0]
 	}
 
 	return FocusStack[len(FocusStack)-1]
@@ -49,8 +46,6 @@ func (m Dashboard) GetTitle() string {
 
 func (m *Dashboard) Init() tea.Cmd {
 	var cmds []tea.Cmd
-
-	PushFocus(m)
 
 	for r := range m.Grid {
 		for c := range m.Grid[r] {
@@ -120,8 +115,7 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	active := m.activePane()
-	logging.Log(fmt.Sprintf("Active Pane: %v", active.(BasePane).GetId()), "NAV")
+	active := ActivePane()
 	return active, tea.Batch(cmds...)
 }
 
@@ -130,14 +124,12 @@ func (m *Dashboard) View() string {
 	activeStyle := lipgloss.NewStyle().
 		Border(lipgloss.ThickBorder()).
 		BorderForeground(lipgloss.Color("212")).
-		Padding(1, 2).
-		Background(lipgloss.Color("235"))
+		Padding(1, 2)
 
 	inactiveStyle := lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240")).
-		Padding(1, 2).
-		Background(lipgloss.Color("235"))
+		Padding(1, 2)
 
 	render := make([][]string, len(m.Grid))
 	for r := range m.Grid {

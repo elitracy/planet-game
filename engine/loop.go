@@ -24,11 +24,12 @@ func RunGame(state *models.GameState) {
 	// p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
 
 	grid := [][]tea.Model{
-		{ui.NewTitlePane("Top Left", 0), ui.NewTitlePane("Top Right", 1)},
-		{ui.NewTitlePane("Bottom Left", 2), ui.NewTitlePane("Bottom Right", 3)},
+		{ui.NewCreateColonyPane("Create Colony", 1, state.StarSystems[0].Planets[0]), ui.NewTitlePane("Top Right", 2)},
+		{ui.NewTitlePane("Bottom Left", 3), ui.NewTitlePane("Bottom Right", 4)},
 	}
 
 	m := ui.NewDashboard(grid, 0, 0, 0, "Dashboard")
+	ui.PushFocus(&m)
 
 	p := tea.NewProgram(&m)
 
@@ -47,6 +48,8 @@ func RunGame(state *models.GameState) {
 			logging.Log("UI exited core loop", "UI")
 			return
 		default:
+			logging.Log(fmt.Sprintf("Active Pane: %d", ui.ActivePane().(ui.BasePane).GetId()), "LOOP")
+
 			// advance time
 			state.CurrentTick++
 			logging.Log("TICK: "+strconv.Itoa(state.CurrentTick), "CORE")

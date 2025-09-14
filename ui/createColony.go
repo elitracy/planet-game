@@ -1,0 +1,194 @@
+package ui
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/bubbles/cursor"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/models"
+)
+
+var (
+	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	cursorStyle         = focusedStyle
+	noStyle             = lipgloss.NewStyle()
+	helpStyle           = blurredStyle
+	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+
+	focusedButton = focusedStyle.Render("[ Submit ]")
+	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+)
+
+type CreateColonyPane struct {
+	BasePane
+	id     int
+	title  string
+	planet *models.Planet
+
+	focusIndex int
+	inputs     []textinput.Model
+	cursorMode cursor.Mode
+}
+
+func (p *CreateColonyPane) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	switch msg := msg.(type) {
+	case tickMsg:
+		if msg.id == p.id {
+			return p, tick(p.id)
+		}
+	case tea.KeyMsg:
+		if ActivePane().(BasePane).GetId() == p.GetId() {
+			switch msg.String() {
+			case "enter":
+				if p.cursorMode > 0 {
+					p.cursorMode--
+				}
+
+				if p.focusIndex == len(p.inputs) {
+					p.planet.ColonyName = p.inputs[0].Value()
+				}
+				return p, nil
+			case "esc":
+				if p.cursorMode < cursor.CursorHide {
+					p.cursorMode++
+				}
+
+				if p.cursorMode >= cursor.CursorHide {
+					return PopFocus(), nil
+				}
+
+				cmds := make([]tea.Cmd, len(p.inputs))
+				for i := range p.inputs {
+					cmds[i] = p.inputs[i].Cursor.SetMode(p.cursorMode)
+				}
+				return p, tea.Batch(cmds...)
+			// nav
+			case "j":
+				if p.focusIndex < len(p.inputs) && p.cursorMode > cursor.CursorBlink {
+					p.focusIndex++
+					p.updateCursorStyles()
+				}
+			case "k":
+				if p.focusIndex > 0 && p.cursorMode > cursor.CursorBlink {
+					p.focusIndex--
+					p.updateCursorStyles()
+				}
+
+			case "ctrl+c", "q":
+				return p, tea.Quit
+			}
+		}
+	}
+
+	if ActivePane().(BasePane).GetId() == p.GetId() && p.cursorMode == cursor.CursorBlink {
+		cmd := p.updateInputs(msg)
+		return p, cmd
+	}
+
+	return p, nil
+
+}
+
+func (p *CreateColonyPane) updateCursorStyles() (tea.Model, tea.Cmd) {
+
+	cmds := make([]tea.Cmd, len(p.inputs))
+	for i := 0; i <= len(p.inputs)-1; i++ {
+		if i == p.focusIndex {
+			// Set focused state
+			cmds[i] = p.inputs[i].Focus()
+			p.inputs[i].PromptStyle = focusedStyle
+			p.inputs[i].TextStyle = focusedStyle
+			continue
+		}
+		// Remove focused state
+		p.inputs[i].Blur()
+		p.inputs[i].PromptStyle = noStyle
+		p.inputs[i].TextStyle = noStyle
+	}
+
+	return p, tea.Batch(cmds...)
+}
+
+func (p *CreateColonyPane) updateInputs(msg tea.Msg) tea.Cmd {
+	cmds := make([]tea.Cmd, len(p.inputs))
+
+	for i := range p.inputs {
+		p.inputs[i], cmds[i] = p.inputs[i].Update(msg)
+	}
+
+	return tea.Batch(cmds...)
+}
+
+func (p *CreateColonyPane) View() string {
+	var b strings.Builder
+
+	for i := range p.inputs {
+		b.WriteString(p.inputs[i].View())
+		if i < len(p.inputs)-1 {
+			b.WriteRune('\n')
+		}
+	}
+
+	button := &blurredButton
+	if p.focusIndex == len(p.inputs) {
+		button = &focusedButton
+	}
+	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
+
+	b.WriteString(helpStyle.Render("cursor mode is "))
+	b.WriteString(cursorModeHelpStyle.Render(p.cursorMode.String()))
+	b.WriteString(helpStyle.Render(" (<esc> to change style)"))
+
+	return b.String()
+}
+
+func (p CreateColonyPane) GetId() int       { return p.id }
+func (p CreateColonyPane) GetTitle() string { return p.title }
+
+func NewCreateColonyPane(title string, id int, planet *models.Planet) *CreateColonyPane {
+
+	p := &CreateColonyPane{
+		inputs:     make([]textinput.Model, 4),
+		title:      title,
+		id:         id,
+		planet:     planet,
+		cursorMode: cursor.CursorHide,
+	}
+
+	var t textinput.Model
+	for i := range p.inputs {
+		t = textinput.New()
+		t.Cursor.Style = cursorStyle
+		t.CharLimit = 32
+
+		switch i {
+		case 0:
+			t.Placeholder = "Colony Name"
+			t.Focus()
+			t.PromptStyle = focusedStyle
+			t.TextStyle = focusedStyle
+		case 1:
+			t.Placeholder = "Food"
+			t.CharLimit = 64
+		case 2:
+			t.Placeholder = "Minerals"
+			t.CharLimit = 64
+		case 3:
+			t.Placeholder = "Energy"
+			t.CharLimit = 64
+		}
+
+		p.inputs[i] = t
+	}
+
+	return p
+}

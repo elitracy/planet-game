@@ -43,4 +43,5 @@ func tick(id int) tea.Cmd {
 
 func (p *TitlePane) View() string { return p.title }
 
-func (p TitlePane) GetId() int { return p.id }
+func (p TitlePane) GetId() int       { return p.id }
+func (p TitlePane) GetTitle() string { return p.title }

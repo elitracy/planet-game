@@ -9,16 +9,17 @@
     [ ] bubbletea/lipgloss panes
 [ ] core game 
     [ ] start player at (0,0)
-    [ ] gets list of planets in system
+    [ ] gets list of planets in system (planet travel compnent, planet info component)
      > chooses planet
-    [ ] player creates first colony
+     > travels to planet (travel status component)
+    [ ] player creates first colony (colony create component, colony info component)
      > name
      > resources
      > population
     [ ] player travels to new planet
      > chooses planet
      > travel time
-    [ ] player is recieving reports from first planet/colony
+    [ ] player is recieving reports from first planet/colony (message queue component)
      > makes decisions while moving
     [ ] player gets to new colony repeat
 

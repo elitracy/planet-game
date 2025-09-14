@@ -10,7 +10,8 @@ import (
 
 // planets are a "colony"
 type Planet struct {
-	Name                 string // colony name
+	Name                 string
+	ColonyName           string
 	Population           int
 	PopulationGrowthRate int
 	Players              []*Player
