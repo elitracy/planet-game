@@ -7,7 +7,7 @@ import (
 )
 
 type TitlePane struct {
-	BasePane
+	Pane
 	id    int
 	title string
 }

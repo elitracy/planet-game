@@ -1,6 +1,6 @@
 package ui
 
-type BasePane interface {
+type Pane interface {
 	GetId() int
 	GetTitle() string
 }

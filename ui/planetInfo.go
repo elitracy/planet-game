@@ -9,7 +9,7 @@ import (
 )
 
 type PlanetInfoPane struct {
-	BasePane
+	Pane
 	id     int
 	title  string
 	planet *models.Planet

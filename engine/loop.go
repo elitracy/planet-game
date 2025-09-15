@@ -22,8 +22,20 @@ func RunGame(state *models.GameState) {
 	// render UI
 	// p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
 
+	origin := state.Player
+	dest := state.StarSystems[0].Planets[0]
 	grid := [][]tea.Model{
 		{ui.NewPlanetList(state.StarSystems[0].Planets, 2, state.StarSystems[0].Name)},
+		{ui.NewTravelStatusPane("Travel",
+			1,
+			origin.Position,
+			dest.Position,
+			"Player",
+			dest.Name,
+			state.CurrentTick,
+			10,
+			state,
+		)},
 	}
 
 	m := ui.NewDashboard(grid, 0, 0, 0, "Dashboard")

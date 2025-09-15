@@ -10,7 +10,7 @@ import (
 )
 
 type PlayerInfoPane struct {
-	BasePane
+	Pane
 	id        int
 	title     string
 	gamestate *models.GameState

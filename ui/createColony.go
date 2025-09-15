@@ -16,7 +16,7 @@ var (
 )
 
 type CreateColonyPane struct {
-	BasePane
+	Pane
 	id     int
 	title  string
 	planet *models.Planet
@@ -38,7 +38,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tick(p.id)
 		}
 	case tea.KeyMsg:
-		if ActivePane().(BasePane).GetId() == p.GetId() {
+		if ActivePane().(Pane).GetId() == p.GetId() {
 			switch msg.String() {
 			case "enter":
 				if p.focusIndex == len(p.inputs) {
@@ -83,7 +83,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if ActivePane().(BasePane).GetId() == p.GetId() && p.cursorMode == cursor.CursorBlink {
+	if ActivePane().(Pane).GetId() == p.GetId() && p.cursorMode == cursor.CursorBlink {
 		cmd := p.updateInputs(msg)
 		return p, cmd
 	}
