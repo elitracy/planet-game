@@ -15,7 +15,7 @@ import (
 
 const TICK_SLEEP = time.Second
 
-var PLAYER_START_LOC = models.Location{Coordinates: models.Coordinates{X: 0, Y: 0}}
+var PLAYER_START_LOC = models.Position{0, 0, 0}
 
 func RunGame(state *models.GameState) {
 	quit := make(chan struct{})
@@ -24,8 +24,7 @@ func RunGame(state *models.GameState) {
 	// p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
 
 	grid := [][]tea.Model{
-		{ui.NewCreateColonyPane("Create Colony", 1, state.StarSystems[0].Planets[0]), ui.NewTitlePane("Top Right", 2)},
-		{ui.NewTitlePane("Bottom Left", 3), ui.NewTitlePane("Bottom Right", 4)},
+		{ui.NewPlanetList(state.StarSystems[0].Planets, 2, state.StarSystems[0].Name)},
 	}
 
 	m := ui.NewDashboard(grid, 0, 0, 0, "Dashboard")

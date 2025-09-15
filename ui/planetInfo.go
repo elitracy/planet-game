@@ -19,23 +19,37 @@ func (p *PlanetInfoPane) Init() tea.Cmd { return tick(p.id) }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tickMsg:
+	case TickMsg:
 		if msg.id == p.id {
 			return p, tick(p.id)
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "c":
+			pane := NewCreateColonyPane(
+				"Colonize: "+p.planet.Name,
+				1000,
+				p.planet,
+			)
+			PushFocus(pane)
+			return ActivePane(), nil
+
 		case "esc":
 			return PopFocus(), nil
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
+
+	default:
 	}
 	return p, nil
 }
 
 func (p *PlanetInfoPane) View() string {
-	title := fmt.Sprintf("%s", p.planet.Name)
+	title := p.planet.Name
+	if p.planet.ColonyName != "" {
+		title += Theme.blurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
+	}
 
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
 
@@ -61,19 +75,34 @@ func (p *PlanetInfoPane) View() string {
 	population = defaultStyle.Render(population)
 
 	resources = lipgloss.NewStyle().
-		BorderRight(true).
+		PaddingRight(1).
 		Inherit(defaultStyle).
 		Render(resources)
 	constructions = defaultStyle.Render(constructions)
 
 	info := lipgloss.JoinHorizontal(lipgloss.Top, resources, constructions)
 	info = lipgloss.NewStyle().
-		PaddingTop(1).
 		Render(info)
 
-	container := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
+	infoContainer := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
 
-	return container
+	colonizeButton := "Colonize"
+	colonizeButton = lipgloss.NewStyle().
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		Render(colonizeButton)
+
+	changeAllocationsButton := "Change Allocations"
+	changeAllocationsButton = lipgloss.NewStyle().
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		Render(changeAllocationsButton)
+
+	buttons := lipgloss.JoinHorizontal(lipgloss.Center, colonizeButton, changeAllocationsButton)
+
+	content := lipgloss.JoinVertical(lipgloss.Center, infoContainer, buttons)
+
+	return content
 
 }
 

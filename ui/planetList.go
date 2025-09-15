@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/models"
 )
 
 type PlanetList struct {
 	choices  []*models.Planet
 	cursor   int
-	selected map[int]struct{}
+	selected int
 	id       int
 	title    string
 }
@@ -18,7 +19,7 @@ type PlanetList struct {
 func NewPlanetList(planets []*models.Planet, id int, title string) PlanetList {
 	return PlanetList{
 		choices:  planets,
-		selected: make(map[int]struct{}),
+		selected: -1,
 		id:       id,
 		title:    title,
 	}
@@ -32,53 +33,65 @@ func (p PlanetList) GetTitle() string {
 	return p.title
 }
 
-func (m PlanetList) Init() tea.Cmd {
+func (p PlanetList) Init() tea.Cmd {
 	return nil
 }
 
-func (m PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
+			if p.cursor > 0 {
+				p.cursor--
 			}
 		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
+			if p.cursor < len(p.choices)-1 {
+				p.cursor++
 			}
 		case " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
+			p.selected = p.cursor
+
+			pane := &PlanetInfoPane{
+				id:     1000,
+				title:  "Planet Info",
+				planet: p.choices[p.cursor],
 			}
+			PushFocus(pane)
+			return ActivePane(), nil
+
 		case "esc":
 			return PopFocus(), nil
 		case "ctrl+c", "q":
-			return m, tea.Quit
+			return p, tea.Quit
 		}
 	}
-	return m, nil
+	return p, nil
 }
 
-func (m PlanetList) View() string {
+func (p PlanetList) View() string {
 	s := "Available Planets:\n"
 
-	for i, choice := range m.choices {
+	for i, choice := range p.choices {
 		cursor := " "
-		if m.cursor == i {
+		if p.cursor == i {
 			cursor = ">"
 		}
 
 		checked := " "
-		if _, ok := m.selected[i]; ok {
+		if p.selected == i {
 			checked = "x"
 		}
 
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice.Name)
+		s += fmt.Sprintf("%s [%s] %s", cursor, checked, choice.Name)
+
+		if choice.ColonyName != "" {
+			colony := fmt.Sprintf(" (%s)", choice.ColonyName)
+			colony = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(colony)
+			s += colony
+		}
+
+		s += "\n"
 	}
 	return s
 }

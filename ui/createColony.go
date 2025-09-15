@@ -7,20 +7,12 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/models"
 )
 
 var (
-	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	cursorStyle         = focusedStyle
-	noStyle             = lipgloss.NewStyle()
-	helpStyle           = blurredStyle
-	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
-
-	focusedButton = focusedStyle.Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+	focusedButton = Theme.focusedStyle.Render("[ Submit ]")
+	blurredButton = fmt.Sprintf("[ %s ]", Theme.blurredStyle.Render("Submit"))
 )
 
 type CreateColonyPane struct {
@@ -41,7 +33,7 @@ func (p *CreateColonyPane) Init() tea.Cmd {
 func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tickMsg:
+	case TickMsg:
 		if msg.id == p.id {
 			return p, tick(p.id)
 		}
@@ -49,13 +41,15 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if ActivePane().(BasePane).GetId() == p.GetId() {
 			switch msg.String() {
 			case "enter":
+				if p.focusIndex == len(p.inputs) {
+					p.planet.ColonyName = p.inputs[0].Value()
+					return PopFocus(), nil
+				}
+
 				if p.cursorMode > 0 {
 					p.cursorMode--
 				}
 
-				if p.focusIndex == len(p.inputs) {
-					p.planet.ColonyName = p.inputs[0].Value()
-				}
 				return p, nil
 			case "esc":
 				if p.cursorMode < cursor.CursorHide {
@@ -105,14 +99,14 @@ func (p *CreateColonyPane) updateCursorStyles() (tea.Model, tea.Cmd) {
 		if i == p.focusIndex {
 			// Set focused state
 			cmds[i] = p.inputs[i].Focus()
-			p.inputs[i].PromptStyle = focusedStyle
-			p.inputs[i].TextStyle = focusedStyle
+			p.inputs[i].PromptStyle = Theme.focusedStyle
+			p.inputs[i].TextStyle = Theme.focusedStyle
 			continue
 		}
 		// Remove focused state
 		p.inputs[i].Blur()
-		p.inputs[i].PromptStyle = noStyle
-		p.inputs[i].TextStyle = noStyle
+		p.inputs[i].PromptStyle = Theme.noStyle
+		p.inputs[i].TextStyle = Theme.noStyle
 	}
 
 	return p, tea.Batch(cmds...)
@@ -144,9 +138,9 @@ func (p *CreateColonyPane) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	b.WriteString(helpStyle.Render("cursor mode is "))
-	b.WriteString(cursorModeHelpStyle.Render(p.cursorMode.String()))
-	b.WriteString(helpStyle.Render(" (<esc> to change style)"))
+	b.WriteString(Theme.helpStyle.Render("cursor mode is "))
+	b.WriteString(Theme.cursorModeHelpStyle.Render(p.cursorMode.String()))
+	b.WriteString(Theme.helpStyle.Render(" (<esc> to change style)"))
 
 	return b.String()
 }
@@ -161,30 +155,35 @@ func NewCreateColonyPane(title string, id int, planet *models.Planet) *CreateCol
 		title:      title,
 		id:         id,
 		planet:     planet,
-		cursorMode: cursor.CursorHide,
+		cursorMode: cursor.CursorStatic,
 	}
 
 	var t textinput.Model
 	for i := range p.inputs {
 		t = textinput.New()
-		t.Cursor.Style = cursorStyle
+		t.Cursor.Style = Theme.cursorStyle
 		t.CharLimit = 32
 
 		switch i {
 		case 0:
 			t.Placeholder = "Colony Name"
+			t.CharLimit = 64
+			t.Width = 20
 			t.Focus()
-			t.PromptStyle = focusedStyle
-			t.TextStyle = focusedStyle
+			t.PromptStyle = Theme.focusedStyle
+			t.TextStyle = Theme.focusedStyle
 		case 1:
 			t.Placeholder = "Food"
 			t.CharLimit = 64
+			t.Width = 20
 		case 2:
 			t.Placeholder = "Minerals"
 			t.CharLimit = 64
+			t.Width = 20
 		case 3:
 			t.Placeholder = "Energy"
 			t.CharLimit = 64
+			t.Width = 20
 		}
 
 		p.inputs[i] = t

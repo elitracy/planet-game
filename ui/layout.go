@@ -115,8 +115,7 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	active := ActivePane()
-	return active, tea.Batch(cmds...)
+	return ActivePane(), tea.Batch(cmds...)
 }
 
 func (m *Dashboard) View() string {
