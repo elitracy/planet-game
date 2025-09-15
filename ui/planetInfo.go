@@ -86,13 +86,13 @@ func (p *PlanetInfoPane) View() string {
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
 
-	colonizeButton := "Colonize"
+	colonizeButton := Theme.focusedStyle.Underline(true).Render("C") + "olonize"
 	colonizeButton = lipgloss.NewStyle().
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(colonizeButton)
 
-	changeAllocationsButton := "Change Allocations"
+	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
 	changeAllocationsButton = lipgloss.NewStyle().
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).

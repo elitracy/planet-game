@@ -1,10 +1,8 @@
 package main
 
 import (
-	// "fmt"
-
 	"github.com/elitracy/planets/engine"
-	// "github.com/elitracy/planets/logging"
+	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -20,9 +18,11 @@ func main() {
 		gameState.StarSystems = append(gameState.StarSystems, &system)
 	}
 
+	logging.Log("State Initialized ✅", "MAIN")
+
 	gameState.Player = Player{Position{0, 0, 0}}
 
-	// logging.Log(fmt.Sprint(gameState.StarSystems), "MAIN")
+	logging.Log("Player Initialized ✅", "MAIN")
 
 	engine.RunGame(&gameState)
 }

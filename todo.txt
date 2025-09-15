@@ -8,10 +8,10 @@
 [ ] UI layouts
     [ ] bubbletea/lipgloss panes
 [ ] core game 
-    [ ] start player at (0,0)
-    [ ] gets list of planets in system (planet travel compnent, planet info component)
-     > chooses planet
-     > travels to planet (travel status component)
+    [x] start player at (0,0)
+    [x] gets list of planets in system (planet travel compnent, planet info component)
+     > [x] chooses planet
+     > [ ] travels to planet (travel status component)
     [ ] player creates first colony (colony create component, colony info component)
      > name
      > resources

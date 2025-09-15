@@ -76,14 +76,10 @@ func (p PlanetList) View() string {
 		cursor := " "
 		if p.cursor == i {
 			cursor = ">"
+			s += Theme.focusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
+		} else {
+			s += fmt.Sprintf("%s %s", cursor, choice.Name)
 		}
-
-		checked := " "
-		if p.selected == i {
-			checked = "x"
-		}
-
-		s += fmt.Sprintf("%s [%s] %s", cursor, checked, choice.Name)
 
 		if choice.ColonyName != "" {
 			colony := fmt.Sprintf(" (%s)", choice.ColonyName)

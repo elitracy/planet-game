@@ -3,7 +3,6 @@ package engine
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -41,17 +40,16 @@ func RunGame(state *models.GameState) {
 		close(quit)
 	}()
 
+	logging.Log("Layout Initialized ✅", "LOOP")
+
 	for {
 		select {
 		case <-quit:
 			logging.Log("UI exited core loop", "UI")
 			return
 		default:
-			logging.Log(fmt.Sprintf("Active Pane: %d", ui.ActivePane().(ui.BasePane).GetId()), "LOOP")
-
 			// advance time
 			state.CurrentTick++
-			logging.Log("TICK: "+strconv.Itoa(state.CurrentTick), "CORE")
 
 			// update systems
 			systems.TickConstructions(state)
