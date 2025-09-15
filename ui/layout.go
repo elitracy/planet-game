@@ -104,7 +104,7 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				// send specific messages for background tasks
 				switch msg := msg.(type) {
-				case tickMsg:
+				case TickMsg:
 					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
 				}
 			}

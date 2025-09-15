@@ -7,29 +7,39 @@ import (
 	"github.com/elitracy/planets/models"
 )
 
-type planetListModel struct {
+type PlanetList struct {
 	choices  []*models.Planet
 	cursor   int
 	selected map[int]struct{}
+	id       int
+	title    string
 }
 
-func NewPlanetList(planets []*models.Planet) planetListModel {
-	return planetListModel{
+func NewPlanetList(planets []*models.Planet, id int, title string) PlanetList {
+	return PlanetList{
 		choices:  planets,
 		selected: make(map[int]struct{}),
+		id:       id,
+		title:    title,
 	}
 }
 
-func (m planetListModel) Init() tea.Cmd {
+func (p PlanetList) GetId() int {
+	return p.id
+}
+
+func (p PlanetList) GetTitle() string {
+	return p.title
+}
+
+func (m PlanetList) Init() tea.Cmd {
 	return nil
 }
 
-func (m planetListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
@@ -38,19 +48,23 @@ func (m planetListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.choices)-1 {
 				m.cursor++
 			}
-		case "enter", " ":
+		case " ":
 			_, ok := m.selected[m.cursor]
 			if ok {
 				delete(m.selected, m.cursor)
 			} else {
 				m.selected[m.cursor] = struct{}{}
 			}
+		case "esc":
+			return PopFocus(), nil
+		case "ctrl+c", "q":
+			return m, tea.Quit
 		}
 	}
 	return m, nil
 }
 
-func (m planetListModel) View() string {
+func (m PlanetList) View() string {
 	s := "Available Planets:\n"
 
 	for i, choice := range m.choices {
@@ -66,8 +80,6 @@ func (m planetListModel) View() string {
 
 		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice.Name)
 	}
-
-	s += "\nPress q or C-c to quit.\n"
 	return s
 }
 

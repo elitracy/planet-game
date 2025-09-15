@@ -38,10 +38,11 @@ const STARTING_ENERGY_CONSUMPTION_RATE = 1
 type GameState struct {
 	CurrentTick int
 	StarSystems []*StarSystem
+	Player Player
 }
 
-func (gs *GameState) CreatePlayer(location Location) Player {
-	player := Player{Location: location}
+func (gs *GameState) CreatePlayer(location Position) Player {
+	player := Player{Position: location}
 	return player
 }
 
@@ -53,31 +54,30 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 	// remove system name from list
 	system_names = append(system_names[:system_name_idx], system_names[system_name_idx+1:]...)
 
-	system_location := Location{
-		Coordinates: Coordinates{
+	system_location := Position{
 			X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
 			Y: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
-		},
+			Z: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
 	}
 
-	system := StarSystem{Name: system_name, Planets: []*Planet{}, Location: system_location}
+	system := StarSystem{Name: system_name, Planets: []*Planet{}, Position: system_location}
 
 	num_planets := rand.Intn(MAX_PLANETS-MIN_PLANETS) + MIN_PLANETS
 	for i := range num_planets {
 
 		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
 
-		planet_location := Location{
-			Coordinates: Coordinates{
+		planet_location := Position{
 				X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
 				Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
-			},
+				Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
 		}
 
 		planet := CreatePlanet(
 			system_name+"-"+planet_names[i],
-			planet_location.Coordinates.X,
-			planet_location.Coordinates.Y,
+			planet_location.X,
+			planet_location.Y,
+			planet_location.Z,
 			starting_population,
 			STARTING_POPULATION_GROWTH_RATE,
 			STARTING_FOOD,

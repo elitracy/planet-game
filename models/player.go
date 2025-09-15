@@ -7,18 +7,18 @@ import (
 const PLAYER_PAYLOAD_SPEED = 10
 
 type Player struct {
-	Location
+	Position
 }
 
 // only send to planets for now
 func (p *Player) SendMessagePayload(msg string, planet *Planet, currentTick int) {
 
-	distance := Distance(p.Location, planet.Location)
+	distance := Distance(p.Position, planet.Position)
 
 	payload := Payload[string]{
 		Data:        msg,
-		Origin:      p.Location,
-		Destination: planet.Location,
+		Origin:      p.Position,
+		Destination: planet.Position,
 		TimeSent:    currentTick,
 		TimeArrival: int(distance / PLAYER_PAYLOAD_SPEED),
 		Arrived:     false,
@@ -30,12 +30,12 @@ func (p *Player) SendMessagePayload(msg string, planet *Planet, currentTick int)
 // only send to planets for now
 func (p *Player) SendResourcePayload(resource resources.Resource, planet *Planet, currentTick int) {
 
-	distance := Distance(p.Location, planet.Location)
+	distance := Distance(p.Position, planet.Position)
 
 	payload := Payload[resources.Resource]{
 		Data:        resource,
-		Origin:      p.Location,
-		Destination: planet.Location,
+		Origin:      p.Position,
+		Destination: planet.Position,
 		TimeSent:    currentTick,
 		TimeArrival: int(distance / PLAYER_PAYLOAD_SPEED),
 		Arrived:     false,

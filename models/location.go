@@ -5,29 +5,20 @@ import (
 	"math"
 )
 
-type Coordinates struct {
+type Position struct {
 	X int
 	Y int
+	Z int
 }
 
-func (c *Coordinates) String() string {
-	var output string
-	output += fmt.Sprintf("(%d,%d)", c.X, c.Y)
-	return output
-}
-
-type Location struct {
-	Coordinates Coordinates
-}
-
-func (l *Location) String() string {
-	return l.Coordinates.String()
+func (l Position) String() string {
+	return fmt.Sprintf("(%d, %d, %d)", l.X, l.Y, l.Z)
 }
 
 // l2 - l1 btw
-func Distance(l1 Location, l2 Location) float64 {
+func Distance(l1 Position, l2 Position) float64 {
 	euclidian_distance := math.Sqrt(
-		math.Pow(float64(l2.Coordinates.X-l1.Coordinates.X), 2) + math.Pow(float64(l2.Coordinates.Y-l1.Coordinates.Y), 2),
+		math.Pow(float64(l2.X-l1.X), 2) + math.Pow(float64(l2.Y-l1.Y), 2) + math.Pow(float64(l2.Z-l1.Z), 2),
 	)
 
 	return euclidian_distance

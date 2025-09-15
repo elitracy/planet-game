@@ -20,6 +20,8 @@ func main() {
 		gameState.StarSystems = append(gameState.StarSystems, &system)
 	}
 
+	gameState.Player = Player{Position{0, 0, 0}}
+
 	// logging.Log(fmt.Sprint(gameState.StarSystems), "MAIN")
 
 	engine.RunGame(&gameState)

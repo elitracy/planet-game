@@ -1,8 +1,6 @@
 package systems
 
 import (
-	// "fmt"
-
 	"github.com/elitracy/planets/models"
 )
 

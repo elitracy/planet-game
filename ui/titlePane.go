@@ -20,7 +20,7 @@ func (p *TitlePane) Init() tea.Cmd { return tick(p.id) }
 func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tickMsg:
+	case TickMsg:
 		if msg.id == p.id {
 			return p, tick(p.id)
 		}
@@ -35,10 +35,10 @@ func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-type tickMsg struct{ id int }
+type TickMsg struct{ id int }
 
 func tick(id int) tea.Cmd {
-	return tea.Tick(time.Second, func(time.Time) tea.Msg { return tickMsg{id} })
+	return tea.Tick(time.Second, func(time.Time) tea.Msg { return TickMsg{id} })
 }
 
 func (p *TitlePane) View() string { return p.title }

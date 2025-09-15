@@ -18,7 +18,7 @@ type Planet struct {
 	Resources
 	Stabilities
 	Constructions
-	Location
+	Position
 	PlanetPayloads
 }
 
@@ -55,7 +55,7 @@ func (p Planet) GetTotalSolarGridProduction() int {
 func (p Planet) String() string {
 	var output string
 
-	output += fmt.Sprintf("🪐 %s [%d, %d]\n", p.Name, p.Location.Coordinates.X, p.Location.Coordinates.Y)
+	output += fmt.Sprintf("🪐 %s %v\n", p.Name, p.Position)
 	output += fmt.Sprintf("| Population: %d @ %d\n", p.Population, p.PopulationGrowthRate)
 	output += fmt.Sprintf("%v\n", p.Resources)
 	output += fmt.Sprintf("%v\n", p.Constructions)
@@ -65,11 +65,11 @@ func (p Planet) String() string {
 	return output
 }
 
-func CreatePlanet(name string, x, y, pop, pop_growth_rate, initial_food, initial_mineral, intital_energy, initial_food_rate, initial_mineral_rate, initial_energy_rate, num_farms, num_mines, num_solar_grids int) Planet {
+func CreatePlanet(name string, x, y, z, pop, pop_growth_rate, initial_food, initial_mineral, intital_energy, initial_food_rate, initial_mineral_rate, initial_energy_rate, num_farms, num_mines, num_solar_grids int) Planet {
 	planet := Planet{
 		Name:                 name,
 		Population:           pop,
-		Location:             Location{Coordinates: Coordinates{X: x, Y: y}},
+		Position:             Position{x, y, z},
 		PopulationGrowthRate: pop_growth_rate,
 		Resources: Resources{
 			Food: resources.Food{

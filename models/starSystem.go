@@ -5,17 +5,17 @@ import "fmt"
 type StarSystem struct {
 	Name    string
 	Planets []*Planet
-	Location
+	Position
 }
 
 func (s *StarSystem) String() string {
 	var output string
 
-	output += fmt.Sprintf("%s %v\n", s.Name, s.Location)
+	output += fmt.Sprintf("%s %v\n", s.Name, s.Position)
 	for _, p := range s.Planets {
 
 		output += "--------------------------------------------------\n"
-		output += fmt.Sprintf("%s %v\n", p.Name, p.Location)
+		output += fmt.Sprintf("%s %v\n", p.Name, p.Position)
 		output += fmt.Sprintf("| Population: %d @ %d\n", p.Population, p.PopulationGrowthRate)
 		output += fmt.Sprintf("| Resources:\n")
 		output += fmt.Sprintf("|-| > Food:    %d\n", p.Food.Quantity)
