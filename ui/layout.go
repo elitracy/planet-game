@@ -1,8 +1,11 @@
 package ui
 
 import (
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/logging"
 )
 
 type Dashboard struct {
@@ -11,6 +14,14 @@ type Dashboard struct {
 	Grid      [][]tea.Model
 	ActiveRow int
 	ActiveCol int
+}
+
+type tickMsg time.Time
+
+func tick() tea.Cmd {
+	logging.Log("Ticking", "Layout")
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg { return tickMsg(t) })
+
 }
 
 var FocusStack []tea.Model
@@ -104,7 +115,7 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				// send specific messages for background tasks
 				switch msg := msg.(type) {
-				case TickMsg:
+				case tickMsg:
 					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
 				}
 			}
@@ -115,7 +126,7 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return ActivePane(), tea.Batch(cmds...)
+	return ActivePane(), tick()
 }
 
 func (m *Dashboard) View() string {

@@ -34,7 +34,7 @@ func (p PlanetList) GetTitle() string {
 }
 
 func (p PlanetList) Init() tea.Cmd {
-	return nil
+	return tick()
 }
 
 func (p PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

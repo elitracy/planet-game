@@ -32,14 +32,12 @@ func NewPlayerInfoPane(text string, id int, gs *models.GameState) *PlayerInfoPan
 	return &PlayerInfoPane{title: text, id: id, gamestate: gs, max_choices: max_choices, cursor: 1}
 }
 
-func (p *PlayerInfoPane) Init() tea.Cmd { return tick(p.id) }
+func (p *PlayerInfoPane) Init() tea.Cmd { return tick() }
 func (p *PlayerInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case TickMsg:
-		if msg.id == p.id {
-			return p, tick(p.id)
-		}
+	case tickMsg:
+		return p, tick()
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":

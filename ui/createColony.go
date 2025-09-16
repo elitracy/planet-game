@@ -33,10 +33,8 @@ func (p *CreateColonyPane) Init() tea.Cmd {
 func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case TickMsg:
-		if msg.id == p.id {
-			return p, tick(p.id)
-		}
+	case tickMsg:
+		return p, tick()
 	case tea.KeyMsg:
 		if ActivePane().(Pane).GetId() == p.GetId() {
 			switch msg.String() {
