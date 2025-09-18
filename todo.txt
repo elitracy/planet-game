@@ -3,10 +3,10 @@
 [x] constructions tick system
 [x] payloads tick system
 [x] finish umls
--> [ ] manage focus stack vs dashboard updates...
+[x] manage focus stack vs dashboard updates...
 [ ] player turn
 [ ] events? 
-[ ] UI layouts
+[x] UI layouts
     [x] bubbletea/lipgloss panes
 [ ] core game 
     [x] start player at (0,0)
