@@ -21,7 +21,7 @@ type PlayerInfoPane struct {
 	prev_key    string
 }
 
-func NewPlayerInfoPane(text string, id int, gs *models.GameState) *PlayerInfoPane {
+func NewPlayerInfoPane(text string, gs *models.GameState) *PlayerInfoPane {
 	max_choices := 0
 	for _, s := range gs.StarSystems {
 		max_choices++
@@ -29,7 +29,7 @@ func NewPlayerInfoPane(text string, id int, gs *models.GameState) *PlayerInfoPan
 			max_choices++
 		}
 	}
-	return &PlayerInfoPane{title: text, id: id, gamestate: gs, max_choices: max_choices, cursor: 1}
+	return &PlayerInfoPane{title: text, gamestate: gs, max_choices: max_choices, cursor: 1}
 }
 
 func (p *PlayerInfoPane) Init() tea.Cmd { return nil }
@@ -59,7 +59,7 @@ func (p *PlayerInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ":
 			p.selected = p.cursor
 		case "esc":
-			return PopFocus(), nil
+			return p, popFocusCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -136,4 +136,6 @@ func (p *PlayerInfoPane) View() string {
 	return block
 }
 
-func (p PlayerInfoPane) GetId() int { return p.id }
+func (p PlayerInfoPane) GetId() int       { return p.id }
+func (p *PlayerInfoPane) SetId(id int)    { p.id = id }
+func (p PlayerInfoPane) GetTitle() string { return p.title }

@@ -10,13 +10,15 @@ import (
 
 type PlanetInfoPane struct {
 	Pane
-	id     int
-	title  string
-	planet *models.Planet
+	id          int
+	childPaneID int
+	title       string
+	planet      *models.Planet
 }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var childPaneID int
 
 	switch msg := msg.(type) {
 	case tickMsg:
@@ -26,14 +28,15 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "c":
 			pane := NewCreateColonyPane(
 				"Colonize: "+p.planet.Name,
-				1000,
 				p.planet,
 			)
-			PushFocus(pane)
-			return ActivePane(), nil
+
+			childPaneID = PaneManager.AddPane(pane)
+			return p, pushFocusCmd(childPaneID)
 
 		case "esc":
-			return PopFocus(), nil
+			PaneManager.RemovePane(childPaneID)
+			return p, popFocusCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -105,13 +108,13 @@ func (p *PlanetInfoPane) View() string {
 }
 
 func (p PlanetInfoPane) GetId() int       { return p.id }
+func (p *PlanetInfoPane) SetId(id int)    { p.id = id }
 func (p PlanetInfoPane) GetTitle() string { return p.title }
 
-func NewPlanetInfoPane(title string, id int, planet *models.Planet) *PlanetInfoPane {
+func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
 
 	return &PlanetInfoPane{
 		title:  title,
-		id:     id,
 		planet: planet,
 	}
 }

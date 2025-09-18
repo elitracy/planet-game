@@ -36,56 +36,51 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		return p, nil
 	case tea.KeyMsg:
-		if ActivePane().(Pane).GetId() == p.GetId() {
-			switch msg.String() {
-			case "enter":
-				if p.focusIndex == len(p.inputs) {
-					p.planet.ColonyName = p.inputs[0].Value()
-					return PopFocus(), nil
-				}
-
-				if p.cursorMode > 0 {
-					p.cursorMode--
-				}
-
-				return p, nil
-			case "esc":
-				if p.cursorMode < cursor.CursorHide {
-					p.cursorMode++
-				}
-
-				if p.cursorMode >= cursor.CursorHide {
-					return PopFocus(), nil
-				}
-
-				cmds := make([]tea.Cmd, len(p.inputs))
-				for i := range p.inputs {
-					cmds[i] = p.inputs[i].Cursor.SetMode(p.cursorMode)
-				}
-				return p, tea.Batch(cmds...)
-			// nav
-			case "j":
-				if p.focusIndex < len(p.inputs) && p.cursorMode > cursor.CursorBlink {
-					p.focusIndex++
-					p.updateCursorStyles()
-				}
-			case "k":
-				if p.focusIndex > 0 && p.cursorMode > cursor.CursorBlink {
-					p.focusIndex--
-					p.updateCursorStyles()
-				}
-
-			case "ctrl+c", "q":
-				return p, tea.Quit
+		switch msg.String() {
+		case "enter":
+			if p.focusIndex == len(p.inputs) {
+				p.planet.ColonyName = p.inputs[0].Value()
 			}
+
+			if p.cursorMode > 0 {
+				p.cursorMode--
+			}
+
+			return p, nil
+		case "esc":
+			if p.cursorMode < cursor.CursorHide {
+				p.cursorMode++
+			}
+
+			if p.cursorMode >= cursor.CursorHide {
+				return p, popFocusCmd()
+			}
+
+			cmds := make([]tea.Cmd, len(p.inputs))
+			for i := range p.inputs {
+				cmds[i] = p.inputs[i].Cursor.SetMode(p.cursorMode)
+			}
+			return p, tea.Batch(cmds...)
+		// nav
+		case "j":
+			if p.focusIndex < len(p.inputs) && p.cursorMode != cursor.CursorBlink {
+				p.focusIndex++
+				p.updateCursorStyles()
+			}
+		case "k":
+			if p.focusIndex > 0 && p.cursorMode != cursor.CursorBlink {
+				p.focusIndex--
+				p.updateCursorStyles()
+			}
+
+		case "ctrl+c", "q":
+			return p, tea.Quit
 		}
 	}
 
-	if ActivePane().(Pane).GetId() == p.GetId() && p.cursorMode == cursor.CursorBlink {
-		cmd := p.updateInputs(msg)
-		return p, cmd
+	if p.cursorMode == cursor.CursorBlink {
+		return p, p.updateInputs(msg)
 	}
-
 	return p, nil
 
 }
@@ -144,14 +139,14 @@ func (p *CreateColonyPane) View() string {
 }
 
 func (p CreateColonyPane) GetId() int       { return p.id }
+func (p *CreateColonyPane) SetId(id int)    { p.id = id }
 func (p CreateColonyPane) GetTitle() string { return p.title }
 
-func NewCreateColonyPane(title string, id int, planet *models.Planet) *CreateColonyPane {
+func NewCreateColonyPane(title string, planet *models.Planet) *CreateColonyPane {
 
 	p := &CreateColonyPane{
 		inputs:     make([]textinput.Model, 4),
 		title:      title,
-		id:         id,
 		planet:     planet,
 		cursorMode: cursor.CursorStatic,
 	}

@@ -1,12 +1,10 @@
 package ui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/logging"
 )
 
 const (
@@ -14,8 +12,11 @@ const (
 	maxWidth = 80
 )
 
-func NewLoadingBarPane(id int, title string) *LoadingBarPane {
-	return &LoadingBarPane{progress: progress.New(progress.WithDefaultGradient())}
+func NewLoadingBarPane(title string) *LoadingBarPane {
+	return &LoadingBarPane{
+		title:    title,
+		progress: progress.New(progress.WithDefaultGradient()),
+	}
 }
 
 type LoadingBarPane struct {
@@ -26,10 +27,11 @@ type LoadingBarPane struct {
 }
 
 func (p LoadingBarPane) GetId() int       { return p.id }
+func (p *LoadingBarPane) SetId(id int)    { p.id = id }
 func (p LoadingBarPane) GetTitle() string { return p.title }
 
 func (p *LoadingBarPane) Init() tea.Cmd {
-	return p.progress.IncrPercent(0.05)
+	return nil
 }
 
 func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -37,7 +39,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return PopFocus(), nil
+			return p, popFocusCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -52,14 +54,10 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if p.progress.Percent() == 1.0 {
 			return p, nil
 		}
-		logging.Log(fmt.Sprintf("Recieved Tick: %v", msg.Count), "Loading Bar")
 
-		// Note that you can also use progress.Model.SetPercent to set the
-		// percentage value explicitly, too.
 		cmd := p.progress.IncrPercent(0.05)
 		return p, cmd
 
-	// FrameMsg is sent when the progress bar wants to animate itself
 	case progress.FrameMsg:
 		progressModel, cmd := p.progress.Update(msg)
 		p.progress = progressModel.(progress.Model)

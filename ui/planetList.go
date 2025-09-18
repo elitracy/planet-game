@@ -16,28 +16,25 @@ type PlanetList struct {
 	title    string
 }
 
-func NewPlanetList(planets []*models.Planet, id int, title string) PlanetList {
-	return PlanetList{
+func NewPlanetList(planets []*models.Planet, title string) *PlanetList {
+	return &PlanetList{
 		choices:  planets,
 		selected: -1,
-		id:       id,
 		title:    title,
 	}
 }
 
-func (p PlanetList) GetId() int {
-	return p.id
-}
+func (p PlanetList) GetId() int       { return p.id }
+func (p *PlanetList) SetId(id int)    { p.id = id }
+func (p PlanetList) GetTitle() string { return p.title }
 
-func (p PlanetList) GetTitle() string {
-	return p.title
-}
-
-func (p PlanetList) Init() tea.Cmd {
+func (p *PlanetList) Init() tea.Cmd {
 	return nil
 }
 
-func (p PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var childPaneID int
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -53,15 +50,17 @@ func (p PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.selected = p.cursor
 
 			pane := &PlanetInfoPane{
-				id:     1000,
+				id:     0,
 				title:  "Planet Info",
 				planet: p.choices[p.cursor],
 			}
-			PushFocus(pane)
-			return ActivePane(), nil
+			childPaneID := PaneManager.AddPane(pane)
+
+			return p, pushFocusCmd(childPaneID)
 
 		case "esc":
-			return PopFocus(), nil
+			PaneManager.RemovePane(childPaneID)
+			return p, popFocusCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -69,7 +68,7 @@ func (p PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-func (p PlanetList) View() string {
+func (p *PlanetList) View() string {
 	s := "Available Planets:\n"
 
 	for i, choice := range p.choices {

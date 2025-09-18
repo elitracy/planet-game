@@ -10,8 +10,8 @@ type TitlePane struct {
 	title string
 }
 
-func NewTitlePane(text string, id int) *TitlePane {
-	return &TitlePane{title: text, id: id}
+func NewTitlePane(text string) *TitlePane {
+	return &TitlePane{title: text}
 }
 
 func (p *TitlePane) Init() tea.Cmd { return nil }
@@ -23,7 +23,7 @@ func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return PopFocus(), nil
+			return p, popFocusCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -34,4 +34,5 @@ func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p *TitlePane) View() string { return p.title }
 
 func (p TitlePane) GetId() int       { return p.id }
+func (p *TitlePane) SetId(id int)    { p.id = id }
 func (p TitlePane) GetTitle() string { return p.title }

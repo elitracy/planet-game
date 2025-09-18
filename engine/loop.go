@@ -19,30 +19,32 @@ var PLAYER_START_LOC = models.Position{0, 0, 0}
 func RunGame(state *models.GameState) {
 	quit := make(chan struct{})
 
-	// render UI
-	// p := tea.NewProgram(ui.CreatePlanetListInitialModel(state.StarSystems[0].Planets))
-
 	origin := state.Player
 	dest := state.StarSystems[0].Planets[0]
 
-	grid := [][]tea.Model{
-		{ui.NewTravelStatusPane("Travel",
-			1,
-			origin.Position,
-			dest.Position,
-			"Player",
-			dest.Name,
-			state.CurrentTick,
-			10,
-			state,
-		)},
-		{ui.NewLoadingBarPane(2, "Loading Bar")},
+	travelStatus := ui.PaneManager.AddPane(ui.NewTravelStatusPane("Travel",
+		1,
+		origin.Position,
+		dest.Position,
+		"Player",
+		dest.Name,
+		state.CurrentTick,
+		10,
+		state,
+	))
+	loadingBar := ui.PaneManager.AddPane(ui.NewLoadingBarPane("Loading Bar"))
+	planetList := ui.PaneManager.AddPane(ui.NewPlanetList(state.StarSystems[0].Planets, "Planet List"))
+
+	grid := [][]int{
+		{travelStatus, loadingBar},
+		{loadingBar},
+		{planetList},
 	}
+	dashboard := ui.PaneManager.AddPane(ui.NewDashboard(grid, 0, 0, "Dashboard"))
 
-	m := ui.NewDashboard(grid, 0, 0, 0, "Dashboard")
-	ui.PushFocus(&m)
+	ui.PaneManager.PushFocusStack(dashboard)
 
-	p := tea.NewProgram(&m)
+	p := tea.NewProgram(&ui.PaneManager)
 
 	go func() {
 		if _, err := p.Run(); err != nil {
