@@ -18,11 +18,11 @@ func main() {
 		gameState.StarSystems = append(gameState.StarSystems, &system)
 	}
 
-	logging.Log("State Initialized ✅", "MAIN")
+	logging.Ok("State Initialized")
 
 	gameState.Player = Player{Position{0, 0, 0}}
 
-	logging.Log("Player Initialized ✅", "MAIN")
+	logging.Ok("Player Initialized")
 
 	engine.RunGame(&gameState)
 }

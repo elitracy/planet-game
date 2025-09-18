@@ -1,18 +1,30 @@
 package logging
 
 import (
-	"gopkg.in/natefinch/lumberjack.v2"
+	"fmt"
 	"log"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-const DEFAULT_LOG_LEVEL = "DEBUG"
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorBlue   = "\033[34m"
+)
 
 type LogMessage struct {
-	Time    time.Time
-	Level   string
-	Package string
-	Message string
+	Time     time.Time
+	Color    string
+	Level    string
+	Filename string
+	Message  string
 }
 
 type Logger struct {
@@ -34,7 +46,7 @@ func (l *Logger) run() {
 	)
 
 	for msg := range l.queue {
-		log.Printf("[%s] [%s] %s\n", msg.Level, msg.Package, msg.Message)
+		log.Printf("%s[%s] %s %s%s\n", msg.Color, msg.Level, msg.Filename, msg.Message, colorReset)
 	}
 }
 
@@ -48,19 +60,28 @@ func NewLogger(filepath string) *Logger {
 	return l
 }
 
-func Log(message, pkg string, level ...string) {
-	msgLevel := DEFAULT_LOG_LEVEL
-	if len(level) > 0 && level[0] != "" {
-		msgLevel = level[0]
+func (l *Logger) log(level, color, format string, args ...any) {
+	// caller info
+	_, file, _, ok := runtime.Caller(2)
+	fileName := "UNKNOWN"
+	if ok {
+		fileName = strings.ToUpper(filepath.Base(file))
 	}
 
+	msg := fmt.Sprintf(format, args...)
 	logger.queue <- LogMessage{
-		Time:    time.Now(),
-		Level:   msgLevel,
-		Package: pkg,
-		Message: message,
+		Time:     time.Now(),
+		Level:    level,
+		Filename: fileName,
+		Message:  msg,
+		Color:    color,
 	}
 }
+
+func Info(format string, args ...any)  { logger.log("TELEMETRY", colorReset, format, args...) }
+func Error(format string, args ...any) { logger.log("FAULT", colorRed, format, args...) }
+func Warn(format string, args ...any)  { logger.log("WARN", colorYellow, format, args...) }
+func Ok(format string, args ...any)    { logger.log("STABLE", colorGreen, format, args...) }
 
 func init() {
 	logger = NewLogger("logs/debug.log")

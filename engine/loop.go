@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 
 const TICK_SLEEP = time.Second
 
-var PLAYER_START_LOC = models.Position{0, 0, 0}
+var PLAYER_START_LOC = models.Position{X: 0, Y: 0, Z: 0}
 
 func RunGame(state *models.GameState) {
 	quit := make(chan struct{})
@@ -48,19 +47,19 @@ func RunGame(state *models.GameState) {
 
 	go func() {
 		if _, err := p.Run(); err != nil {
-			logging.Log(fmt.Sprintf("Alas, there's been an error: %v", err), "UI", "ERROR")
+			logging.Error("Alas, there's been an error: %v", err)
 			os.Exit(1)
 		}
 
 		close(quit)
 	}()
 
-	logging.Log("Layout Initialized ✅", "LOOP")
+	logging.Ok("Layout Initialized")
 
 	for {
 		select {
 		case <-quit:
-			logging.Log("UI exited core loop", "UI")
+			logging.Ok("UI exited core loop")
 			return
 		default:
 			// advance time
