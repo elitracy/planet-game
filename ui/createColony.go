@@ -34,7 +34,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tickMsg:
-		return p, tick()
+		return p, nil
 	case tea.KeyMsg:
 		if ActivePane().(Pane).GetId() == p.GetId() {
 			switch msg.String() {

@@ -14,12 +14,12 @@ func NewTitlePane(text string, id int) *TitlePane {
 	return &TitlePane{title: text, id: id}
 }
 
-func (p *TitlePane) Init() tea.Cmd { return tick() }
+func (p *TitlePane) Init() tea.Cmd { return nil }
 func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tickMsg:
-		return p, tick()
+		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":

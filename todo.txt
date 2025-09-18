@@ -3,10 +3,11 @@
 [x] constructions tick system
 [x] payloads tick system
 [x] finish umls
+-> [ ] manage focus stack vs dashboard updates...
 [ ] player turn
 [ ] events? 
 [ ] UI layouts
-    [ ] bubbletea/lipgloss panes
+    [x] bubbletea/lipgloss panes
 [ ] core game 
     [x] start player at (0,0)
     [x] gets list of planets in system (planet travel compnent, planet info component)

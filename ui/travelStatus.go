@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/logging"
 	"github.com/elitracy/planets/models"
@@ -19,13 +21,13 @@ type TravelStatusPane struct {
 	state       *models.GameState
 }
 
-func (p *TravelStatusPane) Init() tea.Cmd { return tick() }
+func (p *TravelStatusPane) Init() tea.Cmd { return nil }
 func (p *TravelStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tickMsg:
-		logging.Log("Received Tick!", "Travel Status")
-		return p, tick()
+		logging.Log(fmt.Sprintf("Recieved Tick: %v", msg.Count), "Travel Status")
+		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
@@ -34,7 +36,6 @@ func (p *TravelStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tea.Quit
 		}
 
-	default:
 	}
 	return p, nil
 }

@@ -15,12 +15,12 @@ type PlanetInfoPane struct {
 	planet *models.Planet
 }
 
-func (p *PlanetInfoPane) Init() tea.Cmd { return tick() }
+func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tickMsg:
-		return p, tick()
+		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "c":

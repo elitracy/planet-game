@@ -1,11 +1,8 @@
 package ui
 
 import (
-	"time"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/logging"
 )
 
 type Dashboard struct {
@@ -14,14 +11,7 @@ type Dashboard struct {
 	Grid      [][]tea.Model
 	ActiveRow int
 	ActiveCol int
-}
-
-type tickMsg time.Time
-
-func tick() tea.Cmd {
-	logging.Log("Ticking", "Layout")
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg { return tickMsg(t) })
-
+	UITick    int
 }
 
 var FocusStack []tea.Model
@@ -63,6 +53,7 @@ func (m *Dashboard) Init() tea.Cmd {
 			cmds = append(cmds, m.Grid[r][c].Init())
 		}
 	}
+	cmds = append(cmds, tick(m.UITick))
 
 	return tea.Batch(cmds...)
 }
@@ -71,6 +62,9 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tickMsg:
+		m.UITick++
+		cmds = append(cmds, tick(m.UITick))
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
@@ -117,6 +111,8 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch msg := msg.(type) {
 				case tickMsg:
 					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
+				default:
+					m.Grid[r][c], cmd = m.Grid[r][c].Update(msg)
 				}
 			}
 
@@ -126,7 +122,7 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return ActivePane(), tick()
+	return ActivePane(), tea.Batch(cmds...)
 }
 
 func (m *Dashboard) View() string {
@@ -166,6 +162,7 @@ func NewDashboard(grid [][]tea.Model, activeRow, activeCol, id int, title string
 		Grid:      grid,
 		ActiveRow: activeRow,
 		ActiveCol: activeCol,
+		UITick:    0,
 		id:        id,
 		title:     title,
 	}
