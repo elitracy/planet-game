@@ -6,14 +6,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/tree"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 )
 
 type PlayerInfoPane struct {
 	Pane
 	id        int
 	title     string
-	gamestate *models.GameState
+	gamestate *GameState
 
 	selected    int
 	cursor      int
@@ -21,7 +21,7 @@ type PlayerInfoPane struct {
 	prev_key    string
 }
 
-func NewPlayerInfoPane(text string, gs *models.GameState) *PlayerInfoPane {
+func NewPlayerInfoPane(text string, gs *GameState) *PlayerInfoPane {
 	max_choices := 0
 	for _, s := range gs.StarSystems {
 		max_choices++

@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/models/constructions"
-	models "github.com/elitracy/planets/models/orders"
 	"github.com/elitracy/planets/models/resources"
 	"github.com/elitracy/planets/models/stabilities"
 )
 
 // planets are a "colony"
 type Planet struct {
+	Entity
 	ID                   int
 	Name                 string
 	ColonyName           string
@@ -22,7 +22,33 @@ type Planet struct {
 	Constructions
 	Position
 	PlanetPayloads
-	OrderQueue []models.Order
+	OrderQueue []*Order
+}
+
+func (p Planet) GetID() int {
+	return p.ID
+}
+
+func (p Planet) GetPosition() Position {
+	return p.Position
+}
+
+func (p Planet) GetOrders() []*Order {
+	return p.OrderQueue
+}
+
+func (p *Planet) PushOrder(order *Order) {
+	p.OrderQueue = append(p.OrderQueue, order)
+}
+
+func (p *Planet) PopOrder() *Order {
+	if len(p.OrderQueue) == 0 {
+		return nil
+	}
+
+	order := p.OrderQueue[0]
+	p.OrderQueue = p.OrderQueue[1:]
+	return order
 }
 
 func (p Planet) GetTotalFarmProduction() int {

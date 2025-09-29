@@ -66,12 +66,11 @@ Background Events
 
 
 Left Off:
-- how do we want player input to work
-- need to decide on core game loop
- - player starts in system
- - choose planet to go to
- - start colony
- - go to another system
- - get reports from colonies
- - respond to events
- - go to new colony
+- ticking planet.go system
+- how do we want to do actions? 
+    - should this be a gamestate handled thing?
+    - references to current actions are appended to a game state array and updated there
+- should I do a similar thing with orders?
+    - will looping thorough all planets be bad
+    - should an order queue just be a part of the player game state? 
+        - a reference to the entity already exists so we know what to update

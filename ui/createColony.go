@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 )
 
 var (
@@ -19,7 +19,7 @@ type CreateColonyPane struct {
 	Pane
 	id     int
 	title  string
-	planet *models.Planet
+	planet *Planet
 
 	focusIndex int
 	inputs     []textinput.Model
@@ -142,7 +142,7 @@ func (p CreateColonyPane) GetId() int       { return p.id }
 func (p *CreateColonyPane) SetId(id int)    { p.id = id }
 func (p CreateColonyPane) GetTitle() string { return p.title }
 
-func NewCreateColonyPane(title string, planet *models.Planet) *CreateColonyPane {
+func NewCreateColonyPane(title string, planet *Planet) *CreateColonyPane {
 
 	p := &CreateColonyPane{
 		inputs:     make([]textinput.Model, 4),

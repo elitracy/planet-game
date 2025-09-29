@@ -13,7 +13,7 @@ type Player struct {
 // only send to planets for now
 func (p *Player) SendMessagePayload(msg string, planet *Planet, currentTick int) {
 
-	distance := Distance(p.Position, planet.Position)
+	distance := EuclidianDistance(p.Position, planet.Position)
 
 	payload := Payload[string]{
 		Data:        msg,
@@ -30,7 +30,7 @@ func (p *Player) SendMessagePayload(msg string, planet *Planet, currentTick int)
 // only send to planets for now
 func (p *Player) SendResourcePayload(resource resources.Resource, planet *Planet, currentTick int) {
 
-	distance := Distance(p.Position, planet.Position)
+	distance := EuclidianDistance(p.Position, planet.Position)
 
 	payload := Payload[resources.Resource]{
 		Data:        resource,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/models"
 )
 
 const (
@@ -20,7 +21,7 @@ func NewLoadingBarPane(title string) *LoadingBarPane {
 }
 
 type LoadingBarPane struct {
-	Pane
+	models.Pane
 	id       int
 	title    string
 	progress progress.Model
