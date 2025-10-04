@@ -36,9 +36,11 @@ const STARTING_ENERGY = 5000
 const STARTING_ENERGY_CONSUMPTION_RATE = 1
 
 type GameState struct {
-	CurrentTick int
-	StarSystems []*StarSystem
-	Player Player
+	CurrentTick     int
+	StarSystems     []*StarSystem
+	Player          Player
+	OrderScheduler  EventScheduler[*Order]
+	ActionScheduler EventScheduler[*Action]
 }
 
 func (gs *GameState) CreatePlayer(location Position) Player {
@@ -55,9 +57,9 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 	system_names = append(system_names[:system_name_idx], system_names[system_name_idx+1:]...)
 
 	system_location := Position{
-			X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
-			Y: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
-			Z: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
+		X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
+		Y: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
+		Z: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
 	}
 
 	system := StarSystem{Name: system_name, Planets: []*Planet{}, Position: system_location}
@@ -68,9 +70,9 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
 
 		planet_location := Position{
-				X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
-				Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
-				Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
+			X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
+			Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
+			Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
 		}
 
 		planet := CreatePlanet(

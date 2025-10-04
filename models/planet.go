@@ -29,6 +29,10 @@ func (p Planet) GetID() int {
 	return p.ID
 }
 
+func (p Planet) GetName() string {
+	return p.Name
+}
+
 func (p Planet) GetPosition() Position {
 	return p.Position
 }
@@ -63,7 +67,6 @@ func (p Planet) GetTotalFarmProduction() int {
 
 func (p Planet) GetTotalMineProduction() int {
 	total_rate := 0
-
 	for _, p := range p.Constructions.Mines {
 		total_rate += p.GetProductionRate()
 	}

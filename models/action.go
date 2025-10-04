@@ -10,15 +10,27 @@ const (
 )
 
 type Action struct {
-	ID          int
-	Type        ActionType
-	Duration    int
-	Progress    int
-	Status      Status
-	Description string
+	ID           int
+	TargetEntity *Entity
+	Description  string
+	Type         ActionType
+	StartTime    int
+	Duration     int
+	Status       EventStatus
 }
 
-func (a *Action) Execute() Status {
-	a.Status = Executing
+func (a Action) GetID() int {
+	return a.ID
+}
+
+func (a Action) GetStart() int {
+	return a.StartTime
+}
+
+func (a Action) GetDuration() int {
+	return a.Duration
+}
+
+func (a Action) GetStatus() EventStatus {
 	return a.Status
 }

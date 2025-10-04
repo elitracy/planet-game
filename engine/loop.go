@@ -66,6 +66,7 @@ func RunGame(state *models.GameState) {
 			state.CurrentTick++
 
 			// update systems
+			systems.TickOrderScheduler(state)
 			systems.TickConstructions(state)
 			systems.TickStabilities(state)
 			systems.TickPopulation(state)

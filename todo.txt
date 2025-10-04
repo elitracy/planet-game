@@ -66,11 +66,6 @@ Background Events
 
 
 Left Off:
-- ticking planet.go system
-- how do we want to do actions? 
-    - should this be a gamestate handled thing?
-    - references to current actions are appended to a game state array and updated there
-- should I do a similar thing with orders?
-    - will looping thorough all planets be bad
-    - should an order queue just be a part of the player game state? 
-        - a reference to the entity already exists so we know what to update
+- event scheduler systsems
+- events need ticking update function
+- UI pane to test this
