@@ -19,6 +19,8 @@ type paneManager struct {
 	Panes      map[int]tea.Model
 	currentID  int
 	UITick     int
+	Width      int
+	Height     int
 
 	id    int
 	title string
@@ -73,6 +75,9 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tickMsg:
 		p.UITick++
 		cmds = append(cmds, tick(p.UITick))
+	case tea.WindowSizeMsg:
+		p.Width = msg.Width
+		p.Height = msg.Height
 	}
 
 	for key := range p.Panes {

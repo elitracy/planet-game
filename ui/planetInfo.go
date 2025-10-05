@@ -25,9 +25,9 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "c":
+		case "o":
 			pane := NewCreateColonyPane(
-				"Colonize: "+p.planet.Name,
+				"Order Colonization: "+p.planet.Name,
 				p.planet,
 			)
 
@@ -87,7 +87,7 @@ func (p *PlanetInfoPane) View() string {
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
 
-	colonizeButton := Theme.focusedStyle.Underline(true).Render("C") + "olonize"
+	colonizeButton := Theme.focusedStyle.Underline(true).Render("O") + "rder Colonization"
 	colonizeButton = lipgloss.NewStyle().
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).

@@ -2,6 +2,7 @@ package models
 
 import (
 	"math/rand"
+	"slices"
 )
 
 var system_names = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Hohmann", "Horizon", "Oberth", "Parallax", "Aphelion"}
@@ -43,6 +44,8 @@ type GameState struct {
 	ActionScheduler EventScheduler[*Action]
 }
 
+var GameStateGlobal GameState
+
 func (gs *GameState) CreatePlayer(location Position) Player {
 	player := Player{Position: location}
 	return player
@@ -54,7 +57,7 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 	system_name := system_names[system_name_idx]
 
 	// remove system name from list
-	system_names = append(system_names[:system_name_idx], system_names[system_name_idx+1:]...)
+	system_names = slices.Delete(system_names, system_name_idx, system_name_idx+1)
 
 	system_location := Position{
 		X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
@@ -81,7 +84,6 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 			planet_location.Y,
 			planet_location.Z,
 			starting_population,
-			STARTING_POPULATION_GROWTH_RATE,
 			STARTING_FOOD,
 			STARTING_MINERAL,
 			STARTING_ENERGY,

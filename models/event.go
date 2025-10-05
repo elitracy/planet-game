@@ -1,9 +1,10 @@
 package models
 
+//go:generate stringer -type=EventStatus
 type EventStatus int
 
 const (
-	Pending = iota
+	Pending EventStatus = iota
 	Executing
 	Complete
 	Failed

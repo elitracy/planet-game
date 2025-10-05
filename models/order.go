@@ -1,13 +1,51 @@
 package models
 
+//go:generate stringer -type=OrderType
+type OrderType int
+
+const (
+	CreateColonyOrder OrderType = iota
+	SendFoodOrder
+	SendMineralOrder
+	SendEnergyOrder
+)
+
 type Order struct {
 	ID            int
-	TargetEntity  *Entity
-	Actions       []*Action // action queue, how to handle concurrent actions?
-	StartTime     int
+	TargetEntity  Entity
+	Type          OrderType
+	Actions       []*Action
+	ExecuteTime   int
 	StartPosition Position
 	Status        EventStatus
 	// Velocity
+}
+
+func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position) *Order {
+	order := &Order{
+		ID:            GameStateGlobal.OrderScheduler.GetNextID(),
+		TargetEntity:  entity,
+		Type:          orderType,
+		ExecuteTime:   start,
+		StartPosition: pos,
+		Status:        Pending,
+	}
+
+	if order.Type == CreateColonyOrder {
+		action := &Action{
+			ID:           GameStateGlobal.ActionScheduler.GetNextID(),
+			TargetEntity: entity,
+			Description:  "Builds a Farm on the target Planet",
+			Type:         BuildFarm,
+			ExecuteTime:  start + 5,
+			Status:       Pending,
+			Order:        order,
+		}
+
+		order.Actions = append(order.Actions, action)
+	}
+
+	return order
 }
 
 func (o Order) GetID() int {
@@ -15,7 +53,7 @@ func (o Order) GetID() int {
 }
 
 func (o Order) GetStart() int {
-	return o.StartTime
+	return o.ExecuteTime
 }
 
 func (o Order) GetDuration() int {

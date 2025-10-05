@@ -46,7 +46,7 @@ func (p *PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if p.cursor < len(p.choices)-1 {
 				p.cursor++
 			}
-		case " ":
+		case "enter":
 			p.selected = p.cursor
 
 			pane := &PlanetInfoPane{

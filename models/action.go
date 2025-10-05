@@ -1,9 +1,12 @@
 package models
 
+import "github.com/elitracy/planets/models/constructions"
+
+//go:generate stringer -type=ActionType
 type ActionType int
 
 const (
-	BuildFarm = iota
+	BuildFarm ActionType = iota
 	BuildMine
 	BuildSolarGrid
 	BuildColony
@@ -11,12 +14,12 @@ const (
 
 type Action struct {
 	ID           int
-	TargetEntity *Entity
+	TargetEntity Entity
 	Description  string
 	Type         ActionType
-	StartTime    int
-	Duration     int
+	ExecuteTime  int
 	Status       EventStatus
+	*Order
 }
 
 func (a Action) GetID() int {
@@ -24,13 +27,27 @@ func (a Action) GetID() int {
 }
 
 func (a Action) GetStart() int {
-	return a.StartTime
+	return a.ExecuteTime
 }
 
 func (a Action) GetDuration() int {
-	return a.Duration
+	return a.ExecuteTime - a.Order.ExecuteTime
 }
 
 func (a Action) GetStatus() EventStatus {
 	return a.Status
+}
+
+func (a *Action) Execute() {
+	a.Status = Executing
+
+	if a.Type == BuildFarm {
+		farm := constructions.CreateFarm(1)
+
+		if planetEntity, ok := a.TargetEntity.(*Planet); ok {
+			planetEntity.Constructions.Farms = append(planetEntity.Constructions.Farms, farm)
+		}
+
+		a.Status = Complete
+	}
 }

@@ -18,26 +18,11 @@ var PLAYER_START_LOC = models.Position{X: 0, Y: 0, Z: 0}
 func RunGame(state *models.GameState) {
 	quit := make(chan struct{})
 
-	origin := state.Player
-	dest := state.StarSystems[0].Planets[0]
-
-	travelStatus := ui.PaneManager.AddPane(ui.NewTravelStatusPane("Travel",
-		1,
-		origin.Position,
-		dest.Position,
-		"Player",
-		dest.Name,
-		state.CurrentTick,
-		10,
-		state,
-	))
-	loadingBar := ui.PaneManager.AddPane(ui.NewLoadingBarPane("Loading Bar"))
 	planetList := ui.PaneManager.AddPane(ui.NewPlanetList(state.StarSystems[0].Planets, "Planet List"))
+	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&models.GameStateGlobal.OrderScheduler, "Orders"))
 
 	grid := [][]int{
-		{travelStatus, loadingBar},
-		{loadingBar},
-		{planetList},
+		{planetList, orderList},
 	}
 	dashboard := ui.PaneManager.AddPane(ui.NewDashboard(grid, 0, 0, "Dashboard"))
 
@@ -66,14 +51,13 @@ func RunGame(state *models.GameState) {
 			state.CurrentTick++
 
 			// update systems
-			systems.TickOrderScheduler(state)
+			systems.TickOrderScheduler()
+			systems.TickActionScheduler()
 			systems.TickConstructions(state)
 			systems.TickStabilities(state)
 			systems.TickPopulation(state)
-			systems.TickPayloads(state)
 
 			time.Sleep(TICK_SLEEP)
-
 		}
 	}
 

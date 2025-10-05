@@ -16,7 +16,6 @@ func (s *StarSystem) String() string {
 
 		output += "--------------------------------------------------\n"
 		output += fmt.Sprintf("%s %v\n", p.Name, p.Position)
-		output += fmt.Sprintf("| Population: %d @ %d\n", p.Population, p.PopulationGrowthRate)
 		output += fmt.Sprintf("| Resources:\n")
 		output += fmt.Sprintf("|-| > Food:    %d\n", p.Food.Quantity)
 		output += fmt.Sprintf("  | > Mineral: %d\n", p.Minerals.Quantity)

@@ -10,19 +10,17 @@ const NUM_STAR_SYSTEMS = 3
 
 func main() {
 
-	gameState := GameState{}
-
 	// intialize systems
 	for range NUM_STAR_SYSTEMS {
-		system := gameState.GenerateStarSystem()
-		gameState.StarSystems = append(gameState.StarSystems, &system)
+		system := GameStateGlobal.GenerateStarSystem()
+		GameStateGlobal.StarSystems = append(GameStateGlobal.StarSystems, &system)
 	}
 
 	logging.Ok("State Initialized")
 
-	gameState.Player = Player{Position{0, 0, 0}}
+	GameStateGlobal.Player = Player{Position{0, 0, 0}}
 
 	logging.Ok("Player Initialized")
 
-	engine.RunGame(&gameState)
+	engine.RunGame(&GameStateGlobal)
 }

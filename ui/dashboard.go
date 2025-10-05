@@ -62,19 +62,25 @@ func (p *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p *Dashboard) View() string {
 
-	activeStyle := lipgloss.NewStyle().
-		Border(lipgloss.ThickBorder()).
-		BorderForeground(lipgloss.Color("212")).
-		Padding(1, 2)
-
-	inactiveStyle := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		Padding(1, 2)
-
 	render := make([][]string, len(p.Grid))
 	for r := range p.Grid {
 		render[r] = make([]string, len(p.Grid[r]))
+		cols := len(p.Grid[r])
+		paneWidth := PaneManager.Width/cols - 2 // weird cut off with term, not sure if this happens in every terminal
+		paneHeight := PaneManager.Height/len(p.Grid) - 2
+		activeStyle := lipgloss.NewStyle().
+			Width(paneWidth).
+			Height(paneHeight).
+			Border(lipgloss.ThickBorder()).
+			BorderForeground(lipgloss.Color("212")).
+			Padding(1, 2)
+
+		inactiveStyle := lipgloss.NewStyle().
+			Width(paneWidth).
+			Height(paneHeight).
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("240")).
+			Padding(1, 2)
 		for c := range p.Grid[r] {
 			paneID := p.Grid[r][c]
 			if r == p.ActiveRow && c == p.ActiveCol {
@@ -82,6 +88,7 @@ func (p *Dashboard) View() string {
 			} else {
 				render[r][c] = inactiveStyle.Render(PaneManager.Panes[paneID].View())
 			}
+
 		}
 	}
 
@@ -90,7 +97,8 @@ func (p *Dashboard) View() string {
 		rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, render[r]...))
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, rows...)
+	content := lipgloss.JoinVertical(lipgloss.Center, rows...)
+	return content
 }
 
 func NewDashboard(grid [][]int, activeRow, activeCol int, title string) *Dashboard {
