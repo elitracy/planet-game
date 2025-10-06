@@ -73,14 +73,15 @@ func (p *Dashboard) View() string {
 			Height(paneHeight).
 			Border(lipgloss.ThickBorder()).
 			BorderForeground(lipgloss.Color("212")).
-			Padding(1, 2)
+			Padding(1)
 
 		inactiveStyle := lipgloss.NewStyle().
 			Width(paneWidth).
 			Height(paneHeight).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("240")).
-			Padding(1, 2)
+			Padding(1)
+
 		for c := range p.Grid[r] {
 			paneID := p.Grid[r][c]
 			if r == p.ActiveRow && c == p.ActiveCol {

@@ -41,13 +41,28 @@ func (a Action) GetStatus() EventStatus {
 func (a *Action) Execute() {
 	a.Status = Executing
 
-	if a.Type == BuildFarm {
+	switch a.Type {
+	case BuildFarm:
 		farm := constructions.CreateFarm(1)
 
 		if planetEntity, ok := a.TargetEntity.(*Planet); ok {
 			planetEntity.Constructions.Farms = append(planetEntity.Constructions.Farms, farm)
 		}
+	case BuildMine:
+		mine := constructions.CreateMine(1)
 
+		if planetEntity, ok := a.TargetEntity.(*Planet); ok {
+			planetEntity.Constructions.Mines = append(planetEntity.Constructions.Mines, mine)
+		}
+	case BuildSolarGrid:
+		SolarGrid := constructions.CreateSolarGrid(1)
+
+		if planetEntity, ok := a.TargetEntity.(*Planet); ok {
+			planetEntity.Constructions.SolarGrids = append(planetEntity.Constructions.SolarGrids, SolarGrid)
+		}
+	}
+
+	if a.Status == Executing {
 		a.Status = Complete
 	}
 }

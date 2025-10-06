@@ -32,17 +32,38 @@ func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position)
 	}
 
 	if order.Type == CreateColonyOrder {
-		action := &Action{
+
+		createFarmAction := &Action{
 			ID:           GameStateGlobal.ActionScheduler.GetNextID(),
 			TargetEntity: entity,
-			Description:  "Builds a Farm on the target Planet",
+			Description:  "Builds a farm on the target Planet",
 			Type:         BuildFarm,
-			ExecuteTime:  start + 5,
+			ExecuteTime:  order.ExecuteTime + 5,
 			Status:       Pending,
 			Order:        order,
 		}
 
-		order.Actions = append(order.Actions, action)
+		createMineAction := &Action{
+			ID:           GameStateGlobal.ActionScheduler.GetNextID(),
+			TargetEntity: entity,
+			Description:  "Builds a mine on the target Planet",
+			Type:         BuildMine,
+			ExecuteTime:  order.ExecuteTime + 5,
+			Status:       Pending,
+			Order:        order,
+		}
+
+		createSolarGridAction := &Action{
+			ID:           GameStateGlobal.ActionScheduler.GetNextID(),
+			TargetEntity: entity,
+			Description:  "Builds a solar grid on the target Planet",
+			Type:         BuildSolarGrid,
+			ExecuteTime:  order.ExecuteTime + 10,
+			Status:       Pending,
+			Order:        order,
+		}
+
+		order.Actions = append(order.Actions, createFarmAction, createMineAction, createSolarGridAction)
 	}
 
 	return order

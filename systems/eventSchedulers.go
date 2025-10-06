@@ -21,7 +21,6 @@ func TickOrderScheduler() {
 			for _, a := range order.Actions {
 				if a.Status != Complete {
 					complete = false
-					// order.Tick() // events should have a tick/update function
 				}
 
 				if a.Status == Failed {
