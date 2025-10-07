@@ -12,18 +12,20 @@ func TickOrderScheduler() {
 			if order.ExecuteTime == GameStateGlobal.CurrentTick {
 				logging.Info("[%s] Executing Order: %v", order.TargetEntity.GetName(), order.ID)
 				order.Status = Executing
-				for _, a := range order.Actions {
-					a.Status = Executing
+				for _, action := range order.Actions {
+					if action.ExecuteTime == GameStateGlobal.CurrentTick {
+						action.Status = Executing
+					}
 				}
 			}
 		case Executing:
 			complete := true
-			for _, a := range order.Actions {
-				if a.Status != Complete {
+			for _, action := range order.Actions {
+				if action.Status != Complete {
 					complete = false
 				}
 
-				if a.Status == Failed {
+				if action.Status == Failed {
 					order.Status = Failed
 				}
 			}
@@ -51,7 +53,7 @@ func TickActionScheduler() {
 	for _, order := range GameStateGlobal.OrderScheduler.PriorityQueue {
 		if order.Status == Executing {
 			for _, action := range order.Actions {
-				if action.ExecuteTime == GameStateGlobal.CurrentTick {
+				if action.ExecuteTime+action.Duration == GameStateGlobal.CurrentTick {
 					action.Execute()
 				}
 			}

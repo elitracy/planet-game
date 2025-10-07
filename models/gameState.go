@@ -3,6 +3,7 @@ package models
 import (
 	"math/rand"
 	"slices"
+	"time"
 )
 
 var system_names = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Hohmann", "Horizon", "Oberth", "Parallax", "Aphelion"}
@@ -35,6 +36,9 @@ const STARTING_MINERAL = 5000
 const STARTING_MINERAL_CONSUMPTION_RATE = 1
 const STARTING_ENERGY = 5000
 const STARTING_ENERGY_CONSUMPTION_RATE = 1
+
+const TICKS_PER_SECOND = 8
+const TICK_SLEEP = time.Second / TICKS_PER_SECOND
 
 type GameState struct {
 	CurrentTick     int

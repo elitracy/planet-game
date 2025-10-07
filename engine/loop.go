@@ -6,20 +6,18 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/logging"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/systems"
 	"github.com/elitracy/planets/ui"
 )
 
-const TICK_SLEEP = time.Second
+var PLAYER_START_LOC = Position{X: 0, Y: 0, Z: 0}
 
-var PLAYER_START_LOC = models.Position{X: 0, Y: 0, Z: 0}
-
-func RunGame(state *models.GameState) {
+func RunGame(state *GameState) {
 	quit := make(chan struct{})
 
 	planetList := ui.PaneManager.AddPane(ui.NewPlanetList(state.StarSystems[0].Planets, "Planet List"))
-	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&models.GameStateGlobal.OrderScheduler, "Orders"))
+	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&GameStateGlobal.OrderScheduler, "Orders"))
 
 	grid := [][]int{
 		{planetList, orderList},

@@ -28,6 +28,7 @@ type OrderStatusPane struct {
 	title          string
 	orderScheduler *EventScheduler[*Order]
 	cursor         int
+	progressBars   map[*Action]int
 }
 
 func NewOrderStatusPane(orderScheduler *EventScheduler[*Order], title string) *OrderStatusPane {
@@ -43,9 +44,13 @@ func (p OrderStatusPane) GetId() int       { return p.id }
 func (p *OrderStatusPane) SetId(id int)    { p.id = id }
 func (p OrderStatusPane) GetTitle() string { return p.title }
 
-func (p *OrderStatusPane) Init() tea.Cmd { return nil }
+func (p *OrderStatusPane) Init() tea.Cmd {
+	p.updateProgressBars()
+	return nil
+}
 
 func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	p.updateProgressBars()
 
 	switch msg := msg.(type) {
 	case tickMsg:
@@ -71,6 +76,8 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *OrderStatusPane) View() string {
+	p.updateProgressBars()
+
 	title := p.title + "\n"
 	content := ""
 
@@ -80,6 +87,9 @@ func (p *OrderStatusPane) View() string {
 
 		for _, action := range order.Actions {
 			orderContent += fmt.Sprintf("\n • [%v] %v", action.Status, action.Type)
+			progressBar := PaneManager.Panes[p.progressBars[action]]
+
+			orderContent += progressBar.View()
 		}
 
 		if p.cursor == i {
@@ -94,4 +104,21 @@ func (p *OrderStatusPane) View() string {
 	content = lipgloss.JoinVertical(lipgloss.Center, title, content)
 
 	return content
+}
+
+func (p *OrderStatusPane) updateProgressBars() {
+	if p.progressBars == nil {
+		p.progressBars = make(map[*Action]int)
+	}
+
+	for _, order := range p.orderScheduler.PriorityQueue {
+		for _, action := range order.Actions {
+			if _, ok := p.progressBars[action]; !ok {
+				progressBar := NewLoadingBarPane("Order Status: "+order.Type.String(), action.ExecuteTime, action.ExecuteTime+action.Duration)
+				id := PaneManager.AddPane(progressBar)
+				p.progressBars[action] = id
+			}
+
+		}
+	}
 }

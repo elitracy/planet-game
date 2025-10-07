@@ -38,7 +38,8 @@ func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position)
 			TargetEntity: entity,
 			Description:  "Builds a farm on the target Planet",
 			Type:         BuildFarm,
-			ExecuteTime:  order.ExecuteTime + 5,
+			ExecuteTime:  order.ExecuteTime,
+			Duration:     40,
 			Status:       Pending,
 			Order:        order,
 		}
@@ -48,7 +49,8 @@ func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position)
 			TargetEntity: entity,
 			Description:  "Builds a mine on the target Planet",
 			Type:         BuildMine,
-			ExecuteTime:  order.ExecuteTime + 5,
+			ExecuteTime:  order.ExecuteTime,
+			Duration:     40,
 			Status:       Pending,
 			Order:        order,
 		}
@@ -58,7 +60,8 @@ func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position)
 			TargetEntity: entity,
 			Description:  "Builds a solar grid on the target Planet",
 			Type:         BuildSolarGrid,
-			ExecuteTime:  order.ExecuteTime + 10,
+			ExecuteTime:  order.ExecuteTime,
+			Duration:     80,
 			Status:       Pending,
 			Order:        order,
 		}

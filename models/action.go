@@ -18,6 +18,7 @@ type Action struct {
 	Description  string
 	Type         ActionType
 	ExecuteTime  int
+	Duration     int
 	Status       EventStatus
 	*Order
 }
@@ -31,7 +32,7 @@ func (a Action) GetStart() int {
 }
 
 func (a Action) GetDuration() int {
-	return a.ExecuteTime - a.Order.ExecuteTime
+	return a.Duration
 }
 
 func (a Action) GetStatus() EventStatus {

@@ -42,7 +42,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if p.focusIndex == len(p.inputs) {
 				p.planet.ColonyName = p.inputs[0].Value()
 
-				createColonyOrder := CreateNewOrder(p.planet, CreateColonyOrder, GameStateGlobal.CurrentTick+5, GameStateGlobal.Player.Position)
+				createColonyOrder := CreateNewOrder(p.planet, CreateColonyOrder, GameStateGlobal.CurrentTick+40, GameStateGlobal.Player.Position)
 
 				GameStateGlobal.OrderScheduler.Push(createColonyOrder)
 				for _, o := range GameStateGlobal.OrderScheduler.PriorityQueue {
