@@ -45,10 +45,8 @@ func RunGame(state *GameState) {
 			logging.Ok("UI exited core loop")
 			return
 		default:
-			// advance time
 			state.CurrentTick++
 
-			// update systems
 			systems.TickOrderScheduler()
 			systems.TickActionScheduler()
 			systems.TickConstructions(state)

@@ -1,17 +1,9 @@
 package ui
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
-)
-
-const (
-	padding  = 2
-	maxWidth = 80
 )
 
 func NewLoadingBarPane(title string, startTick, endTick int) *LoadingBarPane {
@@ -48,18 +40,12 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tea.Quit
 		}
 
-	case tea.WindowSizeMsg:
-		p.progress.Width = msg.Width - padding*2 - 4
-		p.progress.Width = min(p.progress.Width, maxWidth)
-
-		return p, nil
-
 	case tickMsg:
 		if p.progress.Percent() == 1.0 {
 			return p, nil
 		}
 
-		if p.startTick >= GameStateGlobal.CurrentTick {
+		if p.startTick <= GameStateGlobal.CurrentTick {
 			duration := p.endTick - p.startTick
 
 			if duration == 0 {
@@ -67,11 +53,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return p, cmd
 			}
 
-			increment := 1.0 / float64(duration)
-
-			logging.Info("Start Tick: %d", p.startTick)
-			logging.Info("Game Tick: %d", GameStateGlobal.CurrentTick)
-			logging.Info("increment: %.2f", increment)
+			increment := (float64(TICKS_PER_SECOND) / float64(TICKS_PER_SECOND_UI)) / float64(duration)
 
 			cmd := p.progress.IncrPercent(increment)
 			return p, cmd
@@ -91,6 +73,5 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *LoadingBarPane) View() string {
-	pad := strings.Repeat(" ", padding)
-	return "\n" + pad + p.progress.View() + "\n"
+	return p.progress.View()
 }

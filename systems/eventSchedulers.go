@@ -42,7 +42,11 @@ func TickOrderScheduler() {
 				logging.Error("Popped Order: %v", *order)
 				logging.Error("Expected Order: %v", *poppedOrder)
 			}
+
+			GameStateGlobal.CompletedOrders = append([]*Order{poppedOrder}, GameStateGlobal.CompletedOrders...)
+
 			logging.Info("[%v] Completed Order: %v", order.TargetEntity.GetName(), order.ID)
+
 		case Failed:
 			logging.Error("[%v] Order Failed: %v", order.TargetEntity.GetName(), order.ID)
 		}

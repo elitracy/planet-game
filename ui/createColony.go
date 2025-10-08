@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -45,9 +44,6 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				createColonyOrder := CreateNewOrder(p.planet, CreateColonyOrder, GameStateGlobal.CurrentTick+40, GameStateGlobal.Player.Position)
 
 				GameStateGlobal.OrderScheduler.Push(createColonyOrder)
-				for _, o := range GameStateGlobal.OrderScheduler.PriorityQueue {
-					logging.Info("Order Queue: %v", *o)
-				}
 				return p, popFocusCmd()
 			}
 

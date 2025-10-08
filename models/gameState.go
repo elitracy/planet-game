@@ -46,6 +46,7 @@ type GameState struct {
 	Player          Player
 	OrderScheduler  EventScheduler[*Order]
 	ActionScheduler EventScheduler[*Action]
+	CompletedOrders []*Order
 }
 
 var GameStateGlobal GameState

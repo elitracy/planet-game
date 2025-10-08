@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elitracy/planets/models"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -17,10 +18,12 @@ const (
 	colorGreen  = "\033[32m"
 	colorYellow = "\033[33m"
 	colorBlue   = "\033[34m"
+	colorGrey   = "\033[90m"
 )
 
 type LogMessage struct {
 	Time     time.Time
+	Tick     int
 	Color    string
 	Level    string
 	Filename string
@@ -44,9 +47,11 @@ func (l *Logger) run() {
 			Compress:   true,
 		},
 	)
+	log.SetFlags(0)
 
 	for msg := range l.queue {
-		log.Printf("%s[%s] %s %s%s\n", msg.Color, msg.Level, msg.Filename, msg.Message, colorReset)
+		timeTick := fmt.Sprintf("%s%s|%05d%s", colorGrey, msg.Time.Format("15:04:05.000"), msg.Tick, colorReset)
+		log.Printf("%s %s[%s] %s %s%s\n", timeTick, msg.Color, msg.Level, msg.Filename, msg.Message, colorReset)
 	}
 }
 
@@ -61,7 +66,6 @@ func NewLogger(filepath string) *Logger {
 }
 
 func (l *Logger) log(level, color, format string, args ...any) {
-	// caller info
 	_, file, _, ok := runtime.Caller(2)
 	fileName := "UNKNOWN"
 	if ok {
@@ -71,6 +75,7 @@ func (l *Logger) log(level, color, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	logger.queue <- LogMessage{
 		Time:     time.Now(),
+		Tick:     models.GameStateGlobal.CurrentTick,
 		Level:    level,
 		Filename: fileName,
 		Message:  msg,

@@ -5,22 +5,20 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 )
 
 type PlanetList struct {
-	choices  []*models.Planet
-	cursor   int
-	selected int
-	id       int
-	title    string
+	choices []*Planet
+	cursor  int
+	id      int
+	title   string
 }
 
-func NewPlanetList(planets []*models.Planet, title string) *PlanetList {
+func NewPlanetList(planets []*Planet, title string) *PlanetList {
 	return &PlanetList{
-		choices:  planets,
-		selected: -1,
-		title:    title,
+		choices: planets,
+		title:   title,
 	}
 }
 
@@ -47,8 +45,6 @@ func (p *PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "enter":
-			p.selected = p.cursor
-
 			pane := &PlanetInfoPane{
 				id:     0,
 				title:  "Planet Info",
@@ -73,7 +69,7 @@ func (p *PlanetList) View() string {
 
 	for i, choice := range p.choices {
 		cursor := " "
-		if p.cursor == i {
+		if p.cursor == i && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
 			cursor = ">"
 			s += Theme.focusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
 		} else {

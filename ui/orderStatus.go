@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -22,19 +23,25 @@ var (
 				Padding(0, 1)
 )
 
+var (
+	progressBarWidth int
+)
+
 type OrderStatusPane struct {
 	Pane
 	id             int
 	title          string
-	orderScheduler *EventScheduler[*Order]
+	width          int
+	height         int
 	cursor         int
+	orderScheduler *EventScheduler[*Order]
 	progressBars   map[*Action]int
 }
 
 func NewOrderStatusPane(orderScheduler *EventScheduler[*Order], title string) *OrderStatusPane {
 	pane := &OrderStatusPane{
 		title:          title,
-		orderScheduler: *&orderScheduler,
+		orderScheduler: orderScheduler,
 	}
 
 	return pane
@@ -53,6 +60,18 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	p.updateProgressBars()
 
 	switch msg := msg.(type) {
+	case paneResizeMsg:
+		if msg.paneID == p.GetId() {
+			p.width = msg.width - 2
+			p.height = msg.height
+
+			var cmds []tea.Cmd
+			for _, val := range p.progressBars {
+				cmds = append(cmds, paneResizeCmd(val, progressBarWidth, msg.height))
+			}
+			return p, tea.Batch(cmds...)
+
+		}
 	case tickMsg:
 		return p, nil
 	case tea.KeyMsg:
@@ -62,7 +81,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 		case "down", "j":
-			if p.cursor < len(p.orderScheduler.PriorityQueue)-1 {
+			if p.cursor < len(p.orderScheduler.PriorityQueue)+len(GameStateGlobal.CompletedOrders)-1 {
 				p.cursor++
 			}
 		case "esc":
@@ -75,33 +94,134 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
+// TODO: refactor into switch function
 func (p *OrderStatusPane) View() string {
-	p.updateProgressBars()
 
-	title := p.title + "\n"
-	content := ""
+	var pendingOrders []*Order
+	var executingOrders []*Order
+	var completedOrders []*Order
 
-	for i, order := range p.orderScheduler.PriorityQueue {
-		orderContent := ""
-		orderContent += fmt.Sprintf("[%v] %v %v", order.Status, order.Type, order.TargetEntity.GetName())
-
-		for _, action := range order.Actions {
-			orderContent += fmt.Sprintf("\n • [%v] %v", action.Status, action.Type)
-			progressBar := PaneManager.Panes[p.progressBars[action]]
-
-			orderContent += progressBar.View()
+	for _, order := range p.orderScheduler.PriorityQueue {
+		if order.Status == Pending {
+			pendingOrders = append(pendingOrders, order)
 		}
 
-		if p.cursor == i {
-			orderContent = activeRowStyle.Render(orderContent)
-		} else {
-			orderContent = inactiveRowStyle.Render(orderContent)
+		if order.Status == Executing {
+			executingOrders = append(executingOrders, order)
 		}
-
-		content += orderContent + "\n"
 	}
 
-	content = lipgloss.JoinVertical(lipgloss.Center, title, content)
+	for _, order := range GameStateGlobal.CompletedOrders {
+		completedOrders = append(completedOrders, order)
+	}
+
+	p.updateProgressBars()
+
+	title := lipgloss.NewStyle().Width(p.width).AlignHorizontal(lipgloss.Center).Render(p.title + "\n")
+
+	var pendingOrderRows []string
+
+	pendingOrdersTitle := "Pending"
+	pendingOrdersTitleStyles := lipgloss.NewStyle().Bold(true)
+	pendingOrderRows = append(pendingOrderRows, pendingOrdersTitleStyles.Render(pendingOrdersTitle))
+
+	currentOrder := 0
+	for _, order := range pendingOrders {
+		row := fmt.Sprintf("[%v] %v %v", order.Status, order.Type, order.TargetEntity.GetName())
+
+		countDown := fmt.Sprintf("ETA: %vs", (order.ExecuteTime-GameStateGlobal.CurrentTick)/TICKS_PER_SECOND)
+		countDown = Theme.blurredStyle.Render(countDown)
+
+		logging.Info("gap: %v", p.width-lipgloss.Width(row)-lipgloss.Width(countDown))
+		gap := lipgloss.NewStyle().Width(p.width - lipgloss.Width(row)).Align(lipgloss.Right).Render("")
+
+		row = lipgloss.JoinHorizontal(lipgloss.Top, row, gap, countDown)
+
+		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
+			row = activeRowStyle.Width(p.width).Render(row)
+		} else {
+			row = inactiveRowStyle.Width(p.width).Render(row)
+		}
+
+		pendingOrderRows = append(pendingOrderRows, row)
+		currentOrder++
+
+	}
+	pendingOrderContent := lipgloss.JoinVertical(lipgloss.Left, pendingOrderRows...)
+
+	if len(pendingOrders) == 0 {
+		pendingOrderContent = Theme.blurredStyle.Render("No orders pending")
+	}
+
+	var execOrderRows []string
+
+	execOrdersTitle := "Active"
+	execOrdersTitleStyles := lipgloss.NewStyle().Bold(true)
+	execOrderRows = append(execOrderRows, execOrdersTitleStyles.Render(execOrdersTitle))
+
+	for _, order := range executingOrders {
+
+		var rows []string
+		orderLabel := fmt.Sprintf("[%v] %v %v", order.Status, order.Type, order.TargetEntity.GetName())
+		orderStyle := lipgloss.NewStyle().Width(p.width).Align(lipgloss.Left)
+		rows = append(rows, orderStyle.Render(orderLabel))
+
+		for _, action := range order.Actions {
+			progressBar := PaneManager.Panes[p.progressBars[action]]
+			label := fmt.Sprintf("\n• [%v] %v", action.Status, action.Type)
+
+			labelStyle := lipgloss.NewStyle().Width(lipgloss.Width(label)).Align(lipgloss.Left)
+			barStyle := lipgloss.NewStyle().Width(p.width - lipgloss.Width(label) - 3).Align(lipgloss.Right)
+
+			row := lipgloss.JoinHorizontal(lipgloss.Bottom, labelStyle.Render(label), barStyle.Render(progressBar.View()))
+
+			rows = append(rows, row)
+		}
+
+		orderContent := lipgloss.JoinVertical(lipgloss.Left, rows...)
+
+		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
+			orderContent = activeRowStyle.Width(p.width).Render(orderContent)
+		} else {
+			orderContent = inactiveRowStyle.Width(p.width).Render(orderContent)
+		}
+
+		execOrderRows = append(execOrderRows, orderContent)
+		currentOrder++
+	}
+
+	execOrderContent := lipgloss.JoinVertical(lipgloss.Left, execOrderRows...)
+
+	if len(executingOrders) == 0 {
+		execOrderContent = Theme.blurredStyle.Render("No orders queued")
+	}
+
+	var completedOrderRows []string
+
+	completedOrdersTitle := "Completed"
+	completedOrdersTitleStyles := lipgloss.NewStyle().Bold(true)
+	completedOrderRows = append(completedOrderRows, completedOrdersTitleStyles.Render(completedOrdersTitle))
+
+	for _, order := range completedOrders {
+		row := fmt.Sprintf("[%v] %v %v", order.Status, order.Type, order.TargetEntity.GetName())
+
+		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
+			row = activeRowStyle.Width(p.width).Render(row)
+		} else {
+			row = inactiveRowStyle.Width(p.width).Render(row)
+		}
+
+		completedOrderRows = append(completedOrderRows, row)
+
+		currentOrder++
+	}
+	completedOrderContent := lipgloss.JoinVertical(lipgloss.Left, completedOrderRows...)
+
+	if len(completedOrders) == 0 {
+		completedOrderContent = Theme.blurredStyle.Render("No orders completed")
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left, title, pendingOrderContent, execOrderContent, completedOrderContent)
 
 	return content
 }

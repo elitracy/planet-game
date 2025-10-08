@@ -2,17 +2,25 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	. "github.com/elitracy/planets/models"
 )
 
-type pushFocusMsg struct {
-	id int
-}
-
+type pushFocusMsg struct{ id int }
 type popFocusMsg struct{}
+
+type paneResizeMsg struct {
+	paneID int
+	width  int
+	height int
+}
 
 func pushFocusCmd(id int) tea.Cmd { return func() tea.Msg { return pushFocusMsg{id} } }
 func popFocusCmd() tea.Cmd        { return func() tea.Msg { return popFocusMsg{} } }
+
+func paneResizeCmd(id, width, height int) tea.Cmd {
+	return func() tea.Msg { return paneResizeMsg{paneID: id, width: width, height: height} }
+}
 
 type paneManager struct {
 	FocusStack FocusStack
@@ -76,8 +84,8 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.UITick++
 		cmds = append(cmds, tick(p.UITick))
 	case tea.WindowSizeMsg:
-		p.Width = msg.Width
-		p.Height = msg.Height
+		p.Width = msg.Width - 10
+		p.Height = msg.Height - 10
 	}
 
 	for key := range p.Panes {
@@ -101,7 +109,10 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *paneManager) View() string {
-	return p.ActivePane().View()
+	viewStyle := lipgloss.NewStyle().Padding(2)
+	view := viewStyle.Render(p.ActivePane().View())
+
+	return view
 }
 
 type FocusStack struct {
