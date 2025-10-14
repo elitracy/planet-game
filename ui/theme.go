@@ -12,10 +12,12 @@ type UITheme struct {
 }
 
 var Theme = UITheme{
-	focusedStyle:        lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
-	blurredStyle:        lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
-	cursorStyle:         lipgloss.NewStyle().Foreground(lipgloss.Color("205")),
-	noStyle:             lipgloss.NewStyle(),
-	helpStyle:           lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
-	cursorModeHelpStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("244")),
+	focusedStyle:        Style.Foreground(lipgloss.Color("205")),
+	blurredStyle:        Style.Foreground(lipgloss.Color("240")),
+	cursorStyle:         Style.Foreground(lipgloss.Color("205")),
+	noStyle:             Style,
+	helpStyle:           Style.Foreground(lipgloss.Color("240")),
+	cursorModeHelpStyle: Style.Foreground(lipgloss.Color("244")),
 }
+
+var Style = lipgloss.NewStyle()

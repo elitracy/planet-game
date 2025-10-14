@@ -66,35 +66,35 @@ func (p *PlanetInfoPane) View() string {
 	constructions += fmt.Sprintf("Mines:       %d\n", len(p.planet.Constructions.Mines))
 	constructions += fmt.Sprintf("Solar Grids: %d", len(p.planet.Constructions.SolarGrids))
 
-	defaultStyle := lipgloss.NewStyle().
+	defaultStyle := Style.
 		Padding(1).
 		PaddingTop(0)
 
-	title = lipgloss.NewStyle().Bold(true).Render(title)
+	title = Style.Bold(true).Render(title)
 	title = defaultStyle.Render(title)
 
 	population = defaultStyle.Render(population)
 
-	resources = lipgloss.NewStyle().
+	resources = Style.
 		PaddingRight(1).
 		Inherit(defaultStyle).
 		Render(resources)
 	constructions = defaultStyle.Render(constructions)
 
 	info := lipgloss.JoinHorizontal(lipgloss.Top, resources, constructions)
-	info = lipgloss.NewStyle().
+	info = Style.
 		Render(info)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
 
 	colonizeButton := Theme.focusedStyle.Underline(true).Render("O") + "rder Colonization"
-	colonizeButton = lipgloss.NewStyle().
+	colonizeButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(colonizeButton)
 
 	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
-	changeAllocationsButton = lipgloss.NewStyle().
+	changeAllocationsButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(changeAllocationsButton)

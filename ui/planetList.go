@@ -78,7 +78,7 @@ func (p *PlanetList) View() string {
 
 		if choice.ColonyName != "" {
 			colony := fmt.Sprintf(" (%s)", choice.ColonyName)
-			colony = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Render(colony)
+			colony = Style.Foreground(lipgloss.Color("240")).Render(colony)
 			s += colony
 		}
 

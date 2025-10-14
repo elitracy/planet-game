@@ -108,9 +108,9 @@ func (p *PlayerInfoPane) View() string {
 
 		t.Child(system_branch)
 	}
-	enumeratorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("63")).MarginRight(1)
-	rootStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("35"))
-	itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("212"))
+	enumeratorStyle := Style.Foreground(lipgloss.Color("63")).MarginRight(1)
+	rootStyle := Style.Foreground(lipgloss.Color("35"))
+	itemStyle := Style.Foreground(lipgloss.Color("212"))
 
 	t.Enumerator(tree.RoundedEnumerator).
 		EnumeratorStyle(enumeratorStyle).
@@ -120,9 +120,9 @@ func (p *PlayerInfoPane) View() string {
 	content += t.String()
 	content += "\n"
 
-	title = lipgloss.NewStyle().Bold(true).Align(lipgloss.Center).Render(title)
+	title = Style.Bold(true).Align(lipgloss.Center).Render(title)
 
-	buttonContainer := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Align(lipgloss.Center).Padding(1, 2)
+	buttonContainer := Style.Border(lipgloss.RoundedBorder()).Align(lipgloss.Center).Padding(1, 2)
 
 	confirmButton := buttonContainer.Render("Start Travel")
 	cancelButton := buttonContainer.Render("Cancel")

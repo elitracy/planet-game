@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	activeRowStyle = lipgloss.NewStyle().
+	activeRowStyle = Style.
 			Width(PaneManager.Width).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("212")).
 			Padding(0, 1)
 
-	inactiveRowStyle = lipgloss.NewStyle().
+	inactiveRowStyle = Style.
 				Width(PaneManager.Width).
 				Border(lipgloss.NormalBorder()).
 				BorderForeground(lipgloss.Color("240")).
@@ -116,12 +116,12 @@ func (p *OrderStatusPane) View() string {
 
 	p.updateProgressBars()
 
-	title := lipgloss.NewStyle().Width(p.width).AlignHorizontal(lipgloss.Center).Render(p.title + "\n")
+	title := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(p.title + "\n")
 
 	var pendingOrderRows []string
 
 	pendingOrdersTitle := "Pending"
-	pendingOrdersTitleStyles := lipgloss.NewStyle().Bold(true)
+	pendingOrdersTitleStyles := Style.Bold(true)
 	pendingOrderRows = append(pendingOrderRows, pendingOrdersTitleStyles.Render(pendingOrdersTitle))
 
 	currentOrder := 0
@@ -159,14 +159,14 @@ func (p *OrderStatusPane) View() string {
 	var execOrderRows []string
 
 	execOrdersTitle := "Active"
-	execOrdersTitleStyles := lipgloss.NewStyle().Bold(true)
+	execOrdersTitleStyles := Style.Bold(true)
 	execOrderRows = append(execOrderRows, execOrdersTitleStyles.Render(execOrdersTitle))
 
 	for _, order := range executingOrders {
 
 		var rows []string
 		orderLabel := fmt.Sprintf("[%v] %v %v", order.Status, order.Type, order.TargetEntity.GetName())
-		orderStyle := lipgloss.NewStyle().Width(p.width).Align(lipgloss.Left)
+		orderStyle := Style.Width(p.width).Align(lipgloss.Left)
 		rows = append(rows, orderStyle.Render(orderLabel))
 
 		for _, action := range order.Actions {
@@ -207,7 +207,7 @@ func (p *OrderStatusPane) View() string {
 	var completedOrderRows []string
 
 	completedOrdersTitle := "Completed"
-	completedOrdersTitleStyles := lipgloss.NewStyle().Bold(true)
+	completedOrdersTitleStyles := Style.Bold(true)
 	completedOrderRows = append(completedOrderRows, completedOrdersTitleStyles.Render(completedOrdersTitle))
 
 	for _, order := range completedOrders {

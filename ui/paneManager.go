@@ -2,7 +2,6 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -109,7 +108,7 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *paneManager) View() string {
-	viewStyle := lipgloss.NewStyle().Padding(2)
+	viewStyle := Style.Padding(2)
 	view := viewStyle.Render(p.ActivePane().View())
 
 	return view

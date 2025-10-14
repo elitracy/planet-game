@@ -84,13 +84,13 @@ func (p *Dashboard) View() string {
 		cols := len(p.Grid[r])
 		paneWidth := PaneManager.Width / cols
 		paneHeight := PaneManager.Height / len(p.Grid)
-		activeStyle := lipgloss.NewStyle().
+		activeStyle := Style.
 			Width(paneWidth).
 			Height(paneHeight).
 			Border(lipgloss.ThickBorder()).
 			BorderForeground(lipgloss.Color("212"))
 
-		inactiveStyle := lipgloss.NewStyle().
+		inactiveStyle := Style.
 			Width(paneWidth).
 			Height(paneHeight).
 			Border(lipgloss.NormalBorder()).
@@ -113,7 +113,7 @@ func (p *Dashboard) View() string {
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
-	content = lipgloss.NewStyle().Render(content)
+	content = Style.Render(content)
 	return content
 }
 
