@@ -5,7 +5,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -130,12 +129,16 @@ func (p *OrderStatusPane) View() string {
 		row := fmt.Sprintf("[%v] %v %v", order.Status, order.Type, order.TargetEntity.GetName())
 
 		countDown := fmt.Sprintf("ETA: %vs", (order.ExecuteTime-GameStateGlobal.CurrentTick)/TICKS_PER_SECOND)
-		countDown = Theme.blurredStyle.Render(countDown)
 
-		logging.Info("gap: %v", p.width-lipgloss.Width(row)-lipgloss.Width(countDown))
-		gap := lipgloss.NewStyle().Width(p.width - lipgloss.Width(row)).Align(lipgloss.Right).Render("")
-
-		row = lipgloss.JoinHorizontal(lipgloss.Top, row, gap, countDown)
+		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.width-5 {
+			row = Style.Render(row)
+			countDown = Theme.blurredStyle.Render(countDown)
+			row = lipgloss.JoinVertical(lipgloss.Left, row, countDown)
+		} else {
+			row = Style.PaddingRight(p.width - lipgloss.Width(countDown) - lipgloss.Width(row) - 2).Render(row)
+			countDown = Theme.blurredStyle.Render(countDown)
+			row = lipgloss.JoinHorizontal(lipgloss.Top, row, countDown)
+		}
 
 		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
 			row = activeRowStyle.Width(p.width).Render(row)
@@ -145,8 +148,8 @@ func (p *OrderStatusPane) View() string {
 
 		pendingOrderRows = append(pendingOrderRows, row)
 		currentOrder++
-
 	}
+
 	pendingOrderContent := lipgloss.JoinVertical(lipgloss.Left, pendingOrderRows...)
 
 	if len(pendingOrders) == 0 {
@@ -170,10 +173,15 @@ func (p *OrderStatusPane) View() string {
 			progressBar := PaneManager.Panes[p.progressBars[action]]
 			label := fmt.Sprintf("\n• [%v] %v", action.Status, action.Type)
 
-			labelStyle := lipgloss.NewStyle().Width(lipgloss.Width(label)).Align(lipgloss.Left)
-			barStyle := lipgloss.NewStyle().Width(p.width - lipgloss.Width(label) - 3).Align(lipgloss.Right)
+			label = Style.Width(lipgloss.Width(label)).Align(lipgloss.Left).Render(label)
+			label = Style.PaddingRight(p.width - lipgloss.Width(label) - lipgloss.Width(progressBar.View()) - 5).Render(label)
 
-			row := lipgloss.JoinHorizontal(lipgloss.Bottom, labelStyle.Render(label), barStyle.Render(progressBar.View()))
+			var row string
+			if lipgloss.Width(label)+lipgloss.Width(progressBar.View()) > p.width-5 {
+				row = lipgloss.JoinVertical(lipgloss.Left, label, progressBar.View())
+			} else {
+				row = lipgloss.JoinHorizontal(lipgloss.Bottom, label, progressBar.View())
+			}
 
 			rows = append(rows, row)
 		}
