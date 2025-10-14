@@ -19,6 +19,7 @@ func main() {
 	logging.Ok("State Initialized")
 
 	GameStateGlobal.Player = Player{Position{0, 0, 0}}
+	GameStateGlobal.ShipManager.CreateShip("Hermes I", GameStateGlobal.Player.Position, Scout)
 
 	logging.Ok("Player Initialized")
 

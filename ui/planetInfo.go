@@ -33,6 +33,10 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			childPaneID = PaneManager.AddPane(pane)
 			return p, pushFocusCmd(childPaneID)
+		case "s":
+			// pane := NewChooseShipPane(
+			//
+			// )
 
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
@@ -93,13 +97,19 @@ func (p *PlanetInfoPane) View() string {
 		Border(lipgloss.RoundedBorder()).
 		Render(colonizeButton)
 
+	scoutButton := Theme.focusedStyle.Underline(true).Render("S") + "cout"
+	scoutButton = Style.
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		Render(colonizeButton)
+
 	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
 	changeAllocationsButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(changeAllocationsButton)
 
-	buttons := lipgloss.JoinHorizontal(lipgloss.Center, colonizeButton, changeAllocationsButton)
+	buttons := lipgloss.JoinHorizontal(lipgloss.Center, colonizeButton, scoutButton, changeAllocationsButton)
 
 	content := lipgloss.JoinVertical(lipgloss.Center, infoContainer, buttons)
 

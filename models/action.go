@@ -10,6 +10,7 @@ const (
 	BuildMine
 	BuildSolarGrid
 	BuildColony
+	MoveShip
 )
 
 type Action struct {

@@ -47,6 +47,7 @@ type GameState struct {
 	OrderScheduler  EventScheduler[*Order]
 	ActionScheduler EventScheduler[*Action]
 	CompletedOrders []*Order
+	ShipManager
 }
 
 var GameStateGlobal GameState

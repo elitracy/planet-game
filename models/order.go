@@ -8,6 +8,7 @@ const (
 	SendFoodOrder
 	SendMineralOrder
 	SendEnergyOrder
+	SendScoutShipOrder
 )
 
 type Order struct {
@@ -21,7 +22,7 @@ type Order struct {
 	// Velocity
 }
 
-func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position) *Order {
+func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position, args ...any) *Order {
 	order := &Order{
 		ID:            GameStateGlobal.OrderScheduler.GetNextID(),
 		TargetEntity:  entity,
@@ -31,8 +32,8 @@ func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position)
 		Status:        Pending,
 	}
 
-	if order.Type == CreateColonyOrder {
-
+	switch order.Type {
+	case CreateColonyOrder:
 		createFarmAction := &Action{
 			ID:           GameStateGlobal.ActionScheduler.GetNextID(),
 			TargetEntity: entity,
@@ -67,18 +68,27 @@ func CreateNewOrder(entity Entity, orderType OrderType, start int, pos Position)
 		}
 
 		order.Actions = append(order.Actions, createFarmAction, createMineAction, createSolarGridAction)
+	case SendScoutShipOrder:
+		travelAction := &Action{
+			ID:           GameStateGlobal.ActionScheduler.GetNextID(),
+			TargetEntity: entity,
+			Description:  "Sends a ship to the target position",
+			Type:         MoveShip,
+			ExecuteTime:  order.ExecuteTime,
+			Duration:     order.ExecuteTime - GameStateGlobal.CurrentTick, // calcualted upon order creation
+			Status:       Pending,
+			Order:        order,
+		}
+
+		order.Actions = append(order.Actions, travelAction)
 	}
 
 	return order
 }
 
-func (o Order) GetID() int {
-	return o.ID
-}
+func (o Order) GetID() int { return o.ID }
 
-func (o Order) GetStart() int {
-	return o.ExecuteTime
-}
+func (o Order) GetStart() int { return o.ExecuteTime }
 
 func (o Order) GetDuration() int {
 	duration := 0
@@ -89,9 +99,7 @@ func (o Order) GetDuration() int {
 	return duration
 }
 
-func (o Order) GetStatus() EventStatus {
-	return o.Status
-}
+func (o Order) GetStatus() EventStatus { return o.Status }
 
 // func (o Order) GetETA() int {
 // 	distance := int(EuclidianDistance(o.StartPosition, o.TargetEntity.GetPosition()))

@@ -21,21 +21,10 @@ type Planet struct {
 	OrderQueue []*Order
 }
 
-func (p Planet) GetID() int {
-	return p.ID
-}
-
-func (p Planet) GetName() string {
-	return p.Name
-}
-
-func (p Planet) GetPosition() Position {
-	return p.Position
-}
-
-func (p Planet) GetOrders() []*Order {
-	return p.OrderQueue
-}
+func (p Planet) GetID() int            { return p.ID }
+func (p Planet) GetName() string       { return p.Name }
+func (p Planet) GetPosition() Position { return p.Position }
+func (p Planet) GetOrders() []*Order   { return p.OrderQueue }
 
 func (p *Planet) PushOrder(order *Order) {
 	p.OrderQueue = append(p.OrderQueue, order)
