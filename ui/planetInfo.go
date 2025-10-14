@@ -5,7 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 )
 
 type PlanetInfoPane struct {
@@ -13,7 +13,7 @@ type PlanetInfoPane struct {
 	id          int
 	childPaneID int
 	title       string
-	planet      *models.Planet
+	planet      *Planet
 }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
@@ -25,9 +25,9 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "c":
+		case "o":
 			pane := NewCreateColonyPane(
-				"Colonize: "+p.planet.Name,
+				"Order Colonization: "+p.planet.Name,
 				p.planet,
 			)
 
@@ -66,35 +66,35 @@ func (p *PlanetInfoPane) View() string {
 	constructions += fmt.Sprintf("Mines:       %d\n", len(p.planet.Constructions.Mines))
 	constructions += fmt.Sprintf("Solar Grids: %d", len(p.planet.Constructions.SolarGrids))
 
-	defaultStyle := lipgloss.NewStyle().
+	defaultStyle := Style.
 		Padding(1).
 		PaddingTop(0)
 
-	title = lipgloss.NewStyle().Bold(true).Render(title)
+	title = Style.Bold(true).Render(title)
 	title = defaultStyle.Render(title)
 
 	population = defaultStyle.Render(population)
 
-	resources = lipgloss.NewStyle().
+	resources = Style.
 		PaddingRight(1).
 		Inherit(defaultStyle).
 		Render(resources)
 	constructions = defaultStyle.Render(constructions)
 
 	info := lipgloss.JoinHorizontal(lipgloss.Top, resources, constructions)
-	info = lipgloss.NewStyle().
+	info = Style.
 		Render(info)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
 
-	colonizeButton := Theme.focusedStyle.Underline(true).Render("C") + "olonize"
-	colonizeButton = lipgloss.NewStyle().
+	colonizeButton := Theme.focusedStyle.Underline(true).Render("O") + "rder Colonization"
+	colonizeButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(colonizeButton)
 
 	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
-	changeAllocationsButton = lipgloss.NewStyle().
+	changeAllocationsButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(changeAllocationsButton)
@@ -111,7 +111,7 @@ func (p PlanetInfoPane) GetId() int       { return p.id }
 func (p *PlanetInfoPane) SetId(id int)    { p.id = id }
 func (p PlanetInfoPane) GetTitle() string { return p.title }
 
-func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
+func NewPlanetInfoPane(title string, planet *Planet) *PlanetInfoPane {
 
 	return &PlanetInfoPane{
 		title:  title,

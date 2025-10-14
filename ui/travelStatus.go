@@ -2,20 +2,20 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 )
 
 type TravelStatusPane struct {
 	Pane
 	id          int
 	title       string
-	p0          models.Position // origin
-	p1          models.Position // destination
+	p0          Position // origin
+	p1          Position // destination
 	origin      string
 	destination string
 	startTick   int
 	endTick     int
-	state       *models.GameState
+	state       *GameState
 }
 
 func (p *TravelStatusPane) Init() tea.Cmd { return nil }
@@ -68,7 +68,7 @@ func (p TravelStatusPane) GetId() int       { return p.id }
 func (p *TravelStatusPane) SetId(id int)    { p.id = id }
 func (p TravelStatusPane) GetTitle() string { return p.title }
 
-func NewTravelStatusPane(title string, id int, p0, p1 models.Position, origin, destination string, startTick, endTick int, state *models.GameState) *TravelStatusPane {
+func NewTravelStatusPane(title string, id int, p0, p1 Position, origin, destination string, startTick, endTick int, state *GameState) *TravelStatusPane {
 
 	return &TravelStatusPane{
 		title:       title,

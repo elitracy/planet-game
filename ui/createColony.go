@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/models"
 )
 
 var (
@@ -19,7 +19,7 @@ type CreateColonyPane struct {
 	Pane
 	id     int
 	title  string
-	planet *models.Planet
+	planet *Planet
 
 	focusIndex int
 	inputs     []textinput.Model
@@ -40,6 +40,11 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			if p.focusIndex == len(p.inputs) {
 				p.planet.ColonyName = p.inputs[0].Value()
+
+				createColonyOrder := CreateNewOrder(p.planet, CreateColonyOrder, GameStateGlobal.CurrentTick+40, GameStateGlobal.Player.Position)
+
+				GameStateGlobal.OrderScheduler.Push(createColonyOrder)
+				return p, popFocusCmd()
 			}
 
 			if p.cursorMode > 0 {
@@ -142,7 +147,7 @@ func (p CreateColonyPane) GetId() int       { return p.id }
 func (p *CreateColonyPane) SetId(id int)    { p.id = id }
 func (p CreateColonyPane) GetTitle() string { return p.title }
 
-func NewCreateColonyPane(title string, planet *models.Planet) *CreateColonyPane {
+func NewCreateColonyPane(title string, planet *Planet) *CreateColonyPane {
 
 	p := &CreateColonyPane{
 		inputs:     make([]textinput.Model, 4),

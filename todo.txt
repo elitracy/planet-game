@@ -66,12 +66,6 @@ Background Events
 
 
 Left Off:
-- how do we want player input to work
-- need to decide on core game loop
- - player starts in system
- - choose planet to go to
- - start colony
- - go to another system
- - get reports from colonies
- - respond to events
- - go to new colony
+- event scheduler systsems
+- events need ticking update function
+- UI pane to test this

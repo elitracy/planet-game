@@ -10,16 +10,45 @@ import (
 
 // planets are a "colony"
 type Planet struct {
-	Name                 string
-	ColonyName           string
-	Population           int
-	PopulationGrowthRate int
-	Players              []*Player
+	ID         int
+	Name       string
+	ColonyName string
+	Population int
 	Resources
 	Stabilities
 	Constructions
 	Position
-	PlanetPayloads
+	OrderQueue []*Order
+}
+
+func (p Planet) GetID() int {
+	return p.ID
+}
+
+func (p Planet) GetName() string {
+	return p.Name
+}
+
+func (p Planet) GetPosition() Position {
+	return p.Position
+}
+
+func (p Planet) GetOrders() []*Order {
+	return p.OrderQueue
+}
+
+func (p *Planet) PushOrder(order *Order) {
+	p.OrderQueue = append(p.OrderQueue, order)
+}
+
+func (p *Planet) PopOrder() *Order {
+	if len(p.OrderQueue) == 0 {
+		return nil
+	}
+
+	order := p.OrderQueue[0]
+	p.OrderQueue = p.OrderQueue[1:]
+	return order
 }
 
 func (p Planet) GetTotalFarmProduction() int {
@@ -34,7 +63,6 @@ func (p Planet) GetTotalFarmProduction() int {
 
 func (p Planet) GetTotalMineProduction() int {
 	total_rate := 0
-
 	for _, p := range p.Constructions.Mines {
 		total_rate += p.GetProductionRate()
 	}
@@ -52,25 +80,11 @@ func (p Planet) GetTotalSolarGridProduction() int {
 	return total_rate
 }
 
-func (p Planet) String() string {
-	var output string
-
-	output += fmt.Sprintf("🪐 %s %v\n", p.Name, p.Position)
-	output += fmt.Sprintf("| Population: %d @ %d\n", p.Population, p.PopulationGrowthRate)
-	output += fmt.Sprintf("%v\n", p.Resources)
-	output += fmt.Sprintf("%v\n", p.Constructions)
-	output += fmt.Sprintf("%v\n", p.Stabilities)
-	output += fmt.Sprintf("Messages:\n%v", p.PlanetPayloads)
-
-	return output
-}
-
-func CreatePlanet(name string, x, y, z, pop, pop_growth_rate, initial_food, initial_mineral, intital_energy, initial_food_rate, initial_mineral_rate, initial_energy_rate, num_farms, num_mines, num_solar_grids int) Planet {
+func CreatePlanet(name string, x, y, z, pop, initial_food, initial_mineral, intital_energy, initial_food_rate, initial_mineral_rate, initial_energy_rate, num_farms, num_mines, num_solar_grids int) Planet {
 	planet := Planet{
-		Name:                 name,
-		Population:           pop,
-		Position:             Position{x, y, z},
-		PopulationGrowthRate: pop_growth_rate,
+		Name:       name,
+		Population: pop,
+		Position:   Position{x, y, z},
 		Resources: Resources{
 			Food: resources.Food{
 				Quantity:        initial_food,
@@ -100,72 +114,6 @@ func CreatePlanet(name string, x, y, z, pop, pop_growth_rate, initial_food, init
 	}
 
 	return planet
-}
-
-// queues
-type PlanetPayloads struct {
-	MessagePayloads  []*Payload[string]
-	ResourcePayloads []*Payload[resources.Resource]
-}
-
-func (p *PlanetPayloads) String() string {
-	var output string
-
-	output += "| Messages: \n"
-	for _, m := range p.MessagePayloads {
-		output += fmt.Sprintf("%v", m)
-	}
-	output += "\n"
-
-	output += "| Resources: \n"
-	for _, r := range p.ResourcePayloads {
-		output += fmt.Sprintf("%v", r)
-	}
-	return output
-}
-
-func (p *Planet) QueueMessagePayload(m Payload[string]) {
-	p.MessagePayloads = append(p.MessagePayloads, &m)
-}
-
-func (p *Planet) QueueResourcePayload(r Payload[resources.Resource]) {
-	p.ResourcePayloads = append(p.ResourcePayloads, &r)
-}
-
-func (p *Planet) ReadMessagePayloads(currentTick int) []Payload[string] {
-	var arrived_messages []Payload[string]
-
-	last_arrived := 0
-
-	for _, m := range p.PlanetPayloads.MessagePayloads {
-		if !m.Arrived {
-			break
-		} else {
-			last_arrived++
-			arrived_messages = append(arrived_messages, *m)
-		}
-	}
-
-	p.PlanetPayloads.MessagePayloads = p.PlanetPayloads.MessagePayloads[last_arrived:]
-	return arrived_messages
-}
-
-func (p *Planet) ReadResourcePayloads(currentTick int) []Payload[resources.Resource] {
-	var arrived_messages []Payload[resources.Resource]
-
-	last_arrived := 0
-
-	for _, m := range p.PlanetPayloads.ResourcePayloads {
-		if !m.Arrived {
-			break
-		} else {
-			last_arrived++
-			arrived_messages = append(arrived_messages, *m)
-		}
-	}
-
-	p.PlanetPayloads.ResourcePayloads = p.PlanetPayloads.ResourcePayloads[last_arrived:]
-	return arrived_messages
 }
 
 type Resources struct {
