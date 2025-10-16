@@ -15,7 +15,7 @@ func (s *EventScheduler[E]) Push(e E) {
 
 	idx := n
 	for i, event := range s.PriorityQueue {
-		if e.GetStart() < event.GetStart() {
+		if e.GetExecuteTick() < event.GetExecuteTick() {
 			idx = i
 			break
 		}

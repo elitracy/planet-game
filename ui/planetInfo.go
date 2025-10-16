@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/orders"
 )
 
 type PlanetInfoPane struct {
@@ -34,10 +35,17 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			childPaneID = PaneManager.AddPane(pane)
 			return p, pushFocusCmd(childPaneID)
 		case "s":
-			// pane := NewChooseShipPane(
-			//
-			// )
+			pane := CreateNewShipManagementPane(
+				"Ship Management",
+				&GameStateGlobal.ShipManager,
+				func(ship *Ship) {
+					order := orders.NewScoutShipOrder(ship, p.planet.Position, GameStateGlobal.CurrentTick)
+					GameStateGlobal.OrderScheduler.Push(order)
+				},
+			)
 
+			childPaneID = PaneManager.AddPane(pane)
+			return p, pushFocusCmd(childPaneID)
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
 			return p, popFocusCmd()
@@ -101,7 +109,7 @@ func (p *PlanetInfoPane) View() string {
 	scoutButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
-		Render(colonizeButton)
+		Render(scoutButton)
 
 	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
 	changeAllocationsButton = Style.

@@ -12,7 +12,19 @@ type Ship struct {
 	Name       string
 	OrderQueue []*Order
 	Position
+	Velocity
 	ShipType
+}
+
+func CreateNewShip(name string, position Position, shipType ShipType) *Ship {
+	ship := &Ship{
+		Name:     name,
+		Position: position,
+		ShipType: shipType,
+		Velocity: Velocity{5, 5, 5},
+	}
+
+	return ship
 }
 
 func (s Ship) GetID() int            { return s.ID }
@@ -27,17 +39,9 @@ type ShipManager struct {
 
 func (m ShipManager) GetShip(id int) *Ship { return m.Ships[id] }
 
-func (m *ShipManager) CreateShip(name string, position Position, shipType ShipType) *Ship {
-	ship := &Ship{
-		ID:       m.GetNextID(),
-		Name:     name,
-		Position: position,
-		ShipType: shipType,
-	}
-
+func (m *ShipManager) AddShip(ship *Ship) {
+	ship.ID = m.GetNextID()
 	m.Ships[ship.GetID()] = ship
-
-	return ship
 }
 
 func (m *ShipManager) GetNextID() int {

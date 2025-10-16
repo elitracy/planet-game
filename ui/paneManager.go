@@ -49,6 +49,8 @@ func (p *paneManager) AddPane(pane Pane) int {
 	pane.SetId(p.currentID)
 	p.Panes[p.currentID] = pane.(tea.Model)
 
+	pane.(tea.Model).Init()
+
 	return p.currentID
 }
 

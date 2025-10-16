@@ -12,11 +12,12 @@ func _() {
 	_ = x[BuildMine-1]
 	_ = x[BuildSolarGrid-2]
 	_ = x[BuildColony-3]
+	_ = x[MoveShip-4]
 }
 
-const _ActionType_name = "BuildFarmBuildMineBuildSolarGridBuildColony"
+const _ActionType_name = "BuildFarmBuildMineBuildSolarGridBuildColonyMoveShip"
 
-var _ActionType_index = [...]uint8{0, 9, 18, 32, 43}
+var _ActionType_index = [...]uint8{0, 9, 18, 32, 43, 51}
 
 func (i ActionType) String() string {
 	if i < 0 || i >= ActionType(len(_ActionType_index)-1) {

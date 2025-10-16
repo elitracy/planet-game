@@ -22,3 +22,11 @@ func EuclidianDistance(l1 Position, l2 Position) float64 {
 
 	return euclidian_distance
 }
+
+func (p0 Position) Add(p1 Position) Position {
+	return Position{p0.X + p1.X, p0.Y + p1.Y, p0.Z + p1.Z}
+}
+
+func (p0 Position) Sub(p1 Position) Position {
+	return Position{p0.X - p1.X, p0.Y - p1.Y, p0.Z - p1.Z}
+}

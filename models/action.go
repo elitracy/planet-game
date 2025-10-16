@@ -1,6 +1,8 @@
 package models
 
-import "github.com/elitracy/planets/models/constructions"
+import (
+	"github.com/elitracy/planets/models/constructions"
+)
 
 //go:generate stringer -type=ActionType
 type ActionType int
@@ -18,27 +20,16 @@ type Action struct {
 	TargetEntity Entity
 	Description  string
 	Type         ActionType
-	ExecuteTime  int
+	ExecuteTick  int
 	Duration     int
 	Status       EventStatus
-	*Order
+	Order        Order
 }
 
-func (a Action) GetID() int {
-	return a.ID
-}
-
-func (a Action) GetStart() int {
-	return a.ExecuteTime
-}
-
-func (a Action) GetDuration() int {
-	return a.Duration
-}
-
-func (a Action) GetStatus() EventStatus {
-	return a.Status
-}
+func (a Action) GetID() int             { return a.ID }
+func (a Action) GetExecuteTick() int    { return a.ExecuteTick }
+func (a Action) GetDuration() int       { return a.Duration }
+func (a Action) GetStatus() EventStatus { return a.Status }
 
 func (a *Action) Execute() {
 	a.Status = Executing
