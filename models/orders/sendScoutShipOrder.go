@@ -36,7 +36,7 @@ func NewScoutShipOrder(ship *Ship, dest Position, execTick int) *SendScoutShipOr
 
 	travelAction := actions.NewMoveShipAction(
 		ship,
-		order.ExecuteTick+40,
+		order.ExecuteTick,
 		int(t),
 		dest,
 	)

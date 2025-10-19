@@ -59,9 +59,18 @@ func TickActionScheduler() {
 		if order.GetStatus() == Executing {
 			for _, action := range order.GetActions() {
 
-				if action.GetExecuteTick() <= State.Tick {
-					action.Execute()
+				switch action.GetStatus() {
+				case Pending:
+					if action.GetExecuteTick() <= State.Tick {
+						action.SetStatus(Executing)
+					}
+				case Executing:
+					if action.GetExecuteTick()+action.GetDuration() <= State.Tick {
+						action.Execute()
+						action.SetStatus(Complete)
+					}
 				}
+
 			}
 		}
 	}
