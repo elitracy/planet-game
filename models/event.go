@@ -12,7 +12,7 @@ const (
 
 type Event interface {
 	GetID() int
-	GetStart() int
+	GetExecuteTick() int
 	GetDuration() int
 	GetStatus() EventStatus
 }

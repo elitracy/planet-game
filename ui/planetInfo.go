@@ -6,6 +6,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/orders"
+	. "github.com/elitracy/planets/state"
 )
 
 type PlanetInfoPane struct {
@@ -33,7 +35,18 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			childPaneID = PaneManager.AddPane(pane)
 			return p, pushFocusCmd(childPaneID)
+		case "s":
+			pane := CreateNewShipManagementPane(
+				"Ship Management",
+				&State.ShipManager,
+				func(ship *Ship) {
+					order := orders.NewScoutShipOrder(ship, p.planet.Position, State.Tick+40)
+					State.OrderScheduler.Push(order)
+				},
+			)
 
+			childPaneID = PaneManager.AddPane(pane)
+			return p, pushFocusCmd(childPaneID)
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
 			return p, popFocusCmd()
@@ -93,13 +106,19 @@ func (p *PlanetInfoPane) View() string {
 		Border(lipgloss.RoundedBorder()).
 		Render(colonizeButton)
 
+	scoutButton := Theme.focusedStyle.Underline(true).Render("S") + "cout"
+	scoutButton = Style.
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		Render(scoutButton)
+
 	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
 	changeAllocationsButton = Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(changeAllocationsButton)
 
-	buttons := lipgloss.JoinHorizontal(lipgloss.Center, colonizeButton, changeAllocationsButton)
+	buttons := lipgloss.JoinHorizontal(lipgloss.Center, colonizeButton, scoutButton, changeAllocationsButton)
 
 	content := lipgloss.JoinVertical(lipgloss.Center, infoContainer, buttons)
 

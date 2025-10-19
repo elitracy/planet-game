@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/state"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -34,8 +34,6 @@ type Logger struct {
 	queue    chan LogMessage
 	filepath string
 }
-
-var logger *Logger
 
 func (l *Logger) run() {
 	log.SetOutput(
@@ -75,7 +73,7 @@ func (l *Logger) log(level, color, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	logger.queue <- LogMessage{
 		Time:     time.Now(),
-		Tick:     models.GameStateGlobal.CurrentTick,
+		Tick:     state.State.Tick,
 		Level:    level,
 		Filename: fileName,
 		Message:  msg,
@@ -83,11 +81,19 @@ func (l *Logger) log(level, color, format string, args ...any) {
 	}
 }
 
-func Info(format string, args ...any)  { logger.log("TELEMETRY", colorReset, format, args...) }
-func Error(format string, args ...any) { logger.log("FAULT", colorRed, format, args...) }
-func Warn(format string, args ...any)  { logger.log("WARN", colorYellow, format, args...) }
-func Ok(format string, args ...any)    { logger.log("STABLE", colorGreen, format, args...) }
+var logger *Logger
 
-func init() {
-	logger = NewLogger("logs/debug.log")
+func Info(format string, args ...any) {
+	logger.log("TELEMETRY", colorReset, format, args...)
 }
+func Error(format string, args ...any) {
+	logger.log("FAULT", colorRed, format, args...)
+}
+func Warn(format string, args ...any) {
+	logger.log("WARN", colorYellow, format, args...)
+}
+func Ok(format string, args ...any) {
+	logger.log("STABLE", colorGreen, format, args...)
+}
+
+func init() { logger = NewLogger("logging/logs/debug.log") }

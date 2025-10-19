@@ -5,7 +5,6 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/systems"
 	"github.com/elitracy/planets/ui"
@@ -17,7 +16,7 @@ func RunGame(state *GameState) {
 	quit := make(chan struct{})
 
 	planetList := ui.PaneManager.AddPane(ui.NewPlanetList(state.StarSystems[0].Planets, "Planet List"))
-	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&GameStateGlobal.OrderScheduler, "Orders"))
+	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&state.OrderScheduler, "Orders"))
 
 	grid := [][]int{
 		{planetList, orderList},
@@ -30,22 +29,18 @@ func RunGame(state *GameState) {
 
 	go func() {
 		if _, err := p.Run(); err != nil {
-			logging.Error("Alas, there's been an error: %v", err)
 			os.Exit(1)
 		}
 
 		close(quit)
 	}()
 
-	logging.Ok("Layout Initialized")
-
 	for {
 		select {
 		case <-quit:
-			logging.Ok("UI exited core loop")
 			return
 		default:
-			state.CurrentTick++
+			state.Tick++
 
 			systems.TickOrderScheduler()
 			systems.TickActionScheduler()

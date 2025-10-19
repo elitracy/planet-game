@@ -10,17 +10,18 @@ var system_names = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Ho
 var planet_names = []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
 var moon_names = []string{"Alpha", "Beta", "Gamma", "Delta", "Epsilon"}
 var world_type_names = []string{"Colony", "Station", "Outpost", "Relay", "Belt", "Gate"}
+var scout_ship_names = []string{"Hermes"}
 
 const MIN_PLANETS = 2
 const MAX_PLANETS = 10
 
 // center of system
-const MIN_STAR_SYSTEM_DIST = 100
-const MAX_STAR_SYSTEM_DIST = 1000
+const MIN_STAR_SYSTEM_DIST = 10000
+const MAX_STAR_SYSTEM_DIST = 1000000
 
 // from star system center
-const MIN_PLANET_DIST = 10
-const MAX_PLANET_DIST = 50
+const MIN_PLANET_DIST = 1000
+const MAX_PLANET_DIST = 5000
 
 const MIN_START_POP = 1000
 const MAX_START_POP = 1_000_000
@@ -41,15 +42,14 @@ const TICKS_PER_SECOND = 8
 const TICK_SLEEP = time.Second / TICKS_PER_SECOND
 
 type GameState struct {
-	CurrentTick     int
+	Tick            int
 	StarSystems     []*StarSystem
 	Player          Player
-	OrderScheduler  EventScheduler[*Order]
-	ActionScheduler EventScheduler[*Action]
-	CompletedOrders []*Order
+	OrderScheduler  EventScheduler[Order]
+	ActionScheduler EventScheduler[Action]
+	CompletedOrders []Order
+	ShipManager
 }
-
-var GameStateGlobal GameState
 
 func (gs *GameState) CreatePlayer(location Position) Player {
 	player := Player{Position: location}
