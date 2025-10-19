@@ -3,12 +3,14 @@ package orders
 import (
 	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/actions"
+	. "github.com/elitracy/planets/state"
 )
 
 type SendScoutShipOrder struct {
 	ID          int
 	Name        string
-	Actions     []*Action
+	Actions     []Action
 	ExecuteTick int
 	Status      EventStatus
 	*Ship
@@ -17,7 +19,7 @@ type SendScoutShipOrder struct {
 
 func NewScoutShipOrder(ship *Ship, dest Position, execTick int) *SendScoutShipOrder {
 	order := &SendScoutShipOrder{
-		ID:          GameStateGlobal.OrderScheduler.GetNextID(),
+		ID:          State.OrderScheduler.GetNextID(),
 		Name:        "Send Scout Ship",
 		ExecuteTick: execTick,
 		Status:      Pending,
@@ -32,16 +34,12 @@ func NewScoutShipOrder(ship *Ship, dest Position, execTick int) *SendScoutShipOr
 	logging.Info("DISTANCE:   %v", d)
 	logging.Info("TIME (s):   %v", t/TICKS_PER_SECOND)
 
-	travelAction := &Action{
-		ID:           GameStateGlobal.ActionScheduler.GetNextID(),
-		TargetEntity: ship,
-		Description:  "Sends a ship to the target position",
-		Type:         MoveShip,
-		ExecuteTick:  order.ExecuteTick,
-		Duration:     int(t), // calcualted upon order creation
-		Status:       Pending,
-		Order:        order,
-	}
+	travelAction := actions.NewMoveShipAction(
+		ship,
+		order.ExecuteTick+40,
+		int(t),
+		dest,
+	)
 
 	order.Actions = append(order.Actions, travelAction)
 
@@ -51,7 +49,7 @@ func NewScoutShipOrder(ship *Ship, dest Position, execTick int) *SendScoutShipOr
 
 func (o SendScoutShipOrder) GetID() int             { return o.ID }
 func (o SendScoutShipOrder) GetName() string        { return o.Name }
-func (o SendScoutShipOrder) GetActions() []*Action  { return o.Actions }
+func (o SendScoutShipOrder) GetActions() []Action   { return o.Actions }
 func (o SendScoutShipOrder) GetExecuteTick() int    { return o.ExecuteTick }
 func (o SendScoutShipOrder) GetStatus() EventStatus { return o.Status }
 

@@ -41,8 +41,8 @@ func (p *TravelStatusPane) View() string {
 
 	totalWidth := 20
 
-	ticksPassed := p.state.CurrentTick - p.startTick
-	ticksRemaining := p.endTick - p.state.CurrentTick
+	ticksPassed := p.state.Tick - p.startTick
+	ticksRemaining := p.endTick - p.state.Tick
 
 	if ticksRemaining <= 0 {
 		return "Arrived!"

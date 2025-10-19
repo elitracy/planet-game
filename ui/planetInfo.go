@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
+	. "github.com/elitracy/planets/state"
 )
 
 type PlanetInfoPane struct {
@@ -37,10 +38,10 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			pane := CreateNewShipManagementPane(
 				"Ship Management",
-				&GameStateGlobal.ShipManager,
+				&State.ShipManager,
 				func(ship *Ship) {
-					order := orders.NewScoutShipOrder(ship, p.planet.Position, GameStateGlobal.CurrentTick)
-					GameStateGlobal.OrderScheduler.Push(order)
+					order := orders.NewScoutShipOrder(ship, p.planet.Position, State.Tick+40)
+					State.OrderScheduler.Push(order)
 				},
 			)
 

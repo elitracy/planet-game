@@ -3,30 +3,30 @@ package systems
 import (
 	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/state"
 )
 
 func TickOrderScheduler() {
-	for _, order := range GameStateGlobal.OrderScheduler.PriorityQueue {
+	for _, order := range State.OrderScheduler.PriorityQueue {
 		switch order.GetStatus() {
 		case Pending:
-			logging.Info("Order exec tick: %v", order.GetExecuteTick())
-			if order.GetExecuteTick() <= GameStateGlobal.CurrentTick {
+			if order.GetExecuteTick() <= State.Tick {
 				logging.Info("[%s] Executing Order: %v", order.GetName(), order.GetID())
 				order.SetStatus(Executing)
 				for _, action := range order.GetActions() {
-					if action.ExecuteTick == GameStateGlobal.CurrentTick {
-						action.Status = Executing
+					if action.GetExecuteTick() == State.Tick {
+						action.SetStatus(Executing)
 					}
 				}
 			}
 		case Executing:
 			complete := true
 			for _, action := range order.GetActions() {
-				if action.Status != Complete {
+				if action.GetStatus() != Complete {
 					complete = false
 				}
 
-				if action.Status == Failed {
+				if action.GetStatus() == Failed {
 					order.SetStatus(Failed)
 				}
 			}
@@ -36,15 +36,15 @@ func TickOrderScheduler() {
 			}
 
 		case Complete: // should be safe to pop order scheulder queue here
-			poppedOrder := GameStateGlobal.OrderScheduler.Pop()
+			poppedOrder := State.OrderScheduler.Pop()
 			if poppedOrder.GetID() != order.GetID() {
 				logging.Error("Order Scheduler out of sync")
-				logging.Error("Order Sheduler Queue: %v", GameStateGlobal.OrderScheduler)
+				logging.Error("Order Sheduler Queue: %v", State.OrderScheduler)
 				logging.Error("Popped Order: %v", order)
 				logging.Error("Expected Order: %v", poppedOrder)
 			}
 
-			GameStateGlobal.CompletedOrders = append([]Order{poppedOrder}, GameStateGlobal.CompletedOrders...)
+			State.CompletedOrders = append([]Order{poppedOrder}, State.CompletedOrders...)
 
 			logging.Info("[%v] Completed Order: %v", order.GetName(), order.GetID())
 
@@ -55,10 +55,11 @@ func TickOrderScheduler() {
 }
 
 func TickActionScheduler() {
-	for _, order := range GameStateGlobal.OrderScheduler.PriorityQueue {
+	for _, order := range State.OrderScheduler.PriorityQueue {
 		if order.GetStatus() == Executing {
 			for _, action := range order.GetActions() {
-				if action.ExecuteTick+action.Duration == GameStateGlobal.CurrentTick {
+
+				if action.GetExecuteTick() <= State.Tick {
 					action.Execute()
 				}
 			}

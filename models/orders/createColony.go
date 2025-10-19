@@ -1,70 +1,62 @@
 package orders
 
-import . "github.com/elitracy/planets/models"
+import (
+	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/actions"
+	. "github.com/elitracy/planets/state"
+)
 
-type CreateColonyOrder struct {
+type CreateColony struct {
 	ID          int
 	Name        string
-	Actions     []*Action
+	Actions     []Action
 	ExecuteTick int
 	Status      EventStatus
 	*Planet
 }
 
-func NewCreateColonyOrder(planet *Planet, execTick int) *CreateColonyOrder {
-	order := &CreateColonyOrder{
-		ID:          GameStateGlobal.OrderScheduler.GetNextID(),
+func NewCreateColonyOrder(planet *Planet, execTick int) *CreateColony {
+	order := &CreateColony{
+		ID:          State.OrderScheduler.GetNextID(),
 		Name:        "Create Colony",
 		ExecuteTick: execTick,
 		Status:      Pending,
 		Planet:      planet,
 	}
 
-	createFarmAction := &Action{
-		ID:           GameStateGlobal.ActionScheduler.GetNextID(),
-		TargetEntity: planet,
-		Description:  "Builds a farm on the target Planet",
-		Type:         BuildFarm,
-		ExecuteTick:  order.ExecuteTick,
-		Duration:     40, // TODO: eventually Tick * 40 for clarity
-		Status:       Pending,
-		Order:        order,
-	}
+	createFarmAction := actions.NewBuildFarmAction(
+		planet,
+		order.ExecuteTick,
+		40,
+		order,
+	)
 
-	createMineAction := &Action{
-		ID:           GameStateGlobal.ActionScheduler.GetNextID(),
-		TargetEntity: planet,
-		Description:  "Builds a mine on the target Planet",
-		Type:         BuildMine,
-		ExecuteTick:  order.ExecuteTick,
-		Duration:     40,
-		Status:       Pending,
-		Order:        order,
-	}
+	createMineAction := actions.NewBuildMineAction(
+		planet,
+		order.ExecuteTick,
+		40,
+		order,
+	)
 
-	createSolarGridAction := &Action{
-		ID:           GameStateGlobal.ActionScheduler.GetNextID(),
-		TargetEntity: planet,
-		Description:  "Builds a solar grid on the target Planet",
-		Type:         BuildSolarGrid,
-		ExecuteTick:  order.ExecuteTick,
-		Duration:     80,
-		Status:       Pending,
-		Order:        order,
-	}
+	createSolarGridAction := actions.NewBuildSolarGridAction(
+		planet,
+		order.ExecuteTick,
+		80,
+		order,
+	)
 
 	order.Actions = append(order.Actions, createFarmAction, createMineAction, createSolarGridAction)
 
 	return order
 }
 
-func (o CreateColonyOrder) GetID() int             { return o.ID }
-func (o CreateColonyOrder) GetName() string        { return o.Name }
-func (o CreateColonyOrder) GetActions() []*Action  { return o.Actions }
-func (o CreateColonyOrder) GetExecuteTick() int    { return o.ExecuteTick }
-func (o CreateColonyOrder) GetStatus() EventStatus { return o.Status }
+func (o CreateColony) GetID() int             { return o.ID }
+func (o CreateColony) GetName() string        { return o.Name }
+func (o CreateColony) GetActions() []Action   { return o.Actions }
+func (o CreateColony) GetExecuteTick() int    { return o.ExecuteTick }
+func (o CreateColony) GetStatus() EventStatus { return o.Status }
 
-func (o CreateColonyOrder) GetDuration() int {
+func (o CreateColony) GetDuration() int {
 	duration := 0
 	for _, a := range o.Actions {
 		duration += a.GetDuration()
@@ -72,4 +64,4 @@ func (o CreateColonyOrder) GetDuration() int {
 	return duration
 }
 
-func (o *CreateColonyOrder) SetStatus(status EventStatus) { o.Status = status }
+func (o *CreateColony) SetStatus(status EventStatus) { o.Status = status }

@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
+	. "github.com/elitracy/planets/state"
 )
 
 var (
@@ -42,9 +43,9 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if p.focusIndex == len(p.inputs) {
 				p.planet.ColonyName = p.inputs[0].Value()
 
-				createColonyOrder := orders.NewCreateColonyOrder(p.planet, GameStateGlobal.CurrentTick)
+				createColonyOrder := orders.NewCreateColonyOrder(p.planet, State.Tick)
 
-				GameStateGlobal.OrderScheduler.Push(createColonyOrder)
+				State.OrderScheduler.Push(createColonyOrder)
 				return p, popFocusCmd()
 			}
 

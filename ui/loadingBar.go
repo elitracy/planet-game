@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	. "github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/state"
 )
 
 func NewLoadingBarPane(title string, startTick, endTick int) *LoadingBarPane {
@@ -45,7 +46,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, nil
 		}
 
-		if p.startTick <= GameStateGlobal.CurrentTick {
+		if p.startTick <= State.Tick {
 			duration := p.endTick - p.startTick
 
 			if duration == 0 {

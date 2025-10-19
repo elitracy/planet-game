@@ -8,5 +8,5 @@ type Order interface {
 	GetStatus() EventStatus
 	SetStatus(EventStatus)
 
-	GetActions() []*Action
+	GetActions() []Action
 }

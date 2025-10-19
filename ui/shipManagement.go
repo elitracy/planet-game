@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	. "github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/state"
 )
 
 type ShipManagementPane struct {
@@ -61,7 +62,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			p.OnSelect(GameStateGlobal.ShipManager.Ships[p.currentShipID])
+			p.OnSelect(State.ShipManager.Ships[p.currentShipID])
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--

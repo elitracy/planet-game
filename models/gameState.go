@@ -42,7 +42,7 @@ const TICKS_PER_SECOND = 8
 const TICK_SLEEP = time.Second / TICKS_PER_SECOND
 
 type GameState struct {
-	CurrentTick     int
+	Tick            int
 	StarSystems     []*StarSystem
 	Player          Player
 	OrderScheduler  EventScheduler[Order]
@@ -50,8 +50,6 @@ type GameState struct {
 	CompletedOrders []Order
 	ShipManager
 }
-
-var GameStateGlobal GameState
 
 func (gs *GameState) CreatePlayer(location Position) Player {
 	player := Player{Position: location}
