@@ -1361,3 +1361,34 @@
 [90m18:37:17.302|00163[0m [0m[TELEMETRY] EVENTSCHEDULERS.GO [Send Scout Ship] Executing Order: 3[0m
 [90m18:37:17.553|00165[0m [0m[TELEMETRY] EVENTSCHEDULERS.GO [Send Scout Ship] Executing Order: 4[0m
 [90m18:37:18.181|00170[0m [0m[TELEMETRY] EVENTSCHEDULERS.GO [Send Scout Ship] Executing Order: 5[0m
+[90m18:46:12.348|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m18:46:12.348|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m18:46:12.348|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m18:46:14.402|00017[0m [0m[TELEMETRY] SENDSCOUTSHIPORDER.GO PLANET POS: (2479, 3408, 2830)[0m
+[90m18:46:14.402|00017[0m [0m[TELEMETRY] SENDSCOUTSHIPORDER.GO SHIP POS:   (0, 0, 0)[0m
+[90m18:46:14.402|00017[0m [0m[TELEMETRY] SENDSCOUTSHIPORDER.GO DISTANCE:   5076.298356085859[0m
+[90m18:46:14.402|00017[0m [0m[TELEMETRY] SENDSCOUTSHIPORDER.GO TIME (s):   73.27005555932563[0m
+[90m18:46:19.376|00057[0m [0m[TELEMETRY] EVENTSCHEDULERS.GO [Send Scout Ship] Executing Order: 1[0m
+[90m18:47:31.373|00643[0m [0m[TELEMETRY] MOVESHIP.GO Hermes 216: Moved Ship[0m
+[90m18:47:31.624|00645[0m [0m[TELEMETRY] EVENTSCHEDULERS.GO [Send Scout Ship] Completed Order: 1[0m
+[90m18:48:36.111|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m18:48:36.111|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m18:48:36.111|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m18:49:00.501|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m18:49:00.501|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m18:49:00.501|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m18:53:14.565|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m18:53:14.566|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m18:53:14.566|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m18:53:43.484|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m18:53:43.484|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m18:53:43.484|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m18:53:51.418|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m18:53:51.418|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m18:53:51.418|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m19:14:49.867|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m19:14:49.867|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m19:14:49.867|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m
+[90m19:14:56.710|00000[0m [32m[STABLE] MAIN.GO Player Initialized[0m
+[90m19:14:56.710|00000[0m [32m[STABLE] MAIN.GO Ships Initialized[0m
+[90m19:14:56.710|00000[0m [32m[STABLE] MAIN.GO State Initialized[0m

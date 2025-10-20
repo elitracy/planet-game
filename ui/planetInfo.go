@@ -36,7 +36,7 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			childPaneID = PaneManager.AddPane(pane)
 			return p, pushFocusCmd(childPaneID)
 		case "s":
-			pane := CreateNewShipManagementPane(
+			pane := NewShipManagementPane(
 				"Ship Management",
 				&State.ShipManager,
 				func(ship *Ship) {

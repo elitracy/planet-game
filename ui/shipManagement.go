@@ -23,7 +23,7 @@ type ShipManagementPane struct {
 	OnSelect      func(ship *Ship)
 }
 
-func CreateNewShipManagementPane(title string, shipManager *ShipManager, callback func(ship *Ship)) *ShipManagementPane {
+func NewShipManagementPane(title string, shipManager *ShipManager, callback func(ship *Ship)) *ShipManagementPane {
 	pane := &ShipManagementPane{
 		title:    title,
 		manager:  shipManager,
@@ -61,8 +61,16 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "c", "C":
+			pane := NewCreateShipPane("Create Ship")
+
+			childPaneID := PaneManager.AddPane(pane)
+			return p, pushFocusCmd(childPaneID)
+
 		case "enter":
-			p.OnSelect(State.ShipManager.Ships[p.currentShipID])
+			if p.OnSelect != nil {
+				p.OnSelect(State.ShipManager.Ships[p.currentShipID])
+			}
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
@@ -104,12 +112,17 @@ func (p *ShipManagementPane) View() string {
 		idx++
 	}
 
+	createShipButton := Theme.focusedStyle.Underline(true).Render("C") + "reate Ship"
+	createShipButton = Style.
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		Render(createShipButton)
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 	title := "Ships"
 	title = Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(title)
 
-	content = lipgloss.JoinVertical(lipgloss.Left, title, content)
+	content = lipgloss.JoinVertical(lipgloss.Left, title, content, createShipButton)
 
 	return content
 

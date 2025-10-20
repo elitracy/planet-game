@@ -17,9 +17,10 @@ func RunGame(state *GameState) {
 
 	planetList := ui.PaneManager.AddPane(ui.NewPlanetList(state.StarSystems[0].Planets, "Planet List"))
 	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&state.OrderScheduler, "Orders"))
+	shipManager := ui.PaneManager.AddPane(ui.NewShipManagementPane("Ship Manager", &state.ShipManager, nil))
 
 	grid := [][]int{
-		{planetList, orderList},
+		{planetList, shipManager, orderList},
 	}
 	dashboard := ui.PaneManager.AddPane(ui.NewDashboard(grid, 0, 0, "Dashboard"))
 
