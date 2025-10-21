@@ -12,12 +12,22 @@ import (
 )
 
 type PlanetInfoPane struct {
-	Pane
-	id          int
+	id     int
+	title  string
+	width  int
+	height int
+
 	childPaneID int
-	title       string
 	planet      *Planet
 }
+
+func (p PlanetInfoPane) GetId() int       { return p.id }
+func (p *PlanetInfoPane) SetId(id int)    { p.id = id }
+func (p PlanetInfoPane) GetTitle() string { return p.title }
+func (p PlanetInfoPane) GetWidth() int    { return p.width }
+func (p PlanetInfoPane) GetHeight() int   { return p.height }
+func (p *PlanetInfoPane) SetWidth(w int)  { p.width = w }
+func (p *PlanetInfoPane) SetHeight(h int) { p.height = h }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -126,10 +136,6 @@ func (p *PlanetInfoPane) View() string {
 	return content
 
 }
-
-func (p PlanetInfoPane) GetId() int       { return p.id }
-func (p *PlanetInfoPane) SetId(id int)    { p.id = id }
-func (p PlanetInfoPane) GetTitle() string { return p.title }
 
 func NewPlanetInfoPane(title string, planet *Planet) *PlanetInfoPane {
 

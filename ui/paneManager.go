@@ -3,7 +3,7 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	. "github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/models"
+	. "github.com/elitracy/planets/core/interfaces"
 )
 
 type pushFocusMsg struct{ id int }

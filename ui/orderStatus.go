@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
+	. "github.com/elitracy/planets/core/interfaces"
 	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 )
@@ -52,6 +53,10 @@ func NewOrderStatusPane(orderScheduler *EventScheduler[Order], title string) *Or
 func (p OrderStatusPane) GetId() int       { return p.id }
 func (p *OrderStatusPane) SetId(id int)    { p.id = id }
 func (p OrderStatusPane) GetTitle() string { return p.title }
+func (p OrderStatusPane) GetWidth() int    { return p.width }
+func (p OrderStatusPane) GetHeight() int   { return p.height }
+func (p *OrderStatusPane) SetWidth(w int)  { p.width = w }
+func (p *OrderStatusPane) SetHeight(h int) { p.height = h }
 
 func (p *OrderStatusPane) Init() tea.Cmd {
 	p.updateProgressBars()

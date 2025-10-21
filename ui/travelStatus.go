@@ -3,13 +3,17 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/interfaces"
 	. "github.com/elitracy/planets/models"
 )
 
 type TravelStatusPane struct {
 	Pane
-	id          int
-	title       string
+	id     int
+	title  string
+	width  int
+	height int
+
 	p0          core.Position // origin
 	p1          core.Position // destination
 	origin      string
@@ -18,6 +22,14 @@ type TravelStatusPane struct {
 	endTick     core.Tick
 	state       *GameState
 }
+
+func (p TravelStatusPane) GetId() int       { return p.id }
+func (p *TravelStatusPane) SetId(id int)    { p.id = id }
+func (p TravelStatusPane) GetTitle() string { return p.title }
+func (p TravelStatusPane) GetWidth() int    { return p.width }
+func (p TravelStatusPane) GetHeight() int   { return p.height }
+func (p *TravelStatusPane) SetWidth(w int)  { p.width = w }
+func (p *TravelStatusPane) SetHeight(h int) { p.height = h }
 
 func (p *TravelStatusPane) Init() tea.Cmd { return nil }
 func (p *TravelStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -64,10 +76,6 @@ func (p *TravelStatusPane) View() string {
 	return output
 
 }
-
-func (p TravelStatusPane) GetId() int       { return p.id }
-func (p *TravelStatusPane) SetId(id int)    { p.id = id }
-func (p TravelStatusPane) GetTitle() string { return p.title }
 
 func NewTravelStatusPane(title string, id int, p0, p1 core.Position, origin, destination string, startTick, endTick core.Tick, state *GameState) *TravelStatusPane {
 

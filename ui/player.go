@@ -11,16 +11,25 @@ import (
 )
 
 type PlayerInfoPane struct {
-	Pane
-	id        int
-	title     string
-	gamestate *GameState
+	id     int
+	title  string
+	width  int
+	height int
 
+	gamestate   *GameState
 	selected    int
 	cursor      int
 	max_choices int
 	prev_key    string
 }
+
+func (p PlayerInfoPane) GetId() int       { return p.id }
+func (p *PlayerInfoPane) SetId(id int)    { p.id = id }
+func (p PlayerInfoPane) GetTitle() string { return p.title }
+func (p PlayerInfoPane) GetWidth() int    { return p.width }
+func (p PlayerInfoPane) GetHeight() int   { return p.height }
+func (p *PlayerInfoPane) SetWidth(w int)  { p.width = w }
+func (p *PlayerInfoPane) SetHeight(h int) { p.height = h }
 
 func NewPlayerInfoPane(text string, gs *GameState) *PlayerInfoPane {
 	max_choices := 0
@@ -136,7 +145,3 @@ func (p *PlayerInfoPane) View() string {
 
 	return block
 }
-
-func (p PlayerInfoPane) GetId() int       { return p.id }
-func (p *PlayerInfoPane) SetId(id int)    { p.id = id }
-func (p PlayerInfoPane) GetTitle() string { return p.title }

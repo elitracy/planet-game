@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/interfaces"
 	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
@@ -22,12 +23,22 @@ type CreateColonyPane struct {
 	Pane
 	id     int
 	title  string
-	planet *Planet
+	width  int
+	height int
 
+	planet     *Planet
 	focusIndex int
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
 }
+
+func (p CreateColonyPane) GetId() int       { return p.id }
+func (p *CreateColonyPane) SetId(id int)    { p.id = id }
+func (p CreateColonyPane) GetTitle() string { return p.title }
+func (p CreateColonyPane) GetWidth() int    { return p.width }
+func (p CreateColonyPane) GetHeight() int   { return p.height }
+func (p *CreateColonyPane) SetWidth(w int)  { p.width = w }
+func (p *CreateColonyPane) SetHeight(h int) { p.height = h }
 
 func (p *CreateColonyPane) Init() tea.Cmd {
 	return textinput.Blink
@@ -146,10 +157,6 @@ func (p *CreateColonyPane) View() string {
 
 	return b.String()
 }
-
-func (p CreateColonyPane) GetId() int       { return p.id }
-func (p *CreateColonyPane) SetId(id int)    { p.id = id }
-func (p CreateColonyPane) GetTitle() string { return p.title }
 
 func NewCreateColonyPane(title string, planet *Planet) *CreateColonyPane {
 

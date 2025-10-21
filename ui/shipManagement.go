@@ -12,17 +12,25 @@ import (
 )
 
 type ShipManagementPane struct {
-	Pane
-	id            int
-	title         string
-	width         int
-	height        int
+	id     int
+	title  string
+	width  int
+	height int
+
 	cursor        int
 	currentShipID int
 	sortedShips   []*Ship
 	manager       *ShipManager
 	OnSelect      func(ship *Ship)
 }
+
+func (p ShipManagementPane) GetId() int       { return p.id }
+func (p *ShipManagementPane) SetId(id int)    { p.id = id }
+func (p ShipManagementPane) GetTitle() string { return p.title }
+func (p ShipManagementPane) GetWidth() int    { return p.width }
+func (p ShipManagementPane) GetHeight() int   { return p.height }
+func (p *ShipManagementPane) SetWidth(w int)  { p.width = w }
+func (p *ShipManagementPane) SetHeight(h int) { p.height = h }
 
 func CreateNewShipManagementPane(title string, shipManager *ShipManager, callback func(ship *Ship)) *ShipManagementPane {
 	pane := &ShipManagementPane{
@@ -33,10 +41,6 @@ func CreateNewShipManagementPane(title string, shipManager *ShipManager, callbac
 
 	return pane
 }
-
-func (p ShipManagementPane) GetId() int       { return p.id }
-func (p *ShipManagementPane) SetId(id int)    { p.id = id }
-func (p ShipManagementPane) GetTitle() string { return p.title }
 
 func (p *ShipManagementPane) Init() tea.Cmd {
 	for _, ship := range p.manager.Ships {

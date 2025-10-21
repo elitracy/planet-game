@@ -5,43 +5,51 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Dashboard struct {
+type DashboardPane struct {
+	id     int
+	title  string
+	width  int
+	height int
+
 	Grid      [][]int
 	ActiveRow int
 	ActiveCol int
-
-	id    int
-	title string
 }
 
 const (
 	TERM_PADDING = 2
 )
 
-func (p Dashboard) GetId() int       { return p.id }
-func (p *Dashboard) SetId(id int)    { p.id = id }
-func (p Dashboard) GetTitle() string { return p.title }
+func (p DashboardPane) GetId() int       { return p.id }
+func (p *DashboardPane) SetId(id int)    { p.id = id }
+func (p DashboardPane) GetTitle() string { return p.title }
+func (p DashboardPane) GetWidth() int    { return p.width }
+func (p DashboardPane) GetHeight() int   { return p.height }
+func (p *DashboardPane) SetWidth(w int)  { p.width = w }
+func (p *DashboardPane) SetHeight(h int) { p.height = h }
 
-func (p *Dashboard) Init() tea.Cmd {
-	cmds := p.getPaneResizeCommands()
-	return tea.Batch(cmds...)
+func (p *DashboardPane) Init() tea.Cmd {
+	// cmds := p.getPaneResizeCommands()
+	// return tea.Batch(cmds...)
+	return nil
 }
 
-func (p *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *DashboardPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		cmds := p.getPaneResizeCommands()
-		return p, tea.Batch(cmds...)
+	// case tea.WindowSizeMsg:
+	// 	cmds := p.getPaneResizeCommands()
+	// 	return p, tea.Batch(cmds...)
 
 	case tea.KeyMsg:
+		var cmds []tea.Cmd
 		switch msg.String() {
 		case "enter":
-			cmds := p.getPaneResizeCommands()
+			// cmds := p.getPaneResizeCommands()
 			cmds = append(cmds, pushFocusCmd(p.Grid[p.ActiveRow][p.ActiveCol]))
 
 			return p, tea.Batch(cmds...)
 		case "esc":
-			cmds := p.getPaneResizeCommands()
+			// cmds := p.getPaneResizeCommands()
 			cmds = append(cmds, popFocusCmd())
 			return p, tea.Batch(cmds...)
 		case "h":
@@ -76,23 +84,23 @@ func (p *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-func (p *Dashboard) View() string {
+func (p *DashboardPane) View() string {
 
 	render := make([][]string, len(p.Grid))
 	for r := range p.Grid {
 		render[r] = make([]string, len(p.Grid[r]))
-		cols := len(p.Grid[r])
-		paneWidth := PaneManager.Width / cols
-		paneHeight := PaneManager.Height / len(p.Grid)
+		// cols := len(p.Grid[r])
+		// paneWidth := PaneManager.Width / cols
+		// paneHeight := PaneManager.Height / len(p.Grid)
 		activeStyle := Style.
-			Width(paneWidth).
-			Height(paneHeight).
+			// Width(paneWidth).
+			// Height(paneHeight).
 			Border(lipgloss.ThickBorder()).
 			BorderForeground(lipgloss.Color("212"))
 
 		inactiveStyle := Style.
-			Width(paneWidth).
-			Height(paneHeight).
+			// Width(paneWidth).
+			// Height(paneHeight).
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(lipgloss.Color("240"))
 
@@ -117,8 +125,8 @@ func (p *Dashboard) View() string {
 	return content
 }
 
-func NewDashboard(grid [][]int, activeRow, activeCol int, title string) *Dashboard {
-	return &Dashboard{
+func NewDashboard(grid [][]int, activeRow, activeCol int, title string) *DashboardPane {
+	return &DashboardPane{
 		Grid:      grid,
 		ActiveRow: activeRow,
 		ActiveCol: activeCol,
@@ -126,7 +134,7 @@ func NewDashboard(grid [][]int, activeRow, activeCol int, title string) *Dashboa
 	}
 }
 
-func (p Dashboard) getPaneResizeCommands() []tea.Cmd {
+func (p DashboardPane) getPaneResizeCommands() []tea.Cmd {
 	var cmds []tea.Cmd
 	for r := range p.Grid {
 		cols := len(p.Grid[r])
