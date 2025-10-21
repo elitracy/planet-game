@@ -93,7 +93,7 @@ func (p *DashboardPane) View() string {
 				inactiveStyle := consts.Style.
 					Width(paneWidth).
 					Height(paneHeight - BORDER_WIDTH).
-					Border(lipgloss.NormalBorder()).
+					Border(lipgloss.ThickBorder()).
 					BorderForeground(lipgloss.Color("240"))
 				if r == p.ActiveRow && c == p.ActiveCol {
 					render[r][c] = activeStyle.Render(PaneManager.Panes[paneID].View())
@@ -117,11 +117,9 @@ func (p *DashboardPane) View() string {
 	return content
 }
 
-func NewDashboard(grid [][]int, activeRow, activeCol int, title string) *DashboardPane {
+func NewDashboard(grid [][]int, title string) *DashboardPane {
 	return &DashboardPane{
-		Grid:      grid,
-		ActiveRow: activeRow,
-		ActiveCol: activeCol,
-		title:     title,
+		Grid:  grid,
+		title: title,
 	}
 }

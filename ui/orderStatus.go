@@ -13,20 +13,8 @@ import (
 )
 
 var (
-	activeRowStyle = consts.Style.
-			Width(PaneManager.width).
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("212")).
-			Padding(0, 1)
-
-	inactiveRowStyle = consts.Style.
-				Width(PaneManager.width).
-				Border(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("240")).
-				Padding(0, 1)
-)
-
-var (
+	activeRowStyle   = consts.Style.Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("212")).Padding(0, 1)
+	inactiveRowStyle = consts.Style.Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("240")).Padding(0, 1)
 	progressBarWidth int
 )
 
@@ -69,9 +57,6 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		if msg.paneID == p.GetId() {
-			p.width = msg.width - 2
-			p.height = msg.height
-
 			var cmds []tea.Cmd
 			for _, val := range p.progressBars {
 				cmds = append(cmds, paneResizeCmd(val, progressBarWidth, msg.height))
@@ -101,7 +86,6 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-// TODO: refactor into switch function
 func (p *OrderStatusPane) View() string {
 
 	var pendingOrders []Order
@@ -109,11 +93,10 @@ func (p *OrderStatusPane) View() string {
 	var completedOrders []Order
 
 	for _, order := range p.orderScheduler.PriorityQueue {
-		if order.GetStatus() == consts.Pending {
+		switch order.GetStatus() {
+		case consts.Pending:
 			pendingOrders = append(pendingOrders, order)
-		}
-
-		if order.GetStatus() == consts.Executing {
+		case consts.Executing:
 			executingOrders = append(executingOrders, order)
 		}
 	}

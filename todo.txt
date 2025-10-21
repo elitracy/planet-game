@@ -66,6 +66,8 @@ Background Events
 
 
 Left Off:
-- event scheduler systsems
-- events need ticking update function
-- UI pane to test this
+- stick with focus stack?
+- want to explicitly tell pm what the active pane is for tab view
+    - how can I do both?
+
+
