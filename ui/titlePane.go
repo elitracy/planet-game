@@ -2,6 +2,7 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -19,7 +20,7 @@ func (p *TitlePane) Init() tea.Cmd { return nil }
 func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tickMsg:
+	case core.TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {

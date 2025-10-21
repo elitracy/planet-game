@@ -3,23 +3,26 @@ package actions
 import (
 	"fmt"
 
-	"github.com/elitracy/planets/logging"
+	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/consts"
+	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core/logging"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/constructions"
-	. "github.com/elitracy/planets/state"
 )
 
 type BuildSolarGrid struct {
 	ID           int
 	TargetEntity Entity
 	Description  string
-	ExecuteTick  int
-	Duration     int
+	ExecuteTick  core.Tick
+	Duration     core.Tick
 	Status       EventStatus
 	Order        Order
 }
 
-func NewBuildSolarGridAction(targetEntity Entity, executeTick int, duration int, order Order) *BuildSolarGrid {
+func NewBuildSolarGridAction(targetEntity Entity, executeTick core.Tick, duration core.Tick, order Order) *BuildSolarGrid {
 
 	action := &BuildSolarGrid{
 		ID:           State.ActionScheduler.GetNextID(),
@@ -37,8 +40,8 @@ func NewBuildSolarGridAction(targetEntity Entity, executeTick int, duration int,
 func (a BuildSolarGrid) GetID() int                    { return a.ID }
 func (a BuildSolarGrid) GetTargetEntity() Entity       { return a.TargetEntity }
 func (a BuildSolarGrid) GetDescription() string        { return a.Description }
-func (a BuildSolarGrid) GetExecuteTick() int           { return a.ExecuteTick }
-func (a BuildSolarGrid) GetDuration() int              { return a.Duration }
+func (a BuildSolarGrid) GetExecuteTick() core.Tick     { return a.ExecuteTick }
+func (a BuildSolarGrid) GetDuration() core.Tick        { return a.Duration }
 func (a BuildSolarGrid) GetStatus() EventStatus        { return a.Status }
 func (a *BuildSolarGrid) SetStatus(status EventStatus) { a.Status = status }
 func (a BuildSolarGrid) GetOrder() Order               { return a.Order }

@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/tree"
+	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -36,7 +37,7 @@ func (p *PlayerInfoPane) Init() tea.Cmd { return nil }
 func (p *PlayerInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tickMsg:
+	case core.TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {

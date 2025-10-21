@@ -1,5 +1,7 @@
 package models
 
+import . "github.com/elitracy/planets/core/interfaces"
+
 type EventScheduler[E Event] struct {
 	PriorityQueue []E
 	currentID     int

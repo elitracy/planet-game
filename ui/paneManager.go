@@ -2,6 +2,7 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	. "github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -25,7 +26,7 @@ type paneManager struct {
 	FocusStack FocusStack
 	Panes      map[int]tea.Model
 	currentID  int
-	UITick     int
+	UITick     Tick
 	Width      int
 	Height     int
 
@@ -68,7 +69,7 @@ func (p *paneManager) Init() tea.Cmd {
 	for i := range p.Panes {
 		cmds = append(cmds, p.Panes[i].Init())
 	}
-	cmds = append(cmds, tick(p.UITick))
+	cmds = append(cmds, TickCmd(p.UITick))
 
 	return tea.Batch(cmds...)
 }
@@ -81,9 +82,9 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.PushFocusStack(msg.id)
 	case popFocusMsg:
 		p.PopFocusStack()
-	case tickMsg:
+	case TickMsg:
 		p.UITick++
-		cmds = append(cmds, tick(p.UITick))
+		cmds = append(cmds, TickCmd(p.UITick))
 	case tea.WindowSizeMsg:
 		p.Width = msg.Width - 10
 		p.Height = msg.Height - 10

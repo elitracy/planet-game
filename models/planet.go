@@ -3,6 +3,8 @@ package models
 import (
 	"fmt"
 
+	. "github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/interfaces"
 	"github.com/elitracy/planets/models/constructions"
 	"github.com/elitracy/planets/models/resources"
 	"github.com/elitracy/planets/models/stabilities"
@@ -18,19 +20,19 @@ type Planet struct {
 	Stabilities
 	Constructions
 	Position
-	OrderQueue []*Order
+	OrderQueue []Event
 }
 
 func (p Planet) GetID() int            { return p.ID }
 func (p Planet) GetName() string       { return p.Name }
 func (p Planet) GetPosition() Position { return p.Position }
-func (p Planet) GetOrders() []*Order   { return p.OrderQueue }
+func (p Planet) GetOrders() []Event    { return p.OrderQueue }
 
-func (p *Planet) PushOrder(order *Order) {
+func (p *Planet) PushOrder(order Event) {
 	p.OrderQueue = append(p.OrderQueue, order)
 }
 
-func (p *Planet) PopOrder() *Order {
+func (p *Planet) PopOrder() Event {
 	if len(p.OrderQueue) == 0 {
 		return nil
 	}

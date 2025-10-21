@@ -2,23 +2,27 @@ package actions
 
 import (
 	"fmt"
-	"github.com/elitracy/planets/logging"
+
+	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/consts"
+	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core/logging"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/constructions"
-	. "github.com/elitracy/planets/state"
 )
 
 type BuildMine struct {
 	ID           int
 	TargetEntity Entity
 	Description  string
-	ExecuteTick  int
-	Duration     int
+	ExecuteTick  core.Tick
+	Duration     core.Tick
 	Status       EventStatus
 	Order        Order
 }
 
-func NewBuildMineAction(targetEntity Entity, executeTick int, duration int, order Order) *BuildMine {
+func NewBuildMineAction(targetEntity Entity, executeTick core.Tick, duration core.Tick, order Order) *BuildMine {
 
 	action := &BuildMine{
 		ID:           State.ActionScheduler.GetNextID(),
@@ -36,8 +40,8 @@ func NewBuildMineAction(targetEntity Entity, executeTick int, duration int, orde
 func (a BuildMine) GetID() int                    { return a.ID }
 func (a BuildMine) GetTargetEntity() Entity       { return a.TargetEntity }
 func (a BuildMine) GetDescription() string        { return a.Description }
-func (a BuildMine) GetExecuteTick() int           { return a.ExecuteTick }
-func (a BuildMine) GetDuration() int              { return a.Duration }
+func (a BuildMine) GetExecuteTick() core.Tick     { return a.ExecuteTick }
+func (a BuildMine) GetDuration() core.Tick        { return a.Duration }
 func (a BuildMine) GetStatus() EventStatus        { return a.Status }
 func (a *BuildMine) SetStatus(status EventStatus) { a.Status = status }
 func (a BuildMine) GetOrder() Order               { return a.Order }

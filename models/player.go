@@ -1,5 +1,7 @@
 package models
 
+import "github.com/elitracy/planets/core"
+
 type Player struct {
-	Position
+	core.Position
 }

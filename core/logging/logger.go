@@ -8,7 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/state"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -23,7 +24,7 @@ const (
 
 type LogMessage struct {
 	Time     time.Time
-	Tick     int
+	Tick     core.Tick
 	Color    string
 	Level    string
 	Filename string
@@ -96,4 +97,4 @@ func Ok(format string, args ...any) {
 	logger.log("STABLE", colorGreen, format, args...)
 }
 
-func init() { logger = NewLogger("logging/logs/debug.log") }
+func init() { logger = NewLogger("logs/debug.log") }

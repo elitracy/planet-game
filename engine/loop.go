@@ -5,12 +5,13 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/systems"
 	"github.com/elitracy/planets/ui"
 )
 
-var PLAYER_START_LOC = Position{X: 0, Y: 0, Z: 0}
+var PLAYER_START_LOC = core.Position{X: 0, Y: 0, Z: 0}
 
 func RunGame(state *GameState) {
 	quit := make(chan struct{})
@@ -31,7 +32,6 @@ func RunGame(state *GameState) {
 		if _, err := p.Run(); err != nil {
 			os.Exit(1)
 		}
-
 		close(quit)
 	}()
 

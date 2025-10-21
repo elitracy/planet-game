@@ -3,23 +3,26 @@ package actions
 import (
 	"fmt"
 
-	"github.com/elitracy/planets/logging"
+	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/consts"
+	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core/logging"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/constructions"
-	. "github.com/elitracy/planets/state"
 )
 
 type BuildFarm struct {
 	ID           int
 	TargetEntity Entity
 	Description  string
-	ExecuteTick  int
-	Duration     int
+	ExecuteTick  core.Tick
+	Duration     core.Tick
 	Status       EventStatus
 	Order        Order
 }
 
-func NewBuildFarmAction(targetEntity Entity, executeTick int, duration int, order Order) *BuildFarm {
+func NewBuildFarmAction(targetEntity Entity, executeTick core.Tick, duration core.Tick, order Order) *BuildFarm {
 
 	action := &BuildFarm{
 		ID:           State.ActionScheduler.GetNextID(),
@@ -37,8 +40,8 @@ func NewBuildFarmAction(targetEntity Entity, executeTick int, duration int, orde
 func (a BuildFarm) GetID() int                    { return a.ID }
 func (a BuildFarm) GetTargetEntity() Entity       { return a.TargetEntity }
 func (a BuildFarm) GetDescription() string        { return a.Description }
-func (a BuildFarm) GetExecuteTick() int           { return a.ExecuteTick }
-func (a BuildFarm) GetDuration() int              { return a.Duration }
+func (a BuildFarm) GetExecuteTick() core.Tick     { return a.ExecuteTick }
+func (a BuildFarm) GetDuration() core.Tick        { return a.Duration }
 func (a BuildFarm) GetStatus() EventStatus        { return a.Status }
 func (a *BuildFarm) SetStatus(status EventStatus) { a.Status = status }
 func (a BuildFarm) GetOrder() Order               { return a.Order }

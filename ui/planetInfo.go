@@ -5,9 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	. "github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
-	. "github.com/elitracy/planets/state"
 )
 
 type PlanetInfoPane struct {
@@ -23,7 +24,7 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var childPaneID int
 
 	switch msg := msg.(type) {
-	case tickMsg:
+	case TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {

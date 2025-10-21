@@ -1,6 +1,10 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+
+	. "github.com/elitracy/planets/core"
+)
 
 type StarSystem struct {
 	Name    string

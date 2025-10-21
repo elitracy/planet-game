@@ -7,9 +7,10 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
-	. "github.com/elitracy/planets/state"
 )
 
 var (
@@ -35,7 +36,8 @@ func (p *CreateColonyPane) Init() tea.Cmd {
 func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case tickMsg:
+
+	case core.TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {

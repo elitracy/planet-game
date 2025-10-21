@@ -1,4 +1,4 @@
-package models
+package consts
 
 //go:generate stringer -type=EventStatus
 type EventStatus int
@@ -9,10 +9,3 @@ const (
 	Complete
 	Failed
 )
-
-type Event interface {
-	GetID() int
-	GetExecuteTick() int
-	GetDuration() int
-	GetStatus() EventStatus
-}

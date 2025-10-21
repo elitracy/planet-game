@@ -1,26 +1,28 @@
 package orders
 
 import (
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/actions"
-	. "github.com/elitracy/planets/state"
 )
 
 type CreateColony struct {
 	ID          int
 	Name        string
 	Actions     []Action
-	ExecuteTick int
-	Status      EventStatus
+	ExecuteTick core.Tick
+	Status      consts.EventStatus
 	*Planet
 }
 
-func NewCreateColonyOrder(planet *Planet, execTick int) *CreateColony {
+func NewCreateColonyOrder(planet *Planet, execTick core.Tick) *CreateColony {
 	order := &CreateColony{
 		ID:          State.OrderScheduler.GetNextID(),
 		Name:        "Create Colony",
 		ExecuteTick: execTick,
-		Status:      Pending,
+		Status:      consts.Pending,
 		Planet:      planet,
 	}
 
@@ -50,18 +52,18 @@ func NewCreateColonyOrder(planet *Planet, execTick int) *CreateColony {
 	return order
 }
 
-func (o CreateColony) GetID() int             { return o.ID }
-func (o CreateColony) GetName() string        { return o.Name }
-func (o CreateColony) GetActions() []Action   { return o.Actions }
-func (o CreateColony) GetExecuteTick() int    { return o.ExecuteTick }
-func (o CreateColony) GetStatus() EventStatus { return o.Status }
+func (o CreateColony) GetID() int                    { return o.ID }
+func (o CreateColony) GetName() string               { return o.Name }
+func (o CreateColony) GetActions() []Action          { return o.Actions }
+func (o CreateColony) GetExecuteTick() core.Tick     { return o.ExecuteTick }
+func (o CreateColony) GetStatus() consts.EventStatus { return o.Status }
 
-func (o CreateColony) GetDuration() int {
-	duration := 0
+func (o CreateColony) GetDuration() core.Tick {
+	var duration core.Tick
 	for _, a := range o.Actions {
 		duration += a.GetDuration()
 	}
 	return duration
 }
 
-func (o *CreateColony) SetStatus(status EventStatus) { o.Status = status }
+func (o *CreateColony) SetStatus(status consts.EventStatus) { o.Status = status }

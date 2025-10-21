@@ -5,8 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
+	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
-	. "github.com/elitracy/planets/state"
 )
 
 var (
@@ -72,7 +74,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tea.Batch(cmds...)
 
 		}
-	case tickMsg:
+	case core.TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -102,11 +104,11 @@ func (p *OrderStatusPane) View() string {
 	var completedOrders []Order
 
 	for _, order := range p.orderScheduler.PriorityQueue {
-		if order.GetStatus() == Pending {
+		if order.GetStatus() == consts.Pending {
 			pendingOrders = append(pendingOrders, order)
 		}
 
-		if order.GetStatus() == Executing {
+		if order.GetStatus() == consts.Executing {
 			executingOrders = append(executingOrders, order)
 		}
 	}

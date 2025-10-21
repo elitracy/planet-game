@@ -1,17 +1,13 @@
-package models
+package interfaces
 
 import (
 	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/core/consts"
 )
 
-type Order interface {
+type Event interface {
 	GetID() int
-	GetName() string
 	GetExecuteTick() core.Tick
 	GetDuration() core.Tick
 	GetStatus() EventStatus
-	SetStatus(EventStatus)
-
-	GetActions() []Action
 }

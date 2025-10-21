@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/logging"
+	. "github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/engine"
-	"github.com/elitracy/planets/logging"
 	. "github.com/elitracy/planets/models"
-	. "github.com/elitracy/planets/state"
 )
 
 const NUM_STAR_SYSTEMS = 3
@@ -20,7 +21,7 @@ func main() {
 		State.StarSystems = append(State.StarSystems, &system)
 	}
 
-	State.Player = Player{Position{0, 0, 0}}
+	State.Player = Player{core.Position{0, 0, 0}}
 	logging.Ok("Player Initialized")
 
 	State.ShipManager.Ships = make(map[int]*Ship)

@@ -4,6 +4,9 @@ import (
 	"math/rand"
 	"slices"
 	"time"
+
+	"github.com/elitracy/planets/core"
+	. "github.com/elitracy/planets/core"
 )
 
 var system_names = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Hohmann", "Horizon", "Oberth", "Parallax", "Aphelion"}
@@ -42,7 +45,7 @@ const TICKS_PER_SECOND = 8
 const TICK_SLEEP = time.Second / TICKS_PER_SECOND
 
 type GameState struct {
-	Tick            int
+	Tick            core.Tick
 	StarSystems     []*StarSystem
 	Player          Player
 	OrderScheduler  EventScheduler[Order]
