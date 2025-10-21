@@ -1,9 +1,14 @@
 package ui
 
 import (
+	"os"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"golang.org/x/term"
+
 	. "github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core/logging"
 )
 
 type pushFocusMsg struct{ id int }
@@ -23,51 +28,54 @@ func paneResizeCmd(id, width, height int) tea.Cmd {
 }
 
 type paneManager struct {
+	id     int
+	title  string
+	width  int
+	height int
+
 	FocusStack FocusStack
 	Panes      map[int]tea.Model
 	currentID  int
 	UITick     Tick
-	Width      int
-	Height     int
-
-	id    int
-	title string
-}
-
-func NewPaneManager() paneManager {
-	return paneManager{
-		FocusStack: FocusStack{},
-		Panes:      make(map[int]tea.Model, 0),
-		currentID:  0,
-		UITick:     0,
-	}
 }
 
 var PaneManager = NewPaneManager()
 
-func (p *paneManager) AddPane(pane Pane) int {
-	p.currentID++
-	pane.SetId(p.currentID)
-	p.Panes[p.currentID] = pane.(tea.Model)
-
-	pane.(tea.Model).Init()
-
-	return p.currentID
-}
-
-func (p *paneManager) RemovePane(id int) {
-	delete(p.Panes, id)
-}
-
 func (p paneManager) GetId() int       { return p.id }
 func (p *paneManager) SetId(id int)    { p.id = id }
 func (p paneManager) GetTitle() string { return p.title }
+func (p paneManager) GetWidth() int    { return p.width }
+func (p paneManager) GetHeight() int   { return p.height }
+func (p *paneManager) SetWidth(w int)  { p.width = w }
+func (p *paneManager) SetHeight(h int) {
+	logging.Info("TERM HEIGHT: %v", h)
+	p.height = h
+}
+
+func NewPaneManager() *paneManager {
+
+	width, height, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		logging.Error("Failed to intialize Pane Manager: %v", err)
+		return nil
+	}
+
+	return &paneManager{
+		FocusStack: FocusStack{},
+		Panes:      make(map[int]tea.Model, 0),
+		currentID:  0,
+		UITick:     0,
+		width:      width,
+		height:     height,
+	}
+}
 
 func (p *paneManager) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
 	for i := range p.Panes {
 		cmds = append(cmds, p.Panes[i].Init())
+		cmds = append(cmds, paneResizeCmd(i, p.width, p.height))
 	}
 	cmds = append(cmds, TickCmd(p.UITick))
 
@@ -86,19 +94,21 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.UITick++
 		cmds = append(cmds, TickCmd(p.UITick))
 	case tea.WindowSizeMsg:
-		p.Width = msg.Width - 10
-		p.Height = msg.Height - 10
+		p.width = msg.Width
+		p.height = msg.Height
 	}
 
-	for key := range p.Panes {
+	for id := range p.Panes {
 		var cmd tea.Cmd
 		switch msg := msg.(type) {
+		case tea.WindowSizeMsg:
+			cmds = append(cmds, paneResizeCmd(id, p.width, p.height))
 		case tea.KeyMsg:
-			if p.Panes[key].(Pane).GetId() == p.ActivePane().(Pane).GetId() {
-				p.Panes[key], cmd = p.Panes[key].Update(msg)
+			if p.Panes[id].(Pane).GetId() == p.ActivePane().(Pane).GetId() {
+				p.Panes[id], cmd = p.Panes[id].Update(msg)
 			}
 		default:
-			p.Panes[key], cmd = p.Panes[key].Update(msg)
+			p.Panes[id], cmd = p.Panes[id].Update(msg)
 		}
 
 		if cmd != nil {
@@ -107,14 +117,26 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return p, tea.Batch(cmds...)
-
 }
 
-func (p *paneManager) View() string {
-	viewStyle := Style.Padding(2)
-	view := viewStyle.Render(p.ActivePane().View())
+func (p *paneManager) View() string { return p.ActivePane().View() }
 
-	return view
+func (p *paneManager) AddPane(pane Pane) int {
+	p.currentID++
+	pane.SetId(p.currentID)
+	p.Panes[p.currentID] = pane.(tea.Model)
+
+	if model, ok := pane.(tea.Model); ok {
+		model.Init()
+	} else {
+		logging.Error("Pane[%v] is not a model", pane.GetId())
+	}
+
+	return p.currentID
+}
+
+func (p *paneManager) RemovePane(id int) {
+	delete(p.Panes, id)
 }
 
 type FocusStack struct {
@@ -126,7 +148,6 @@ func (p *paneManager) PushFocusStack(id int) {
 }
 
 func (p *paneManager) PopFocusStack() tea.Model {
-
 	if len(p.FocusStack.stack) > 1 {
 		p.FocusStack.stack = p.FocusStack.stack[:len(p.FocusStack.stack)-1]
 	}

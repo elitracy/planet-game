@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/tree"
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	. "github.com/elitracy/planets/models"
 )
 
@@ -118,9 +119,9 @@ func (p *PlayerInfoPane) View() string {
 
 		t.Child(system_branch)
 	}
-	enumeratorStyle := Style.Foreground(lipgloss.Color("63")).MarginRight(1)
-	rootStyle := Style.Foreground(lipgloss.Color("35"))
-	itemStyle := Style.Foreground(lipgloss.Color("212"))
+	enumeratorStyle := consts.Style.Foreground(lipgloss.Color("63")).MarginRight(1)
+	rootStyle := consts.Style.Foreground(lipgloss.Color("35"))
+	itemStyle := consts.Style.Foreground(lipgloss.Color("212"))
 
 	t.Enumerator(tree.RoundedEnumerator).
 		EnumeratorStyle(enumeratorStyle).
@@ -130,9 +131,9 @@ func (p *PlayerInfoPane) View() string {
 	content += t.String()
 	content += "\n"
 
-	title = Style.Bold(true).Align(lipgloss.Center).Render(title)
+	title = consts.Style.Bold(true).Align(lipgloss.Center).Render(title)
 
-	buttonContainer := Style.Border(lipgloss.RoundedBorder()).Align(lipgloss.Center).Padding(1, 2)
+	buttonContainer := consts.Style.Border(lipgloss.RoundedBorder()).Align(lipgloss.Center).Padding(1, 2)
 
 	confirmButton := buttonContainer.Render("Start Travel")
 	cancelButton := buttonContainer.Render("Cancel")

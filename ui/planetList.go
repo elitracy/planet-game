@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/core/consts"
 	. "github.com/elitracy/planets/core/interfaces"
 	. "github.com/elitracy/planets/models"
 )
@@ -79,14 +80,14 @@ func (p *PlanetListPane) View() string {
 		cursor := " "
 		if p.cursor == i && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
 			cursor = ">"
-			s += Theme.focusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
+			s += consts.Theme.FocusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
 		} else {
 			s += fmt.Sprintf("%s %s", cursor, choice.Name)
 		}
 
 		if choice.ColonyName != "" {
 			colony := fmt.Sprintf(" (%s)", choice.ColonyName)
-			colony = Style.Foreground(lipgloss.Color("240")).Render(colony)
+			colony = consts.Style.Foreground(lipgloss.Color("240")).Render(colony)
 			s += colony
 		}
 

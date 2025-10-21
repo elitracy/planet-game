@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 )
@@ -97,12 +98,12 @@ func (p *ShipManagementPane) View() string {
 			p.currentShipID = ship.GetID()
 
 			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetPosition())
-			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
-			row = Theme.focusedStyle.Render(row)
+			row = consts.Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
+			row = consts.Theme.FocusedStyle.Render(row)
 		} else {
 			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetPosition())
-			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
-			row = Theme.blurredStyle.Render(row)
+			row = consts.Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
+			row = consts.Theme.BlurredStyle.Render(row)
 		}
 
 		rows = append(rows, row)
@@ -112,7 +113,7 @@ func (p *ShipManagementPane) View() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 	title := "Ships"
-	title = Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(title)
+	title = consts.Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(title)
 
 	content = lipgloss.JoinVertical(lipgloss.Left, title, content)
 
