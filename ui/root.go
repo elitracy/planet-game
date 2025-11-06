@@ -9,42 +9,45 @@ import (
 )
 
 type RootPane struct {
-	id     int
+	id     core.PaneID
 	title  string
 	width  int
 	height int
 
-	tabCursor int
-	focusTabs bool
-	tabs   []int // paneIDs -> TODO: make PaneID type
-	activePane Pane
+	focusTabs  bool
+	tabCursor  int
+	tabs       []core.PaneID
+	activePane tea.Model
 }
 
-func NewRootPane(title string, tabs []int) *RootPane {
+func NewRootPane(title string, tabs []core.PaneID) *RootPane {
 	pane := &RootPane{
-		title: title,
-		tabs:  tabs,
+		title:     title,
+		tabs:      tabs,
 		focusTabs: true,
 	}
 
 	id := tabs[pane.tabCursor]
-	pane.activePane = PaneManager.Panes[id].(Pane)
+	pane.activePane = PaneManager.Panes[id]
 
 	return pane
 }
 
-func (p RootPane) GetId() int       { return p.id }
-func (p *RootPane) SetId(id int)    { p.id = id }
-func (p RootPane) GetTitle() string { return p.title }
-func (p RootPane) GetWidth() int    { return p.width }
-func (p RootPane) GetHeight() int   { return p.height }
-func (p *RootPane) SetWidth(w int)  { p.width = w }
-func (p *RootPane) SetHeight(h int) { p.height = h }
+func (p RootPane) GetId() core.PaneID    { return p.id }
+func (p *RootPane) SetId(id core.PaneID) { p.id = id }
+func (p RootPane) GetTitle() string      { return p.title }
+func (p RootPane) GetWidth() int         { return p.width }
+func (p RootPane) GetHeight() int        { return p.height }
+func (p *RootPane) SetWidth(w int)       { p.width = w }
+func (p *RootPane) SetHeight(h int)      { p.height = h }
 
 func (p *RootPane) Init() tea.Cmd { return nil }
 
 func (p *RootPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
+	case focusTabsMsg:
+		p.focusTabs = true
 	case paneResizeMsg:
 		if msg.paneID == p.GetId() {
 			p.width = int(float32(msg.width) * 0.15)
@@ -57,24 +60,22 @@ func (p *RootPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
-			if p.focusTabs && p.tabCursor > 0 {
+			if p.tabCursor > 0 {
 				p.tabCursor--
 			}
 		case "down", "j":
-			if p.focusTabs && p.tabCursor < len(p.tabs)-1 {
+			if p.tabCursor < len(p.tabs)-1 {
 				p.tabCursor++
-			}else{
+			} else {
 			}
 		case "enter":
-			id :=p.tabs[p.tabCursor]
-			pane:= PaneManager.Panes[id]
+			id := p.tabs[p.tabCursor]
+			pane := PaneManager.Panes[id]
 
-			p.activePane = pane.(Pane)
+			p.activePane = pane
 
 			p.focusTabs = false
-		case "esc":
-			p.focusTabs = true 
-			return p, nil
+			return p, pushFocusCmd(id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -105,13 +106,13 @@ func (p *RootPane) View() string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 	content = consts.Style.
-	Height(p.height).
-	Padding(1).
-	Border(lipgloss.ThickBorder(), false, true, false, false).
-	MarginRight(3).
-	Render(content)
+		Height(p.height).
+		Padding(1).
+		Border(lipgloss.ThickBorder(), false, true, false, false).
+		MarginRight(3).
+		Render(content)
 
-	content = lipgloss.JoinHorizontal(lipgloss.Left, content, p.activePane.(tea.Model).View())
+	content = lipgloss.JoinHorizontal(lipgloss.Left, content, PaneManager.ActivePane().View())
 
 	content = consts.Style.Render(content)
 	return content

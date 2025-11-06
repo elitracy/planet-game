@@ -19,9 +19,13 @@ func RunGame() {
 
 	planetList := ui.PaneManager.AddPane(ui.NewPlanetListPane(state.State.StarSystems[0].Planets, "Planet List"))
 	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&state.State.OrderScheduler, "Orders"))
-	rootView := ui.PaneManager.AddPane(ui.NewRootPane("Root", []int{planetList, orderList}))
+	systemsPane := ui.PaneManager.AddPane(ui.NewSystemsPane("Systems", &state.State))
 
-	ui.PaneManager.PushFocusStack(rootView)
+	rootPane := ui.NewRootPane("Root", []core.PaneID{systemsPane, planetList, orderList})
+	ui.PaneManager.AddPane(rootPane)
+
+	ui.PaneManager.Root = rootPane
+	ui.PaneManager.PushFocusStack(systemsPane)
 
 	p := tea.NewProgram(ui.PaneManager, tea.WithAltScreen())
 

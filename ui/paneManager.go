@@ -6,24 +6,27 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/term"
 
-	. "github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core"
+	I "github.com/elitracy/planets/core/interfaces"
 	"github.com/elitracy/planets/core/logging"
 )
 
-type pushFocusMsg struct{ id int }
+type pushFocusMsg struct{ id core.PaneID }
 type popFocusMsg struct{}
 
+type focusTabsMsg struct{}
+
 type paneResizeMsg struct {
-	paneID int
+	paneID core.PaneID
 	width  int
 	height int
 }
 
-func pushFocusCmd(id int) tea.Cmd { return func() tea.Msg { return pushFocusMsg{id} } }
-func popFocusCmd() tea.Cmd        { return func() tea.Msg { return popFocusMsg{} } }
+func pushFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return pushFocusMsg{id} } }
+func popFocusCmd() tea.Cmd                { return func() tea.Msg { return popFocusMsg{} } }
+func focusTabsCmd() tea.Cmd               { return func() tea.Msg { return focusTabsMsg{} } }
 
-func paneResizeCmd(id, width, height int) tea.Cmd {
+func paneResizeCmd(id core.PaneID, width, height int) tea.Cmd {
 	return func() tea.Msg { return paneResizeMsg{paneID: id, width: width, height: height} }
 }
 
@@ -33,10 +36,12 @@ type paneManager struct {
 	width  int
 	height int
 
-	FocusStack FocusStack
-	Panes      map[int]tea.Model
-	currentID  int
-	UITick     Tick
+	FocusStack  FocusStack
+	Panes       map[core.PaneID]tea.Model
+	Root        *RootPane
+	focusedTabs bool
+	currentID   core.PaneID
+	UITick      core.Tick
 }
 
 var PaneManager = NewPaneManager()
@@ -60,14 +65,16 @@ func NewPaneManager() *paneManager {
 		return nil
 	}
 
-	return &paneManager{
+	pm := &paneManager{
 		FocusStack: FocusStack{},
-		Panes:      make(map[int]tea.Model, 0),
+		Panes:      make(map[core.PaneID]tea.Model, 0),
 		currentID:  0,
 		UITick:     0,
 		width:      width,
 		height:     height,
 	}
+
+	return pm
 }
 
 func (p *paneManager) Init() tea.Cmd {
@@ -77,7 +84,7 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds = append(cmds, p.Panes[i].Init())
 		cmds = append(cmds, paneResizeCmd(i, p.width, p.height))
 	}
-	cmds = append(cmds, TickCmd(p.UITick))
+	cmds = append(cmds, core.TickCmd(p.UITick))
 
 	return tea.Batch(cmds...)
 }
@@ -86,13 +93,26 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case focusTabsMsg:
+		p.focusedTabs = true
 	case pushFocusMsg:
+		p.focusedTabs = false
 		p.PushFocusStack(msg.id)
 	case popFocusMsg:
 		p.PopFocusStack()
-	case TickMsg:
+
+		if len(p.FocusStack.stack) < 2 {
+			cmds = append(cmds, focusTabsCmd())
+		}
+	case tea.KeyMsg:
+		var cmd tea.Cmd
+		if p.focusedTabs {
+			p.Panes[p.Root.id], cmd = p.Panes[p.Root.id].Update(msg)
+		}
+		cmds = append(cmds, cmd)
+	case core.TickMsg:
 		p.UITick++
-		cmds = append(cmds, TickCmd(p.UITick))
+		cmds = append(cmds, core.TickCmd(p.UITick))
 	case tea.WindowSizeMsg:
 		p.width = msg.Width
 		p.height = msg.Height
@@ -104,7 +124,7 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.WindowSizeMsg:
 			cmds = append(cmds, paneResizeCmd(id, p.width, p.height))
 		case tea.KeyMsg:
-			if p.Panes[id].(Pane).GetId() == p.ActivePane().(Pane).GetId() {
+			if !p.focusedTabs && p.Panes[id].(I.Pane).GetId() == p.ActivePane().(I.Pane).GetId() {
 				p.Panes[id], cmd = p.Panes[id].Update(msg)
 			}
 		default:
@@ -119,9 +139,9 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, tea.Batch(cmds...)
 }
 
-func (p *paneManager) View() string { return p.ActivePane().View() }
+func (p *paneManager) View() string { return p.Root.View() }
 
-func (p *paneManager) AddPane(pane Pane) int {
+func (p *paneManager) AddPane(pane I.Pane) core.PaneID {
 	p.currentID++
 	pane.SetId(p.currentID)
 	p.Panes[p.currentID] = pane.(tea.Model)
@@ -135,7 +155,7 @@ func (p *paneManager) AddPane(pane Pane) int {
 	return p.currentID
 }
 
-func (p *paneManager) RemovePane(id int) {
+func (p *paneManager) RemovePane(id core.PaneID) {
 	delete(p.Panes, id)
 }
 
@@ -143,7 +163,7 @@ type FocusStack struct {
 	stack []tea.Model
 }
 
-func (p *paneManager) PushFocusStack(id int) {
+func (p *paneManager) PushFocusStack(id core.PaneID) {
 	p.FocusStack.stack = append(p.FocusStack.stack, p.Panes[id])
 }
 
