@@ -3,6 +3,7 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/interfaces"
 )
@@ -17,7 +18,7 @@ type DashboardPane struct {
 	width  int
 	height int
 
-	Grid      [][]int
+	Grid      [][]core.PaneID
 	ActiveRow int
 	ActiveCol int
 }
@@ -117,7 +118,7 @@ func (p *DashboardPane) View() string {
 	return content
 }
 
-func NewDashboard(grid [][]int, title string) *DashboardPane {
+func NewDashboard(grid [][]core.PaneID, title string) *DashboardPane {
 	return &DashboardPane{
 		Grid:  grid,
 		title: title,

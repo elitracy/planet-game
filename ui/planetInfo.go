@@ -5,37 +5,37 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	. "github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
-	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/core/state"
+	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
 )
 
 type PlanetInfoPane struct {
-	id     int
+	id     core.PaneID
 	title  string
 	width  int
 	height int
 
 	childPaneID int
-	planet      *Planet
+	planet      *models.Planet
 }
 
-func (p PlanetInfoPane) GetId() int       { return p.id }
-func (p *PlanetInfoPane) SetId(id int)    { p.id = id }
-func (p PlanetInfoPane) GetTitle() string { return p.title }
-func (p PlanetInfoPane) GetWidth() int    { return p.width }
-func (p PlanetInfoPane) GetHeight() int   { return p.height }
-func (p *PlanetInfoPane) SetWidth(w int)  { p.width = w }
-func (p *PlanetInfoPane) SetHeight(h int) { p.height = h }
+func (p PlanetInfoPane) GetId() core.PaneID    { return p.id }
+func (p *PlanetInfoPane) SetId(id core.PaneID) { p.id = id }
+func (p PlanetInfoPane) GetTitle() string      { return p.title }
+func (p PlanetInfoPane) GetWidth() int         { return p.width }
+func (p PlanetInfoPane) GetHeight() int        { return p.height }
+func (p *PlanetInfoPane) SetWidth(w int)       { p.width = w }
+func (p *PlanetInfoPane) SetHeight(h int)      { p.height = h }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var childPaneID int
+	var childPaneID core.PaneID
 
 	switch msg := msg.(type) {
-	case TickMsg:
+	case core.TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -50,10 +50,10 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			pane := CreateNewShipManagementPane(
 				"Ship Management",
-				&State.ShipManager,
-				func(ship *Ship) {
-					order := orders.NewScoutShipOrder(ship, p.planet.Position, State.Tick+40)
-					State.OrderScheduler.Push(order)
+				&state.State.ShipManager,
+				func(ship *models.Ship) {
+					order := orders.NewScoutShipOrder(ship, p.planet.Position, state.State.Tick+40)
+					state.State.OrderScheduler.Push(order)
 				},
 			)
 
@@ -138,7 +138,7 @@ func (p *PlanetInfoPane) View() string {
 
 }
 
-func NewPlanetInfoPane(title string, planet *Planet) *PlanetInfoPane {
+func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
 
 	return &PlanetInfoPane{
 		title:  title,

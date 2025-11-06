@@ -8,32 +8,32 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
-	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/core/state"
+	"github.com/elitracy/planets/models"
 )
 
 type ShipManagementPane struct {
-	id     int
+	id     core.PaneID
 	title  string
 	width  int
 	height int
 
 	cursor        int
 	currentShipID int
-	sortedShips   []*Ship
-	manager       *ShipManager
-	OnSelect      func(ship *Ship)
+	sortedShips   []*models.Ship
+	manager       *models.ShipManager
+	OnSelect      func(ship *models.Ship)
 }
 
-func (p ShipManagementPane) GetId() int       { return p.id }
-func (p *ShipManagementPane) SetId(id int)    { p.id = id }
-func (p ShipManagementPane) GetTitle() string { return p.title }
-func (p ShipManagementPane) GetWidth() int    { return p.width }
-func (p ShipManagementPane) GetHeight() int   { return p.height }
-func (p *ShipManagementPane) SetWidth(w int)  { p.width = w }
-func (p *ShipManagementPane) SetHeight(h int) { p.height = h }
+func (p ShipManagementPane) GetId() core.PaneID    { return p.id }
+func (p *ShipManagementPane) SetId(id core.PaneID) { p.id = id }
+func (p ShipManagementPane) GetTitle() string      { return p.title }
+func (p ShipManagementPane) GetWidth() int         { return p.width }
+func (p ShipManagementPane) GetHeight() int        { return p.height }
+func (p *ShipManagementPane) SetWidth(w int)       { p.width = w }
+func (p *ShipManagementPane) SetHeight(h int)      { p.height = h }
 
-func CreateNewShipManagementPane(title string, shipManager *ShipManager, callback func(ship *Ship)) *ShipManagementPane {
+func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, callback func(ship *models.Ship)) *ShipManagementPane {
 	pane := &ShipManagementPane{
 		title:    title,
 		manager:  shipManager,
@@ -68,7 +68,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			p.OnSelect(State.ShipManager.Ships[p.currentShipID])
+			p.OnSelect(state.State.ShipManager.Ships[p.currentShipID])
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--

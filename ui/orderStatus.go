@@ -20,13 +20,13 @@ var (
 
 type OrderStatusPane struct {
 	Pane
-	id             int
+	id             core.PaneID
 	title          string
 	width          int
 	height         int
 	cursor         int
 	orderScheduler *EventScheduler[Order]
-	progressBars   map[Action]int
+	progressBars   map[Action]core.PaneID
 }
 
 func NewOrderStatusPane(orderScheduler *EventScheduler[Order], title string) *OrderStatusPane {
@@ -38,13 +38,13 @@ func NewOrderStatusPane(orderScheduler *EventScheduler[Order], title string) *Or
 	return pane
 }
 
-func (p OrderStatusPane) GetId() int       { return p.id }
-func (p *OrderStatusPane) SetId(id int)    { p.id = id }
-func (p OrderStatusPane) GetTitle() string { return p.title }
-func (p OrderStatusPane) GetWidth() int    { return p.width }
-func (p OrderStatusPane) GetHeight() int   { return p.height }
-func (p *OrderStatusPane) SetWidth(w int)  { p.width = w }
-func (p *OrderStatusPane) SetHeight(h int) { p.height = h }
+func (p OrderStatusPane) GetId() core.PaneID    { return p.id }
+func (p *OrderStatusPane) SetId(id core.PaneID) { p.id = id }
+func (p OrderStatusPane) GetTitle() string      { return p.title }
+func (p OrderStatusPane) GetWidth() int         { return p.width }
+func (p OrderStatusPane) GetHeight() int        { return p.height }
+func (p *OrderStatusPane) SetWidth(w int)       { p.width = w }
+func (p *OrderStatusPane) SetHeight(h int)      { p.height = h }
 
 func (p *OrderStatusPane) Init() tea.Cmd {
 	p.updateProgressBars()
@@ -227,7 +227,7 @@ func (p *OrderStatusPane) View() string {
 
 func (p *OrderStatusPane) updateProgressBars() {
 	if p.progressBars == nil {
-		p.progressBars = make(map[Action]int)
+		p.progressBars = make(map[Action]core.PaneID)
 	}
 
 	for _, order := range p.orderScheduler.PriorityQueue {
