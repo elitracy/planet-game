@@ -7,20 +7,30 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/tree"
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	. "github.com/elitracy/planets/models"
 )
 
 type PlayerInfoPane struct {
-	Pane
-	id        int
-	title     string
-	gamestate *GameState
+	id     int
+	title  string
+	width  int
+	height int
 
+	gamestate   *GameState
 	selected    int
 	cursor      int
 	max_choices int
 	prev_key    string
 }
+
+func (p PlayerInfoPane) GetId() int       { return p.id }
+func (p *PlayerInfoPane) SetId(id int)    { p.id = id }
+func (p PlayerInfoPane) GetTitle() string { return p.title }
+func (p PlayerInfoPane) GetWidth() int    { return p.width }
+func (p PlayerInfoPane) GetHeight() int   { return p.height }
+func (p *PlayerInfoPane) SetWidth(w int)  { p.width = w }
+func (p *PlayerInfoPane) SetHeight(h int) { p.height = h }
 
 func NewPlayerInfoPane(text string, gs *GameState) *PlayerInfoPane {
 	max_choices := 0
@@ -109,9 +119,9 @@ func (p *PlayerInfoPane) View() string {
 
 		t.Child(system_branch)
 	}
-	enumeratorStyle := Style.Foreground(lipgloss.Color("63")).MarginRight(1)
-	rootStyle := Style.Foreground(lipgloss.Color("35"))
-	itemStyle := Style.Foreground(lipgloss.Color("212"))
+	enumeratorStyle := consts.Style.Foreground(lipgloss.Color("63")).MarginRight(1)
+	rootStyle := consts.Style.Foreground(lipgloss.Color("35"))
+	itemStyle := consts.Style.Foreground(lipgloss.Color("212"))
 
 	t.Enumerator(tree.RoundedEnumerator).
 		EnumeratorStyle(enumeratorStyle).
@@ -121,9 +131,9 @@ func (p *PlayerInfoPane) View() string {
 	content += t.String()
 	content += "\n"
 
-	title = Style.Bold(true).Align(lipgloss.Center).Render(title)
+	title = consts.Style.Bold(true).Align(lipgloss.Center).Render(title)
 
-	buttonContainer := Style.Border(lipgloss.RoundedBorder()).Align(lipgloss.Center).Padding(1, 2)
+	buttonContainer := consts.Style.Border(lipgloss.RoundedBorder()).Align(lipgloss.Center).Padding(1, 2)
 
 	confirmButton := buttonContainer.Render("Start Travel")
 	cancelButton := buttonContainer.Render("Cancel")
@@ -136,7 +146,3 @@ func (p *PlayerInfoPane) View() string {
 
 	return block
 }
-
-func (p PlayerInfoPane) GetId() int       { return p.id }
-func (p *PlayerInfoPane) SetId(id int)    { p.id = id }
-func (p PlayerInfoPane) GetTitle() string { return p.title }

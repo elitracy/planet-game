@@ -5,26 +5,37 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	. "github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/state"
+	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
 )
 
 type PlanetInfoPane struct {
-	Pane
-	id          int
+	id     core.PaneID
+	title  string
+	width  int
+	height int
+
 	childPaneID int
-	title       string
-	planet      *Planet
+	planet      *models.Planet
 }
+
+func (p PlanetInfoPane) GetId() core.PaneID    { return p.id }
+func (p *PlanetInfoPane) SetId(id core.PaneID) { p.id = id }
+func (p PlanetInfoPane) GetTitle() string      { return p.title }
+func (p PlanetInfoPane) GetWidth() int         { return p.width }
+func (p PlanetInfoPane) GetHeight() int        { return p.height }
+func (p *PlanetInfoPane) SetWidth(w int)       { p.width = w }
+func (p *PlanetInfoPane) SetHeight(h int)      { p.height = h }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var childPaneID int
+	var childPaneID core.PaneID
 
 	switch msg := msg.(type) {
-	case TickMsg:
+	case core.TickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -39,10 +50,10 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			pane := CreateNewShipManagementPane(
 				"Ship Management",
-				&State.ShipManager,
-				func(ship *Ship) {
-					order := orders.NewScoutShipOrder(ship, p.planet.Position, State.Tick+40)
-					State.OrderScheduler.Push(order)
+				&state.State.ShipManager,
+				func(ship *models.Ship) {
+					order := orders.NewScoutShipOrder(ship, p.planet.Position, state.State.Tick+40)
+					state.State.OrderScheduler.Push(order)
 				},
 			)
 
@@ -63,7 +74,7 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p *PlanetInfoPane) View() string {
 	title := p.planet.Name
 	if p.planet.ColonyName != "" {
-		title += Theme.blurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
+		title += consts.Theme.BlurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
 	}
 
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
@@ -80,41 +91,41 @@ func (p *PlanetInfoPane) View() string {
 	constructions += fmt.Sprintf("Mines:       %d\n", len(p.planet.Constructions.Mines))
 	constructions += fmt.Sprintf("Solar Grids: %d", len(p.planet.Constructions.SolarGrids))
 
-	defaultStyle := Style.
+	defaultStyle := consts.Style.
 		Padding(1).
 		PaddingTop(0)
 
-	title = Style.Bold(true).Render(title)
+	title = consts.Style.Bold(true).Render(title)
 	title = defaultStyle.Render(title)
 
 	population = defaultStyle.Render(population)
 
-	resources = Style.
+	resources = consts.Style.
 		PaddingRight(1).
 		Inherit(defaultStyle).
 		Render(resources)
 	constructions = defaultStyle.Render(constructions)
 
 	info := lipgloss.JoinHorizontal(lipgloss.Top, resources, constructions)
-	info = Style.
+	info = consts.Style.
 		Render(info)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Center, title, population, info)
 
-	colonizeButton := Theme.focusedStyle.Underline(true).Render("O") + "rder Colonization"
-	colonizeButton = Style.
+	colonizeButton := consts.Theme.FocusedStyle.Underline(true).Render("O") + "rder Colonization"
+	colonizeButton = consts.Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(colonizeButton)
 
-	scoutButton := Theme.focusedStyle.Underline(true).Render("S") + "cout"
-	scoutButton = Style.
+	scoutButton := consts.Theme.FocusedStyle.Underline(true).Render("S") + "cout"
+	scoutButton = consts.Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(scoutButton)
 
-	changeAllocationsButton := "Change " + Theme.focusedStyle.Underline(true).Render("A") + "llocations"
-	changeAllocationsButton = Style.
+	changeAllocationsButton := "Change " + consts.Theme.FocusedStyle.Underline(true).Render("A") + "llocations"
+	changeAllocationsButton = consts.Style.
 		Padding(0, 1).
 		Border(lipgloss.RoundedBorder()).
 		Render(changeAllocationsButton)
@@ -127,11 +138,7 @@ func (p *PlanetInfoPane) View() string {
 
 }
 
-func (p PlanetInfoPane) GetId() int       { return p.id }
-func (p *PlanetInfoPane) SetId(id int)    { p.id = id }
-func (p PlanetInfoPane) GetTitle() string { return p.title }
-
-func NewPlanetInfoPane(title string, planet *Planet) *PlanetInfoPane {
+func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
 
 	return &PlanetInfoPane{
 		title:  title,

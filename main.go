@@ -36,5 +36,5 @@ func main() {
 	logging.Ok("Ships Initialized")
 
 	logging.Ok("State Initialized")
-	engine.RunGame(&State)
+	engine.RunGame()
 }

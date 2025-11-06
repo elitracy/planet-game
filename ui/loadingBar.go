@@ -18,17 +18,23 @@ func NewLoadingBarPane(title string, startTick, endTick core.Tick) *LoadingBarPa
 }
 
 type LoadingBarPane struct {
-	Pane
-	id        int
-	title     string
+	id     core.PaneID
+	title  string
+	width  int
+	height int
+
 	startTick core.Tick
 	endTick   core.Tick
 	progress  progress.Model
 }
 
-func (p LoadingBarPane) GetId() int       { return p.id }
-func (p *LoadingBarPane) SetId(id int)    { p.id = id }
-func (p LoadingBarPane) GetTitle() string { return p.title }
+func (p LoadingBarPane) GetId() core.PaneID    { return p.id }
+func (p *LoadingBarPane) SetId(id core.PaneID) { p.id = id }
+func (p LoadingBarPane) GetTitle() string      { return p.title }
+func (p LoadingBarPane) GetWidth() int         { return p.width }
+func (p LoadingBarPane) GetHeight() int        { return p.height }
+func (p *LoadingBarPane) SetWidth(w int)       { p.width = w }
+func (p *LoadingBarPane) SetHeight(h int)      { p.height = h }
 
 func (p *LoadingBarPane) Init() tea.Cmd { return nil }
 

@@ -3,14 +3,22 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/models"
 )
 
 type TitlePane struct {
-	Pane
-	id    int
-	title string
+	id     int
+	title  string
+	width  int
+	height int
 }
+
+func (p TitlePane) GetId() int       { return p.id }
+func (p *TitlePane) SetId(id int)    { p.id = id }
+func (p TitlePane) GetTitle() string { return p.title }
+func (p TitlePane) GetWidth() int    { return p.width }
+func (p TitlePane) GetHeight() int   { return p.height }
+func (p *TitlePane) SetWidth(w int)  { p.width = w }
+func (p *TitlePane) SetHeight(h int) { p.height = h }
 
 func NewTitlePane(text string) *TitlePane {
 	return &TitlePane{title: text}
@@ -34,7 +42,3 @@ func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *TitlePane) View() string { return p.title }
-
-func (p TitlePane) GetId() int       { return p.id }
-func (p *TitlePane) SetId(id int)    { p.id = id }
-func (p TitlePane) GetTitle() string { return p.title }

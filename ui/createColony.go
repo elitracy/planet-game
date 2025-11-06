@@ -8,26 +8,36 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/state"
+	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
 )
 
 var (
-	focusedButton = Theme.focusedStyle.Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", Theme.blurredStyle.Render("Submit"))
+	focusedButton = consts.Theme.FocusedStyle.Render("[ Submit ]")
+	blurredButton = fmt.Sprintf("[ %s ]", consts.Theme.BlurredStyle.Render("Submit"))
 )
 
 type CreateColonyPane struct {
-	Pane
-	id     int
+	id     core.PaneID
 	title  string
-	planet *Planet
+	width  int
+	height int
 
+	planet     *models.Planet
 	focusIndex int
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
 }
+
+func (p CreateColonyPane) GetId() core.PaneID    { return p.id }
+func (p *CreateColonyPane) SetId(id core.PaneID) { p.id = id }
+func (p CreateColonyPane) GetTitle() string      { return p.title }
+func (p CreateColonyPane) GetWidth() int         { return p.width }
+func (p CreateColonyPane) GetHeight() int        { return p.height }
+func (p *CreateColonyPane) SetWidth(w int)       { p.width = w }
+func (p *CreateColonyPane) SetHeight(h int)      { p.height = h }
 
 func (p *CreateColonyPane) Init() tea.Cmd {
 	return textinput.Blink
@@ -45,9 +55,9 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if p.focusIndex == len(p.inputs) {
 				p.planet.ColonyName = p.inputs[0].Value()
 
-				createColonyOrder := orders.NewCreateColonyOrder(p.planet, State.Tick)
+				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.Tick)
 
-				State.OrderScheduler.Push(createColonyOrder)
+				state.State.OrderScheduler.Push(createColonyOrder)
 				return p, popFocusCmd()
 			}
 
@@ -101,14 +111,14 @@ func (p *CreateColonyPane) updateCursorStyles() (tea.Model, tea.Cmd) {
 		if i == p.focusIndex {
 			// Set focused state
 			cmds[i] = p.inputs[i].Focus()
-			p.inputs[i].PromptStyle = Theme.focusedStyle
-			p.inputs[i].TextStyle = Theme.focusedStyle
+			p.inputs[i].PromptStyle = consts.Theme.FocusedStyle
+			p.inputs[i].TextStyle = consts.Theme.FocusedStyle
 			continue
 		}
 		// Remove focused state
 		p.inputs[i].Blur()
-		p.inputs[i].PromptStyle = Theme.noStyle
-		p.inputs[i].TextStyle = Theme.noStyle
+		p.inputs[i].PromptStyle = consts.Theme.NoStyle
+		p.inputs[i].TextStyle = consts.Theme.NoStyle
 	}
 
 	return p, tea.Batch(cmds...)
@@ -140,18 +150,14 @@ func (p *CreateColonyPane) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	b.WriteString(Theme.helpStyle.Render("cursor mode is "))
-	b.WriteString(Theme.cursorModeHelpStyle.Render(p.cursorMode.String()))
-	b.WriteString(Theme.helpStyle.Render(" (<esc> to change style)"))
+	b.WriteString(consts.Theme.HelpStyle.Render("cursor mode is "))
+	b.WriteString(consts.Theme.CursorModeHelpStyle.Render(p.cursorMode.String()))
+	b.WriteString(consts.Theme.HelpStyle.Render(" (<esc> to change style)"))
 
 	return b.String()
 }
 
-func (p CreateColonyPane) GetId() int       { return p.id }
-func (p *CreateColonyPane) SetId(id int)    { p.id = id }
-func (p CreateColonyPane) GetTitle() string { return p.title }
-
-func NewCreateColonyPane(title string, planet *Planet) *CreateColonyPane {
+func NewCreateColonyPane(title string, planet *models.Planet) *CreateColonyPane {
 
 	p := &CreateColonyPane{
 		inputs:     make([]textinput.Model, 4),
@@ -163,7 +169,7 @@ func NewCreateColonyPane(title string, planet *Planet) *CreateColonyPane {
 	var t textinput.Model
 	for i := range p.inputs {
 		t = textinput.New()
-		t.Cursor.Style = Theme.cursorStyle
+		t.Cursor.Style = consts.Theme.CursorStyle
 		t.CharLimit = 32
 
 		switch i {
@@ -172,8 +178,8 @@ func NewCreateColonyPane(title string, planet *Planet) *CreateColonyPane {
 			t.CharLimit = 64
 			t.Width = 20
 			t.Focus()
-			t.PromptStyle = Theme.focusedStyle
-			t.TextStyle = Theme.focusedStyle
+			t.PromptStyle = consts.Theme.FocusedStyle
+			t.TextStyle = consts.Theme.FocusedStyle
 		case 1:
 			t.Placeholder = "Food"
 			t.CharLimit = 64

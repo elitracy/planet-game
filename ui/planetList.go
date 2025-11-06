@@ -5,33 +5,43 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/models"
 )
 
-type PlanetList struct {
-	choices []*Planet
+type PlanetListPane struct {
+	id     core.PaneID
+	title  string
+	width  int
+	height int
+
+	choices []*models.Planet
 	cursor  int
-	id      int
-	title   string
 }
 
-func NewPlanetList(planets []*Planet, title string) *PlanetList {
-	return &PlanetList{
+func (p PlanetListPane) GetId() core.PaneID    { return p.id }
+func (p *PlanetListPane) SetId(id core.PaneID) { p.id = id }
+func (p PlanetListPane) GetTitle() string      { return p.title }
+func (p PlanetListPane) GetWidth() int         { return p.width }
+func (p PlanetListPane) GetHeight() int        { return p.height }
+func (p *PlanetListPane) SetWidth(w int)       { p.width = w }
+func (p *PlanetListPane) SetHeight(h int)      { p.height = h }
+
+func NewPlanetListPane(planets []*models.Planet, title string) *PlanetListPane {
+	return &PlanetListPane{
 		choices: planets,
 		title:   title,
 	}
 }
 
-func (p PlanetList) GetId() int       { return p.id }
-func (p *PlanetList) SetId(id int)    { p.id = id }
-func (p PlanetList) GetTitle() string { return p.title }
-
-func (p *PlanetList) Init() tea.Cmd {
+func (p *PlanetListPane) Init() tea.Cmd {
 	return nil
 }
 
-func (p *PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var childPaneID int
+func (p *PlanetListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var childPaneID core.PaneID
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -64,21 +74,21 @@ func (p *PlanetList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-func (p *PlanetList) View() string {
+func (p *PlanetListPane) View() string {
 	s := "Available Planets:\n"
 
 	for i, choice := range p.choices {
 		cursor := " "
-		if p.cursor == i && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
+		if p.cursor == i && PaneManager.ActivePane().(interfaces.Pane).GetId() == p.GetId() {
 			cursor = ">"
-			s += Theme.focusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
+			s += consts.Theme.FocusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
 		} else {
 			s += fmt.Sprintf("%s %s", cursor, choice.Name)
 		}
 
 		if choice.ColonyName != "" {
 			colony := fmt.Sprintf(" (%s)", choice.ColonyName)
-			colony = Style.Foreground(lipgloss.Color("240")).Render(colony)
+			colony = consts.Style.Foreground(lipgloss.Color("240")).Render(colony)
 			s += colony
 		}
 
