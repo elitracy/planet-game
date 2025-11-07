@@ -5,7 +5,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/interfaces"
 	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core/logging"
 )
 
 type RootPane struct {
@@ -14,10 +16,11 @@ type RootPane struct {
 	width  int
 	height int
 
-	focusTabs  bool
-	tabCursor  int
-	tabs       []core.PaneID
-	activePane tea.Model
+	focusTabs      bool
+	tabCursor      int
+	tabs           []core.PaneID
+	activePane     tea.Model
+	lastActivePane tea.Model
 }
 
 func NewRootPane(title string, tabs []core.PaneID) *RootPane {
@@ -41,13 +44,22 @@ func (p RootPane) GetHeight() int        { return p.height }
 func (p *RootPane) SetWidth(w int)       { p.width = w }
 func (p *RootPane) SetHeight(h int)      { p.height = h }
 
-func (p *RootPane) Init() tea.Cmd { return nil }
+func (p *RootPane) Init() tea.Cmd {
+	p.lastActivePane = PaneManager.Panes[p.tabs[0]]
+	return nil
+}
 
 func (p *RootPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case focusTabsMsg:
 		p.focusTabs = true
+		if msg.lastActiveID == -1 {
+			p.lastActivePane = PaneManager.Panes[p.tabs[0]]
+		} else {
+			p.lastActivePane = PaneManager.Panes[msg.lastActiveID]
+			logging.Info("Last Active: %v", p.lastActivePane.(interfaces.Pane).GetTitle())
+		}
 	case paneResizeMsg:
 		if msg.paneID == p.GetId() {
 			p.width = int(float32(msg.width) * 0.15)
@@ -112,7 +124,12 @@ func (p *RootPane) View() string {
 		MarginRight(3).
 		Render(content)
 
-	content = lipgloss.JoinHorizontal(lipgloss.Left, content, PaneManager.ActivePane().View())
+	if p.focusTabs {
+		content = lipgloss.JoinHorizontal(lipgloss.Left, content, p.lastActivePane.View())
+	} else {
+
+		content = lipgloss.JoinHorizontal(lipgloss.Left, content, PaneManager.ActivePane().View())
+	}
 
 	content = consts.Style.Render(content)
 	return content
