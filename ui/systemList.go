@@ -12,6 +12,8 @@ import (
 	"github.com/elitracy/planets/models"
 )
 
+var filteredSystems []*models.StarSystem
+
 type SystemsPane struct {
 	*Pane
 
@@ -64,6 +66,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "esc":
 				p.textInput.Blur()
 				p.searching = false
+				p.cursor = 0
 			}
 
 			var cmd tea.Cmd
@@ -78,7 +81,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.textInput.Focus()
 			return p, textinput.Blink
 		case "enter":
-			system := p.gamestate.StarSystems[p.cursor]
+			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, pushFocusCmd(paneID)
@@ -87,7 +90,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 		case "down", "j":
-			if p.cursor < len(p.gamestate.StarSystems)-1 {
+			if p.cursor < len(filteredSystems)-1 {
 				p.cursor++
 			}
 		case "esc":
@@ -103,11 +106,11 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p *SystemsPane) View() string {
 
 	systems := p.gamestate.StarSystems
-	var filteredSystems []*models.StarSystem
 
 	if len(p.textInput.Value()) == 0 {
 		filteredSystems = systems
 	} else {
+		filteredSystems = []*models.StarSystem{}
 		for _, s := range systems {
 			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(p.textInput.Value())) {
 				filteredSystems = append(filteredSystems, s)
