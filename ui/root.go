@@ -5,44 +5,33 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
-	"github.com/elitracy/planets/core/interfaces"
-	. "github.com/elitracy/planets/core/interfaces"
 	"github.com/elitracy/planets/core/logging"
 )
 
 type RootPane struct {
-	id     core.PaneID
-	title  string
-	width  int
-	height int
+	*Pane
 
 	focusTabs      bool
-	tabCursor      int
+	cursor         int
 	tabs           []core.PaneID
-	activePane     tea.Model
-	lastActivePane tea.Model
+	activePane     ManagedPane
+	lastActivePane ManagedPane
 }
 
 func NewRootPane(title string, tabs []core.PaneID) *RootPane {
 	pane := &RootPane{
-		title:     title,
+		Pane: &Pane{
+			title: title,
+		},
 		tabs:      tabs,
 		focusTabs: true,
 	}
 
-	id := tabs[pane.tabCursor]
+	id := tabs[pane.cursor]
 	pane.activePane = PaneManager.Panes[id]
 
 	return pane
 }
-
-func (p RootPane) GetId() core.PaneID    { return p.id }
-func (p *RootPane) SetId(id core.PaneID) { p.id = id }
-func (p RootPane) GetTitle() string      { return p.title }
-func (p RootPane) GetWidth() int         { return p.width }
-func (p RootPane) GetHeight() int        { return p.height }
-func (p *RootPane) SetWidth(w int)       { p.width = w }
-func (p *RootPane) SetHeight(h int)      { p.height = h }
 
 func (p *RootPane) Init() tea.Cmd {
 	p.lastActivePane = PaneManager.Panes[p.tabs[0]]
@@ -58,12 +47,12 @@ func (p *RootPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.lastActivePane = PaneManager.Panes[p.tabs[0]]
 		} else {
 			p.lastActivePane = PaneManager.Panes[msg.lastActiveID]
-			logging.Info("Last Active: %v", p.lastActivePane.(interfaces.Pane).GetTitle())
+			logging.Info("Last Active: %v", p.lastActivePane.Title())
 		}
 	case paneResizeMsg:
-		if msg.paneID == p.GetId() {
-			p.width = int(float32(msg.width) * 0.15)
-			p.height = msg.height
+		if msg.paneID == p.Pane.id {
+			p.Pane.width = int(float32(msg.width) * 0.15)
+			p.Pane.height = msg.height
 
 			return p, nil
 		}
@@ -72,16 +61,16 @@ func (p *RootPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
-			if p.tabCursor > 0 {
-				p.tabCursor--
+			if p.cursor > 0 {
+				p.cursor--
 			}
 		case "down", "j":
-			if p.tabCursor < len(p.tabs)-1 {
-				p.tabCursor++
+			if p.cursor < len(p.tabs)-1 {
+				p.cursor++
 			} else {
 			}
 		case "enter":
-			id := p.tabs[p.tabCursor]
+			id := p.tabs[p.cursor]
 			pane := PaneManager.Panes[id]
 
 			p.activePane = pane
@@ -98,27 +87,28 @@ func (p *RootPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p *RootPane) View() string {
 
-	title := consts.Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(p.title)
+	title := consts.Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(p.Pane.Title())
 
 	rows := []string{title}
-	for i, id := range p.tabs {
+	for i, paneID := range p.tabs {
+		pane := PaneManager.Panes[paneID]
 
-		if pane, ok := PaneManager.Panes[id].(Pane); ok {
-
-			var row string
-			if i == p.tabCursor {
-				row = consts.Theme.FocusedStyle.Padding(0, 1).Render(pane.GetTitle())
-			} else {
-				row = consts.Theme.BlurredStyle.Padding(0, 1).Render(pane.GetTitle())
+		var row string
+		if i == p.cursor {
+			row = consts.Theme.FocusedStyle.Padding(0, 1).Render(pane.Title())
+			if !p.focusTabs {
+				row = consts.Theme.DimmedStyle.Padding(0, 1).Render(pane.Title())
 			}
-
-			rows = append(rows, row)
+		} else {
+			row = consts.Theme.BlurredStyle.Padding(0, 1).Render(pane.Title())
 		}
+
+		rows = append(rows, row)
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 	content = consts.Style.
-		Height(p.height).
+		Height(p.Pane.height).
 		Padding(1).
 		Border(lipgloss.ThickBorder(), false, true, false, false).
 		MarginRight(3).
@@ -127,10 +117,10 @@ func (p *RootPane) View() string {
 	if p.focusTabs {
 		content = lipgloss.JoinHorizontal(lipgloss.Left, content, p.lastActivePane.View())
 	} else {
-
 		content = lipgloss.JoinHorizontal(lipgloss.Left, content, PaneManager.ActivePane().View())
 	}
 
 	content = consts.Style.Render(content)
+
 	return content
 }

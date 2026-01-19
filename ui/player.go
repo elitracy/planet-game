@@ -12,10 +12,7 @@ import (
 )
 
 type PlayerInfoPane struct {
-	id     int
-	title  string
-	width  int
-	height int
+	*Pane
 
 	gamestate   *GameState
 	selected    int
@@ -23,14 +20,6 @@ type PlayerInfoPane struct {
 	max_choices int
 	prev_key    string
 }
-
-func (p PlayerInfoPane) GetId() int       { return p.id }
-func (p *PlayerInfoPane) SetId(id int)    { p.id = id }
-func (p PlayerInfoPane) GetTitle() string { return p.title }
-func (p PlayerInfoPane) GetWidth() int    { return p.width }
-func (p PlayerInfoPane) GetHeight() int   { return p.height }
-func (p *PlayerInfoPane) SetWidth(w int)  { p.width = w }
-func (p *PlayerInfoPane) SetHeight(h int) { p.height = h }
 
 func NewPlayerInfoPane(text string, gs *GameState) *PlayerInfoPane {
 	max_choices := 0
@@ -40,7 +29,14 @@ func NewPlayerInfoPane(text string, gs *GameState) *PlayerInfoPane {
 			max_choices++
 		}
 	}
-	return &PlayerInfoPane{title: text, gamestate: gs, max_choices: max_choices, cursor: 1}
+	return &PlayerInfoPane{
+		Pane: &Pane{
+			title: text,
+		},
+		gamestate:   gs,
+		max_choices: max_choices,
+		cursor:      1,
+	}
 }
 
 func (p *PlayerInfoPane) Init() tea.Cmd { return nil }
@@ -70,7 +66,7 @@ func (p *PlayerInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ":
 			p.selected = p.cursor
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

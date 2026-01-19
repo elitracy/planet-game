@@ -26,7 +26,7 @@ func CreateNewShip(name string, position Position, shipType ShipType) *Ship {
 		Name:     name,
 		Position: position,
 		ShipType: shipType,
-		Velocity: Velocity{5, 5, 5},
+		Velocity: Velocity{X: 5, Y: 5, Z: 5},
 	}
 
 	return ship

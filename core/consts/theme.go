@@ -5,6 +5,7 @@ import "github.com/charmbracelet/lipgloss"
 type UITheme struct {
 	FocusedStyle        lipgloss.Style
 	BlurredStyle        lipgloss.Style
+	DimmedStyle         lipgloss.Style
 	CursorStyle         lipgloss.Style
 	NoStyle             lipgloss.Style
 	HelpStyle           lipgloss.Style
@@ -14,6 +15,7 @@ type UITheme struct {
 var Theme = UITheme{
 	FocusedStyle:        Style.Foreground(lipgloss.Color("205")),
 	BlurredStyle:        Style.Foreground(lipgloss.Color("240")),
+	DimmedStyle:         Style.Foreground(lipgloss.Color("248")),
 	CursorStyle:         Style.Foreground(lipgloss.Color("205")),
 	NoStyle:             Style,
 	HelpStyle:           Style.Foreground(lipgloss.Color("240")),

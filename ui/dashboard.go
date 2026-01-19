@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
-	"github.com/elitracy/planets/core/interfaces"
 )
 
 const (
@@ -13,23 +12,11 @@ const (
 )
 
 type DashboardPane struct {
-	id     int
-	title  string
-	width  int
-	height int
-
+	*Pane
 	Grid      [][]core.PaneID
 	ActiveRow int
 	ActiveCol int
 }
-
-func (p DashboardPane) GetId() int       { return p.id }
-func (p *DashboardPane) SetId(id int)    { p.id = id }
-func (p DashboardPane) GetTitle() string { return p.title }
-func (p DashboardPane) GetWidth() int    { return p.width }
-func (p DashboardPane) GetHeight() int   { return p.height }
-func (p *DashboardPane) SetWidth(w int)  { p.width = w }
-func (p *DashboardPane) SetHeight(h int) { p.height = h }
 
 func (p *DashboardPane) Init() tea.Cmd { return nil }
 
@@ -40,7 +27,7 @@ func (p *DashboardPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return p, pushFocusCmd(p.Grid[p.ActiveRow][p.ActiveCol])
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.Pane.id)
 		case "h":
 			if p.ActiveCol > 0 {
 				p.ActiveCol--
@@ -81,27 +68,22 @@ func (p *DashboardPane) View() string {
 
 		for c := range p.Grid[r] {
 			paneID := p.Grid[r][c]
-			if pane, ok := PaneManager.Panes[paneID].(interfaces.Pane); ok {
-				paneWidth := pane.GetWidth()
-				paneHeight := pane.GetHeight()
 
-				activeStyle := consts.Style.
-					Width(paneWidth).
-					Height(paneHeight - BORDER_WIDTH).
-					Border(lipgloss.ThickBorder()).
-					BorderForeground(lipgloss.Color("212"))
+			activeStyle := consts.Style.
+				Width(p.Pane.width).
+				Height(p.Pane.height - BORDER_WIDTH).
+				Border(lipgloss.ThickBorder()).
+				BorderForeground(lipgloss.Color("212"))
 
-				inactiveStyle := consts.Style.
-					Width(paneWidth).
-					Height(paneHeight - BORDER_WIDTH).
-					Border(lipgloss.ThickBorder()).
-					BorderForeground(lipgloss.Color("240"))
-				if r == p.ActiveRow && c == p.ActiveCol {
-					render[r][c] = activeStyle.Render(PaneManager.Panes[paneID].View())
-				} else {
-					render[r][c] = inactiveStyle.Render(PaneManager.Panes[paneID].View())
-				}
-
+			inactiveStyle := consts.Style.
+				Width(p.Pane.width).
+				Height(p.Pane.height - BORDER_WIDTH).
+				Border(lipgloss.ThickBorder()).
+				BorderForeground(lipgloss.Color("240"))
+			if r == p.ActiveRow && c == p.ActiveCol {
+				render[r][c] = activeStyle.Render(PaneManager.Panes[paneID].View())
+			} else {
+				render[r][c] = inactiveStyle.Render(PaneManager.Panes[paneID].View())
 			}
 
 		}
@@ -120,7 +102,9 @@ func (p *DashboardPane) View() string {
 
 func NewDashboard(grid [][]core.PaneID, title string) *DashboardPane {
 	return &DashboardPane{
-		Grid:  grid,
-		title: title,
+		Grid: grid,
+		Pane: &Pane{
+			title: title,
+		},
 	}
 }

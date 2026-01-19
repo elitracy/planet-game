@@ -7,13 +7,11 @@ import (
 	"golang.org/x/term"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/interfaces"
-	I "github.com/elitracy/planets/core/interfaces"
 	"github.com/elitracy/planets/core/logging"
 )
 
 type pushFocusMsg struct{ id core.PaneID }
-type popFocusMsg struct{}
+type popFocusMsg struct{ id core.PaneID }
 
 type focusTabsMsg struct{ lastActiveID core.PaneID }
 
@@ -24,7 +22,7 @@ type paneResizeMsg struct {
 }
 
 func pushFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return pushFocusMsg{id} } }
-func popFocusCmd() tea.Cmd                { return func() tea.Msg { return popFocusMsg{} } }
+func popFocusCmd(id core.PaneID) tea.Cmd  { return func() tea.Msg { return popFocusMsg{id} } }
 
 func focusTabsCmd(lastActiveID core.PaneID) tea.Cmd {
 	return func() tea.Msg { return focusTabsMsg{lastActiveID: lastActiveID} }
@@ -35,13 +33,10 @@ func paneResizeCmd(id core.PaneID, width, height int) tea.Cmd {
 }
 
 type paneManager struct {
-	id     int
-	title  string
-	width  int
-	height int
+	*Pane
 
 	FocusStack  FocusStack
-	Panes       map[core.PaneID]tea.Model
+	Panes       map[core.PaneID]ManagedPane
 	Root        *RootPane
 	focusedTabs bool
 	currentID   core.PaneID
@@ -49,16 +44,6 @@ type paneManager struct {
 }
 
 var PaneManager = NewPaneManager()
-
-func (p paneManager) GetId() int       { return p.id }
-func (p *paneManager) SetId(id int)    { p.id = id }
-func (p paneManager) GetTitle() string { return p.title }
-func (p paneManager) GetWidth() int    { return p.width }
-func (p paneManager) GetHeight() int   { return p.height }
-func (p *paneManager) SetWidth(w int)  { p.width = w }
-func (p *paneManager) SetHeight(h int) {
-	p.height = h
-}
 
 func NewPaneManager() *paneManager {
 
@@ -70,11 +55,13 @@ func NewPaneManager() *paneManager {
 
 	pm := &paneManager{
 		FocusStack: FocusStack{},
-		Panes:      make(map[core.PaneID]tea.Model, 0),
+		Panes:      make(map[core.PaneID]ManagedPane),
 		currentID:  0,
 		UITick:     0,
-		width:      width,
-		height:     height,
+		Pane: &Pane{
+			width:  width,
+			height: height,
+		},
 	}
 
 	return pm
@@ -85,7 +72,7 @@ func (p *paneManager) Init() tea.Cmd {
 
 	for i := range p.Panes {
 		cmds = append(cmds, p.Panes[i].Init())
-		cmds = append(cmds, paneResizeCmd(i, p.width, p.height))
+		cmds = append(cmds, paneResizeCmd(i, p.Pane.width, p.Pane.height))
 	}
 	cmds = append(cmds, core.TickCmd(p.UITick))
 
@@ -104,39 +91,46 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.focusedTabs = false
 		p.PushFocusStack(msg.id)
 	case popFocusMsg:
-		var lastPane tea.Model
-		lastPane = p.ActivePane()
+		lastPane := p.ActivePane()
 
 		p.PopFocusStack()
 
 		if len(p.FocusStack.stack) < 2 {
-			cmds = append(cmds, focusTabsCmd(lastPane.(interfaces.Pane).GetId()))
+			cmds = append(cmds, focusTabsCmd(lastPane.ID()))
 		}
 	case tea.KeyMsg:
 		var cmd tea.Cmd
+		var model tea.Model
+
 		if p.focusedTabs {
-			p.Panes[p.Root.id], cmd = p.Panes[p.Root.id].Update(msg)
+			model, cmd = p.Panes[p.Root.Pane.id].Update(msg)
+			p.Panes[p.Root.Pane.id] = model.(ManagedPane)
 		}
 		cmds = append(cmds, cmd)
 	case core.TickMsg:
 		p.UITick++
 		cmds = append(cmds, core.TickCmd(p.UITick))
 	case tea.WindowSizeMsg:
-		p.width = msg.Width
-		p.height = msg.Height
+		p.Pane.width = msg.Width
+		p.Pane.height = msg.Height
 	}
 
 	for id := range p.Panes {
 		var cmd tea.Cmd
+		var model tea.Model
+
 		switch msg := msg.(type) {
 		case tea.WindowSizeMsg:
-			cmds = append(cmds, paneResizeCmd(id, p.width, p.height))
+			cmds = append(cmds, paneResizeCmd(id, p.Pane.width, p.Pane.height))
 		case tea.KeyMsg:
-			if !p.focusedTabs && p.Panes[id].(I.Pane).GetId() == p.ActivePane().(I.Pane).GetId() {
-				p.Panes[id], cmd = p.Panes[id].Update(msg)
+			if !p.focusedTabs && p.Panes[id].ID() == p.ActivePane().ID() {
+				model, cmd = p.Panes[id].Update(msg)
+				p.Panes[id] = model.(ManagedPane)
 			}
 		default:
-			p.Panes[id], cmd = p.Panes[id].Update(msg)
+			model, cmd = p.Panes[id].Update(msg)
+
+			p.Panes[id] = model.(ManagedPane)
 		}
 
 		if cmd != nil {
@@ -149,29 +143,27 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p *paneManager) View() string { return p.Root.View() }
 
-func (p *paneManager) AddPane(pane I.Pane) core.PaneID {
+func (p *paneManager) AddPane(pane ManagedPane) core.PaneID {
 	p.currentID++
-	pane.SetId(p.currentID)
-	p.Panes[p.currentID] = pane.(tea.Model)
 
-	if model, ok := pane.(tea.Model); ok {
-		model.Init()
-	} else {
-		logging.Error("Pane[%v] is not a model", pane.GetId())
-	}
+	pane.SetID(p.currentID)
+	p.Panes[p.currentID] = pane
+
+	logging.Info("%v: %v", p.currentID, pane.Title())
+	p.Panes[p.currentID].Init()
 
 	return p.currentID
 }
 
 func (p *paneManager) RemovePane(id core.PaneID) { delete(p.Panes, id) }
 
-type FocusStack struct{ stack []tea.Model }
+type FocusStack struct{ stack []ManagedPane }
 
 func (p *paneManager) PushFocusStack(id core.PaneID) {
 	p.FocusStack.stack = append(p.FocusStack.stack, p.Panes[id])
 }
 
-func (p *paneManager) PopFocusStack() tea.Model {
+func (p *paneManager) PopFocusStack() ManagedPane {
 	if len(p.FocusStack.stack) > 1 {
 		p.FocusStack.stack = p.FocusStack.stack[:len(p.FocusStack.stack)-1]
 	}
@@ -180,7 +172,7 @@ func (p *paneManager) PopFocusStack() tea.Model {
 	return pane
 }
 
-func (p paneManager) ActivePane() tea.Model {
+func (p paneManager) ActivePane() ManagedPane {
 	if len(p.FocusStack.stack) < 2 {
 		return p.FocusStack.stack[0]
 	}

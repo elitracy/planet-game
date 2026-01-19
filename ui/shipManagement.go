@@ -13,11 +13,7 @@ import (
 )
 
 type ShipManagementPane struct {
-	id     core.PaneID
-	title  string
-	width  int
-	height int
-
+	*Pane
 	cursor        int
 	currentShipID int
 	sortedShips   []*models.Ship
@@ -25,17 +21,11 @@ type ShipManagementPane struct {
 	OnSelect      func(ship *models.Ship)
 }
 
-func (p ShipManagementPane) GetId() core.PaneID    { return p.id }
-func (p *ShipManagementPane) SetId(id core.PaneID) { p.id = id }
-func (p ShipManagementPane) GetTitle() string      { return p.title }
-func (p ShipManagementPane) GetWidth() int         { return p.width }
-func (p ShipManagementPane) GetHeight() int        { return p.height }
-func (p *ShipManagementPane) SetWidth(w int)       { p.width = w }
-func (p *ShipManagementPane) SetHeight(h int)      { p.height = h }
-
 func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, callback func(ship *models.Ship)) *ShipManagementPane {
 	pane := &ShipManagementPane{
-		title:    title,
+		Pane: &Pane{
+			title: title,
+		},
 		manager:  shipManager,
 		OnSelect: callback,
 	}
@@ -57,9 +47,9 @@ func (p *ShipManagementPane) Init() tea.Cmd {
 func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.GetId() {
-			p.width = msg.width - 2
-			p.height = msg.height
+		if msg.paneID == p.Pane.id {
+			p.Pane.width = msg.width - 2
+			p.Pane.height = msg.height
 
 			return p, nil
 		}
@@ -78,7 +68,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -113,7 +103,7 @@ func (p *ShipManagementPane) View() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 	title := "Ships"
-	title = consts.Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(title)
+	title = consts.Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(title)
 
 	content = lipgloss.JoinVertical(lipgloss.Left, title, content)
 

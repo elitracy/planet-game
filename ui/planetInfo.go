@@ -13,22 +13,11 @@ import (
 )
 
 type PlanetInfoPane struct {
-	id     core.PaneID
-	title  string
-	width  int
-	height int
+	*Pane
 
-	childPaneID int
+	childPaneID core.PaneID
 	planet      *models.Planet
 }
-
-func (p PlanetInfoPane) GetId() core.PaneID    { return p.id }
-func (p *PlanetInfoPane) SetId(id core.PaneID) { p.id = id }
-func (p PlanetInfoPane) GetTitle() string      { return p.title }
-func (p PlanetInfoPane) GetWidth() int         { return p.width }
-func (p PlanetInfoPane) GetHeight() int        { return p.height }
-func (p *PlanetInfoPane) SetWidth(w int)       { p.width = w }
-func (p *PlanetInfoPane) SetHeight(h int)      { p.height = h }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -61,7 +50,7 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, pushFocusCmd(childPaneID)
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -141,7 +130,9 @@ func (p *PlanetInfoPane) View() string {
 func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
 
 	return &PlanetInfoPane{
-		title:  title,
+		Pane: &Pane{
+			title: title,
+		},
 		planet: planet,
 	}
 }

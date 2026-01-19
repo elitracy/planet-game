@@ -75,7 +75,7 @@ func CreatePlanet(name string, x, y, z, pop, initial_food, initial_mineral, inti
 	planet := Planet{
 		Name:       name,
 		Population: pop,
-		Position:   Position{x, y, z},
+		Position:   Position{X: x, Y: y, Z: z},
 		Resources: Resources{
 			Food: resources.Food{
 				Quantity:        initial_food,

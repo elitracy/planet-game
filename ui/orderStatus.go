@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
-	. "github.com/elitracy/planets/core/interfaces"
 	. "github.com/elitracy/planets/core/state"
 	. "github.com/elitracy/planets/models"
 )
@@ -19,11 +18,7 @@ var (
 )
 
 type OrderStatusPane struct {
-	Pane
-	id             core.PaneID
-	title          string
-	width          int
-	height         int
+	*Pane
 	cursor         int
 	orderScheduler *EventScheduler[Order]
 	progressBars   map[Action]core.PaneID
@@ -31,20 +26,14 @@ type OrderStatusPane struct {
 
 func NewOrderStatusPane(orderScheduler *EventScheduler[Order], title string) *OrderStatusPane {
 	pane := &OrderStatusPane{
-		title:          title,
+		Pane: &Pane{
+			title: title,
+		},
 		orderScheduler: orderScheduler,
 	}
 
 	return pane
 }
-
-func (p OrderStatusPane) GetId() core.PaneID    { return p.id }
-func (p *OrderStatusPane) SetId(id core.PaneID) { p.id = id }
-func (p OrderStatusPane) GetTitle() string      { return p.title }
-func (p OrderStatusPane) GetWidth() int         { return p.width }
-func (p OrderStatusPane) GetHeight() int        { return p.height }
-func (p *OrderStatusPane) SetWidth(w int)       { p.width = w }
-func (p *OrderStatusPane) SetHeight(h int)      { p.height = h }
 
 func (p *OrderStatusPane) Init() tea.Cmd {
 	p.updateProgressBars()
@@ -56,7 +45,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.GetId() {
+		if msg.paneID == p.Pane.id {
 			var cmds []tea.Cmd
 			for _, val := range p.progressBars {
 				cmds = append(cmds, paneResizeCmd(val, progressBarWidth, msg.height))
@@ -77,7 +66,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -107,7 +96,7 @@ func (p *OrderStatusPane) View() string {
 
 	p.updateProgressBars()
 
-	title := consts.Style.Width(p.width).AlignHorizontal(lipgloss.Center).Render(p.title + "\n")
+	title := consts.Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(p.Pane.title + "\n")
 
 	var pendingOrderRows []string
 
@@ -121,20 +110,20 @@ func (p *OrderStatusPane) View() string {
 
 		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-State.Tick)/TICKS_PER_SECOND)
 
-		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.width-5 {
+		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.Pane.width-5 {
 			row = consts.Style.Render(row)
 			countDown = consts.Theme.BlurredStyle.Render(countDown)
 			row = lipgloss.JoinVertical(lipgloss.Left, row, countDown)
 		} else {
-			row = consts.Style.PaddingRight(p.width - lipgloss.Width(countDown) - lipgloss.Width(row) - 2).Render(row)
+			row = consts.Style.PaddingRight(p.Pane.width - lipgloss.Width(countDown) - lipgloss.Width(row) - 2).Render(row)
 			countDown = consts.Theme.BlurredStyle.Render(countDown)
 			row = lipgloss.JoinHorizontal(lipgloss.Top, row, countDown)
 		}
 
-		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
-			row = activeRowStyle.Width(p.width).Render(row)
+		if p.cursor == currentOrder && PaneManager.ActivePane().ID() == p.Pane.ID() {
+			row = activeRowStyle.Width(p.Pane.width).Render(row)
 		} else {
-			row = inactiveRowStyle.Width(p.width).Render(row)
+			row = inactiveRowStyle.Width(p.Pane.width).Render(row)
 		}
 
 		pendingOrderRows = append(pendingOrderRows, row)
@@ -157,7 +146,7 @@ func (p *OrderStatusPane) View() string {
 
 		var rows []string
 		orderLabel := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
-		orderStyle := consts.Style.Width(p.width).Align(lipgloss.Left)
+		orderStyle := consts.Style.Width(p.Pane.width).Align(lipgloss.Left)
 		rows = append(rows, orderStyle.Render(orderLabel))
 
 		for _, action := range order.GetActions() {
@@ -165,10 +154,10 @@ func (p *OrderStatusPane) View() string {
 			label := fmt.Sprintf("\n• [%v] %v", action.GetStatus(), action.GetDescription())
 
 			label = consts.Style.Width(lipgloss.Width(label)).Align(lipgloss.Left).Render(label)
-			label = consts.Style.PaddingRight(p.width - lipgloss.Width(label) - lipgloss.Width(progressBar.View()) - 5).Render(label)
+			label = consts.Style.PaddingRight(p.Pane.width - lipgloss.Width(label) - lipgloss.Width(progressBar.View()) - 5).Render(label)
 
 			var row string
-			if lipgloss.Width(label)+lipgloss.Width(progressBar.View()) > p.width-5 {
+			if lipgloss.Width(label)+lipgloss.Width(progressBar.View()) > p.Pane.width-5 {
 				row = lipgloss.JoinVertical(lipgloss.Left, label, progressBar.View())
 			} else {
 				row = lipgloss.JoinHorizontal(lipgloss.Bottom, label, progressBar.View())
@@ -179,10 +168,10 @@ func (p *OrderStatusPane) View() string {
 
 		orderContent := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
-		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
-			orderContent = activeRowStyle.Width(p.width).Render(orderContent)
+		if p.cursor == currentOrder && PaneManager.ActivePane().ID() == p.Pane.ID() {
+			orderContent = activeRowStyle.Width(p.Pane.width).Render(orderContent)
 		} else {
-			orderContent = inactiveRowStyle.Width(p.width).Render(orderContent)
+			orderContent = inactiveRowStyle.Width(p.Pane.width).Render(orderContent)
 		}
 
 		execOrderRows = append(execOrderRows, orderContent)
@@ -204,10 +193,10 @@ func (p *OrderStatusPane) View() string {
 	for _, order := range completedOrders {
 		row := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
 
-		if p.cursor == currentOrder && PaneManager.ActivePane().(Pane).GetId() == p.GetId() {
-			row = activeRowStyle.Width(p.width).Render(row)
+		if p.cursor == currentOrder && PaneManager.ActivePane().ID() == p.Pane.ID() {
+			row = activeRowStyle.Width(p.Pane.width).Render(row)
 		} else {
-			row = inactiveRowStyle.Width(p.width).Render(row)
+			row = inactiveRowStyle.Width(p.Pane.width).Render(row)
 		}
 
 		completedOrderRows = append(completedOrderRows, row)

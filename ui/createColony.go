@@ -20,24 +20,12 @@ var (
 )
 
 type CreateColonyPane struct {
-	id     core.PaneID
-	title  string
-	width  int
-	height int
-
+	*Pane
 	planet     *models.Planet
 	focusIndex int
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
 }
-
-func (p CreateColonyPane) GetId() core.PaneID    { return p.id }
-func (p *CreateColonyPane) SetId(id core.PaneID) { p.id = id }
-func (p CreateColonyPane) GetTitle() string      { return p.title }
-func (p CreateColonyPane) GetWidth() int         { return p.width }
-func (p CreateColonyPane) GetHeight() int        { return p.height }
-func (p *CreateColonyPane) SetWidth(w int)       { p.width = w }
-func (p *CreateColonyPane) SetHeight(h int)      { p.height = h }
 
 func (p *CreateColonyPane) Init() tea.Cmd {
 	return textinput.Blink
@@ -58,7 +46,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.Tick)
 
 				state.State.OrderScheduler.Push(createColonyOrder)
-				return p, popFocusCmd()
+				return p, popFocusCmd(p.Pane.id)
 			}
 
 			if p.cursorMode > 0 {
@@ -72,7 +60,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if p.cursorMode >= cursor.CursorHide {
-				return p, popFocusCmd()
+				return p, popFocusCmd(p.Pane.id)
 			}
 
 			cmds := make([]tea.Cmd, len(p.inputs))
@@ -160,8 +148,10 @@ func (p *CreateColonyPane) View() string {
 func NewCreateColonyPane(title string, planet *models.Planet) *CreateColonyPane {
 
 	p := &CreateColonyPane{
-		inputs:     make([]textinput.Model, 4),
-		title:      title,
+		inputs: make([]textinput.Model, 4),
+		Pane: &Pane{
+			title: title,
+		},
 		planet:     planet,
 		cursorMode: cursor.CursorStatic,
 	}

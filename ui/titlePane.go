@@ -6,22 +6,15 @@ import (
 )
 
 type TitlePane struct {
-	id     int
-	title  string
-	width  int
-	height int
+	*Pane
 }
 
-func (p TitlePane) GetId() int       { return p.id }
-func (p *TitlePane) SetId(id int)    { p.id = id }
-func (p TitlePane) GetTitle() string { return p.title }
-func (p TitlePane) GetWidth() int    { return p.width }
-func (p TitlePane) GetHeight() int   { return p.height }
-func (p *TitlePane) SetWidth(w int)  { p.width = w }
-func (p *TitlePane) SetHeight(h int) { p.height = h }
-
 func NewTitlePane(text string) *TitlePane {
-	return &TitlePane{title: text}
+	return &TitlePane{
+		Pane: &Pane{
+			title: text,
+		},
+	}
 }
 
 func (p *TitlePane) Init() tea.Cmd { return nil }
@@ -33,7 +26,7 @@ func (p *TitlePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

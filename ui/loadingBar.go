@@ -10,7 +10,9 @@ import (
 
 func NewLoadingBarPane(title string, startTick, endTick core.Tick) *LoadingBarPane {
 	return &LoadingBarPane{
-		title:     title,
+		Pane: &Pane{
+			title: title,
+		},
 		progress:  progress.New(progress.WithDefaultGradient()),
 		startTick: startTick,
 		endTick:   endTick,
@@ -18,23 +20,12 @@ func NewLoadingBarPane(title string, startTick, endTick core.Tick) *LoadingBarPa
 }
 
 type LoadingBarPane struct {
-	id     core.PaneID
-	title  string
-	width  int
-	height int
+	*Pane
 
 	startTick core.Tick
 	endTick   core.Tick
 	progress  progress.Model
 }
-
-func (p LoadingBarPane) GetId() core.PaneID    { return p.id }
-func (p *LoadingBarPane) SetId(id core.PaneID) { p.id = id }
-func (p LoadingBarPane) GetTitle() string      { return p.title }
-func (p LoadingBarPane) GetWidth() int         { return p.width }
-func (p LoadingBarPane) GetHeight() int        { return p.height }
-func (p *LoadingBarPane) SetWidth(w int)       { p.width = w }
-func (p *LoadingBarPane) SetHeight(h int)      { p.height = h }
 
 func (p *LoadingBarPane) Init() tea.Cmd { return nil }
 
@@ -43,7 +34,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

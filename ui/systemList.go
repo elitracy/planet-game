@@ -13,24 +13,14 @@ import (
 )
 
 type SystemsPane struct {
-	id     core.PaneID
-	title  string
-	width  int
-	height int
+	*Pane
 
 	cursor    int
+	focused   bool
 	searching bool
 	textInput textinput.Model
 	gamestate *models.GameState
 }
-
-func (p SystemsPane) GetId() core.PaneID    { return p.id }
-func (p *SystemsPane) SetId(id core.PaneID) { p.id = id }
-func (p SystemsPane) GetTitle() string      { return p.title }
-func (p SystemsPane) GetWidth() int         { return p.width }
-func (p SystemsPane) GetHeight() int        { return p.height }
-func (p *SystemsPane) SetWidth(w int)       { p.width = w }
-func (p *SystemsPane) SetHeight(h int)      { p.height = h }
 
 func NewSystemsPane(title string, gamestate *models.GameState) *SystemsPane {
 	ti := textinput.New()
@@ -40,7 +30,9 @@ func NewSystemsPane(title string, gamestate *models.GameState) *SystemsPane {
 	ti.Width = 36
 
 	pane := &SystemsPane{
-		title:     title,
+		Pane: &Pane{
+			title: title,
+		},
 		gamestate: gamestate,
 		searching: false,
 		textInput: ti,
@@ -54,11 +46,13 @@ func (p *SystemsPane) Init() tea.Cmd {
 }
 
 func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	p.focused = PaneManager.ActivePane().ID() == p.Pane.id
+
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.GetId() {
-			p.width = msg.width - 2
-			p.height = msg.height
+		if msg.paneID == p.Pane.id {
+			p.Pane.width = msg.width - 2
+			p.Pane.height = msg.height
 
 			return p, nil
 		}
@@ -84,6 +78,10 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.textInput.Focus()
 			return p, textinput.Blink
 		case "enter":
+			system := p.gamestate.StarSystems[p.cursor]
+			systemInfoPane := NewSystemInfoPane(system.Name, system)
+			paneID := PaneManager.AddPane(systemInfoPane)
+			return p, pushFocusCmd(paneID)
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
@@ -93,7 +91,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "esc":
-			return p, popFocusCmd()
+			return p, popFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -116,18 +114,22 @@ func (p *SystemsPane) View() string {
 			}
 		}
 	}
-	// search bar
 
-	// system list (filtered)
 	var systemRows []string
-	for _, s := range filteredSystems {
+	for i, s := range filteredSystems {
 		row := fmt.Sprintf("%v", s.Name)
+		if i == p.cursor && p.focused {
+			row = consts.Theme.FocusedStyle.Render(row)
+
+		}
+
+		if i == p.cursor && !p.focused {
+			row = consts.Theme.DimmedStyle.Render(row)
+		}
+
 		systemRows = append(systemRows, row)
+
 	}
-
-	// active system (main content)
-
-	// system data
 
 	systemList := lipgloss.JoinVertical(lipgloss.Left, systemRows...)
 	systemList = consts.Style.Width(36).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
