@@ -29,7 +29,7 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
-			return p, popFocusCmd(p.Pane.id)
+			return p, popMainFocusCmd(p.Pane.id)
 		case "enter":
 			pane := &PlanetInfoPane{
 				Pane: &Pane{
@@ -38,7 +38,7 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				planet: p.system.Planets[p.cursor],
 			}
 			childPaneID := PaneManager.AddPane(pane)
-			return p, pushFocusCmd(childPaneID)
+			return p, pushMainFocusCmd(childPaneID)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		case "k":

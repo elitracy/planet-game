@@ -18,7 +18,6 @@ type SystemsPane struct {
 	*Pane
 
 	cursor    int
-	focused   bool
 	searching bool
 	textInput textinput.Model
 	gamestate *models.GameState
@@ -48,7 +47,6 @@ func (p *SystemsPane) Init() tea.Cmd {
 }
 
 func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	p.focused = PaneManager.ActivePane().ID() == p.Pane.id
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
@@ -84,7 +82,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, pushFocusCmd(paneID)
+			return p, pushMainFocusCmd(paneID)
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
@@ -94,7 +92,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "esc":
-			return p, popFocusCmd(p.Pane.id)
+			return p, popMainFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -121,12 +119,12 @@ func (p *SystemsPane) View() string {
 	var systemRows []string
 	for i, s := range filteredSystems {
 		row := fmt.Sprintf("%v", s.Name)
-		if i == p.cursor && p.focused {
+		if i == p.cursor {
 			row = consts.Theme.FocusedStyle.Render(row)
 
 		}
 
-		if i == p.cursor && !p.focused {
+		if i == p.cursor {
 			row = consts.Theme.DimmedStyle.Render(row)
 		}
 

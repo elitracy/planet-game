@@ -34,7 +34,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return p, popFocusCmd(p.Pane.id)
+			return p, popMainFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

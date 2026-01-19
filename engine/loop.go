@@ -17,15 +17,17 @@ var PLAYER_START_LOC = core.Position{X: 0, Y: 0, Z: 0}
 func RunGame() {
 	quit := make(chan struct{})
 
-	planetList := ui.PaneManager.AddPane(ui.NewPlanetListPane(state.State.StarSystems[0].Planets, "Planet List"))
-	orderList := ui.PaneManager.AddPane(ui.NewOrderStatusPane(&state.State.OrderScheduler, "Orders"))
-	systemsPane := ui.PaneManager.AddPane(ui.NewSystemsPane("Systems", &state.State))
+	planetList := ui.NewPlanetListPane(state.State.StarSystems[0].Planets, "Planet List")
+	orderList := ui.NewOrderStatusPane(&state.State.OrderScheduler, "Orders")
+	systemsPane := ui.NewSystemsPane("Systems", &state.State)
 
-	rootPane := ui.NewRootPane("Root", []core.PaneID{systemsPane, planetList, orderList})
-	ui.PaneManager.AddPane(rootPane)
+	ui.PaneManager.AddPane(planetList)
+	ui.PaneManager.AddPane(orderList)
+	ui.PaneManager.AddPane(systemsPane)
 
-	ui.PaneManager.Root = rootPane
-	ui.PaneManager.PushFocusStack(systemsPane)
+	ui.PaneManager.AddTab(planetList)
+	ui.PaneManager.AddTab(orderList)
+	ui.PaneManager.AddTab(systemsPane)
 
 	p := tea.NewProgram(ui.PaneManager, tea.WithAltScreen())
 

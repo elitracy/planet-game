@@ -66,7 +66,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "esc":
-			return p, popFocusCmd(p.Pane.id)
+			return p, popMainFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -120,7 +120,7 @@ func (p *OrderStatusPane) View() string {
 			row = lipgloss.JoinHorizontal(lipgloss.Top, row, countDown)
 		}
 
-		if p.cursor == currentOrder && PaneManager.ActivePane().ID() == p.Pane.ID() {
+		if p.cursor == currentOrder {
 			row = activeRowStyle.Width(p.Pane.width).Render(row)
 		} else {
 			row = inactiveRowStyle.Width(p.Pane.width).Render(row)
@@ -168,7 +168,7 @@ func (p *OrderStatusPane) View() string {
 
 		orderContent := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
-		if p.cursor == currentOrder && PaneManager.ActivePane().ID() == p.Pane.ID() {
+		if p.cursor == currentOrder {
 			orderContent = activeRowStyle.Width(p.Pane.width).Render(orderContent)
 		} else {
 			orderContent = inactiveRowStyle.Width(p.Pane.width).Render(orderContent)
@@ -193,7 +193,7 @@ func (p *OrderStatusPane) View() string {
 	for _, order := range completedOrders {
 		row := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
 
-		if p.cursor == currentOrder && PaneManager.ActivePane().ID() == p.Pane.ID() {
+		if p.cursor == currentOrder {
 			row = activeRowStyle.Width(p.Pane.width).Render(row)
 		} else {
 			row = inactiveRowStyle.Width(p.Pane.width).Render(row)

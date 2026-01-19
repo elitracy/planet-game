@@ -35,7 +35,7 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 
 			childPaneID = PaneManager.AddPane(pane)
-			return p, pushFocusCmd(childPaneID)
+			return p, pushDetailsFocusCmd(childPaneID)
 		case "s":
 			pane := CreateNewShipManagementPane(
 				"Ship Management",
@@ -47,10 +47,10 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 
 			childPaneID = PaneManager.AddPane(pane)
-			return p, pushFocusCmd(childPaneID)
+			return p, pushDetailsFocusCmd(childPaneID)
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
-			return p, popFocusCmd(p.Pane.id)
+			return p, popDetailsFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
