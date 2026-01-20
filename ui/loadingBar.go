@@ -39,7 +39,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tea.Quit
 		}
 
-	case core.TickMsg:
+	case core.UITickMsg:
 		if p.progress.Percent() == 1.0 {
 			return p, nil
 		}

@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type TablinePane struct {
+type TabLinePane struct {
 	*Pane
 
 	cursor int
@@ -15,18 +15,16 @@ type TablinePane struct {
 	theme  UITheme
 }
 
-func NewTablinePane(title string, tabs []ManagedPane) *TablinePane {
-	pane := &TablinePane{
-		Pane: &Pane{
-			title: title,
-		},
+func NewTablinePane(tabs []ManagedPane) *TabLinePane {
+	pane := &TabLinePane{
+		Pane: &Pane{},
 		tabs: tabs,
 	}
 
 	return pane
 }
 
-func (p *TablinePane) Init() tea.Cmd {
+func (p *TabLinePane) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	for _, pane := range p.tabs {
 		cmds = append(cmds, pane.Init())
@@ -35,7 +33,7 @@ func (p *TablinePane) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
@@ -85,7 +83,7 @@ func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-func (p *TablinePane) View() string {
+func (p *TabLinePane) View() string {
 	p.theme = Theme
 
 	title := "Tabs: "

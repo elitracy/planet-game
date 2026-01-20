@@ -15,13 +15,14 @@ const NUM_STAR_SYSTEMS = 3
 
 func main() {
 
-	// intialize systems
+	State.Tick = core.Tick(rand.Intn(500_000) + 150_000)
+
 	for range NUM_STAR_SYSTEMS {
 		system := State.GenerateStarSystem()
 		State.StarSystems = append(State.StarSystems, &system)
 	}
 
-	State.Player = Player{core.Position{0, 0, 0}}
+	State.Player = Player{Position: core.Position{X: 0, Y: 0, Z: 0}}
 	logging.Ok("Player Initialized")
 
 	State.ShipManager.Ships = make(map[int]*Ship)

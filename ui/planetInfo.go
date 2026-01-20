@@ -28,8 +28,6 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case paneResizeMsg:
 		p.height = msg.height
 		p.width = msg.width
-	case core.TickMsg:
-		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "o":

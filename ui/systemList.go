@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
 )
 
@@ -79,8 +78,6 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return p, nil
 		}
-	case core.TickMsg:
-		return p, nil
 	case tea.KeyMsg:
 		if p.searching {
 			switch msg.String() {

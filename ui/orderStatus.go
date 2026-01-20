@@ -53,7 +53,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tea.Batch(cmds...)
 
 		}
-	case core.TickMsg:
+	case core.UITickMsg:
 		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
