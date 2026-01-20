@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	activeRowStyle   = consts.Style.Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("212")).Padding(0, 1)
-	inactiveRowStyle = consts.Style.Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("240")).Padding(0, 1)
+	activeRowStyle   = Style.Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("212")).Padding(0, 1)
+	inactiveRowStyle = Style.Border(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("240")).Padding(0, 1)
 	progressBarWidth int
 )
 
@@ -96,12 +96,12 @@ func (p *OrderStatusPane) View() string {
 
 	p.updateProgressBars()
 
-	title := consts.Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(p.Pane.title + "\n")
+	title := Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(p.Pane.title + "\n")
 
 	var pendingOrderRows []string
 
 	pendingOrdersTitle := "Pending"
-	pendingOrdersTitleStyles := consts.Style.Bold(true)
+	pendingOrdersTitleStyles := Style.Bold(true)
 	pendingOrderRows = append(pendingOrderRows, pendingOrdersTitleStyles.Render(pendingOrdersTitle))
 
 	currentOrder := 0
@@ -111,12 +111,12 @@ func (p *OrderStatusPane) View() string {
 		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-State.Tick)/TICKS_PER_SECOND)
 
 		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.Pane.width-5 {
-			row = consts.Style.Render(row)
-			countDown = consts.Theme.BlurredStyle.Render(countDown)
+			row = Style.Render(row)
+			countDown = Theme.BlurredStyle.Render(countDown)
 			row = lipgloss.JoinVertical(lipgloss.Left, row, countDown)
 		} else {
-			row = consts.Style.PaddingRight(p.Pane.width - lipgloss.Width(countDown) - lipgloss.Width(row) - 2).Render(row)
-			countDown = consts.Theme.BlurredStyle.Render(countDown)
+			row = Style.PaddingRight(p.Pane.width - lipgloss.Width(countDown) - lipgloss.Width(row) - 2).Render(row)
+			countDown = Theme.BlurredStyle.Render(countDown)
 			row = lipgloss.JoinHorizontal(lipgloss.Top, row, countDown)
 		}
 
@@ -133,28 +133,28 @@ func (p *OrderStatusPane) View() string {
 	pendingOrderContent := lipgloss.JoinVertical(lipgloss.Left, pendingOrderRows...)
 
 	if len(pendingOrders) == 0 {
-		pendingOrderContent = consts.Theme.BlurredStyle.Render("No orders pending")
+		pendingOrderContent = Theme.BlurredStyle.Render("No orders pending")
 	}
 
 	var execOrderRows []string
 
 	execOrdersTitle := "Active"
-	execOrdersTitleStyles := consts.Style.Bold(true)
+	execOrdersTitleStyles := Style.Bold(true)
 	execOrderRows = append(execOrderRows, execOrdersTitleStyles.Render(execOrdersTitle))
 
 	for _, order := range executingOrders {
 
 		var rows []string
 		orderLabel := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
-		orderStyle := consts.Style.Width(p.Pane.width).Align(lipgloss.Left)
+		orderStyle := Style.Width(p.Pane.width).Align(lipgloss.Left)
 		rows = append(rows, orderStyle.Render(orderLabel))
 
 		for _, action := range order.GetActions() {
 			progressBar := PaneManager.Panes[p.progressBars[action]]
 			label := fmt.Sprintf("\n• [%v] %v", action.GetStatus(), action.GetDescription())
 
-			label = consts.Style.Width(lipgloss.Width(label)).Align(lipgloss.Left).Render(label)
-			label = consts.Style.PaddingRight(p.Pane.width - lipgloss.Width(label) - lipgloss.Width(progressBar.View()) - 5).Render(label)
+			label = Style.Width(lipgloss.Width(label)).Align(lipgloss.Left).Render(label)
+			label = Style.PaddingRight(p.Pane.width - lipgloss.Width(label) - lipgloss.Width(progressBar.View()) - 5).Render(label)
 
 			var row string
 			if lipgloss.Width(label)+lipgloss.Width(progressBar.View()) > p.Pane.width-5 {
@@ -181,13 +181,13 @@ func (p *OrderStatusPane) View() string {
 	execOrderContent := lipgloss.JoinVertical(lipgloss.Left, execOrderRows...)
 
 	if len(executingOrders) == 0 {
-		execOrderContent = consts.Theme.BlurredStyle.Render("No orders queued")
+		execOrderContent = Theme.BlurredStyle.Render("No orders queued")
 	}
 
 	var completedOrderRows []string
 
 	completedOrdersTitle := "Completed"
-	completedOrdersTitleStyles := consts.Style.Bold(true)
+	completedOrdersTitleStyles := Style.Bold(true)
 	completedOrderRows = append(completedOrderRows, completedOrdersTitleStyles.Render(completedOrdersTitle))
 
 	for _, order := range completedOrders {
@@ -206,7 +206,7 @@ func (p *OrderStatusPane) View() string {
 	completedOrderContent := lipgloss.JoinVertical(lipgloss.Left, completedOrderRows...)
 
 	if len(completedOrders) == 0 {
-		completedOrderContent = consts.Theme.BlurredStyle.Render("No orders completed")
+		completedOrderContent = Theme.BlurredStyle.Render("No orders completed")
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, title, pendingOrderContent, execOrderContent, completedOrderContent)

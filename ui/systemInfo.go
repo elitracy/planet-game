@@ -6,7 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
 )
 
@@ -14,8 +13,8 @@ type StarSystemInfoPane struct {
 	*Pane
 
 	cursor int
-
 	system *models.StarSystem
+	theme  UITheme
 }
 
 func (p *StarSystemInfoPane) Init() tea.Cmd { return nil }
@@ -55,6 +54,8 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *StarSystemInfoPane) View() string {
+	p.theme = GetPaneTheme(p)
+
 	title := p.system.Name
 
 	var rows []string
@@ -68,14 +69,14 @@ func (p *StarSystemInfoPane) View() string {
 		row += fmt.Sprintf(" %v - population %v", planet.Position, planet.Population)
 
 		if i == p.cursor {
-			row = consts.Theme.FocusedStyle.Render(row)
+			row = p.theme.FocusedStyle.Render(row)
 		}
 
 		rows = append(rows, row)
 	}
 
 	planetList := lipgloss.JoinVertical(lipgloss.Left, rows...)
-	planetList = consts.Style.Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(planetList)
+	planetList = Style.Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(planetList)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, title, planetList)
 	return content

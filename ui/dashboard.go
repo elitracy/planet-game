@@ -4,7 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 )
 
 const (
@@ -69,13 +68,13 @@ func (p *DashboardPane) View() string {
 		for c := range p.Grid[r] {
 			paneID := p.Grid[r][c]
 
-			activeStyle := consts.Style.
+			activeStyle := Style.
 				Width(p.Pane.width).
 				Height(p.Pane.height - BORDER_WIDTH).
 				Border(lipgloss.ThickBorder()).
 				BorderForeground(lipgloss.Color("212"))
 
-			inactiveStyle := consts.Style.
+			inactiveStyle := Style.
 				Width(p.Pane.width).
 				Height(p.Pane.height - BORDER_WIDTH).
 				Border(lipgloss.ThickBorder()).
@@ -95,7 +94,7 @@ func (p *DashboardPane) View() string {
 	}
 
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
-	content = consts.Style.Render(content)
+	content = Style.Render(content)
 
 	return content
 }

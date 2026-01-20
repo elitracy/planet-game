@@ -5,7 +5,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core/consts"
 )
 
 type TablinePane struct {
@@ -13,6 +12,7 @@ type TablinePane struct {
 
 	cursor int
 	tabs   []ManagedPane
+	theme  UITheme
 }
 
 func NewTablinePane(title string, tabs []ManagedPane) *TablinePane {
@@ -27,7 +27,12 @@ func NewTablinePane(title string, tabs []ManagedPane) *TablinePane {
 }
 
 func (p *TablinePane) Init() tea.Cmd {
-	return nil
+	var cmds []tea.Cmd
+	for _, pane := range p.tabs {
+		cmds = append(cmds, pane.Init())
+	}
+
+	return tea.Batch(cmds...)
 }
 
 func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -53,8 +58,13 @@ func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor = len(p.tabs) - 1
 			}
 			pane := p.tabs[p.cursor]
-			PaneManager.SetMainPane(pane)
-			return p, tea.Sequence(flushDetailStackCmd(), flushFocusStackCmd(), pushFocusStackCmd(PaneManager.MainPane.ID()), pane.Init())
+
+			return p, tea.Sequence(
+				flushDetailStackCmd(),
+				flushFocusStackCmd(),
+				setMainFocusCmd(pane.ID()),
+				pushFocusStackCmd(pane.ID()),
+			)
 		case "tab":
 			if p.cursor < len(p.tabs)-1 {
 				p.cursor++
@@ -62,9 +72,13 @@ func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor = 0
 			}
 			pane := p.tabs[p.cursor]
-			PaneManager.SetMainPane(pane)
 
-			return p, tea.Sequence(flushDetailStackCmd(), flushFocusStackCmd(), pushFocusStackCmd(PaneManager.MainPane.ID()), pane.Init())
+			return p, tea.Sequence(
+				flushDetailStackCmd(),
+				flushFocusStackCmd(),
+				setMainFocusCmd(pane.ID()),
+				pushFocusStackCmd(pane.ID()),
+			)
 		}
 
 	}
@@ -72,15 +86,16 @@ func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *TablinePane) View() string {
+	p.theme = Theme
 
 	title := "Tabs: "
 	var tabs []string
 	for i, tab := range p.tabs {
 		tabTitle := fmt.Sprintf("[%v] ", tab.Title())
 		if p.cursor == i {
-			tabs = append(tabs, consts.Theme.FocusedStyle.Render(tabTitle))
+			tabs = append(tabs, p.theme.FocusedStyle.Render(tabTitle))
 		} else {
-			tabs = append(tabs, consts.Theme.BlurredStyle.Render(tabTitle))
+			tabs = append(tabs, p.theme.BlurredStyle.Render(tabTitle))
 		}
 	}
 	tabContent := lipgloss.JoinHorizontal(lipgloss.Left, tabs...)

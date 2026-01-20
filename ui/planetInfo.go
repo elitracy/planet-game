@@ -6,7 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/orders"
@@ -17,10 +16,12 @@ type PlanetInfoPane struct {
 
 	childPaneID core.PaneID
 	planet      *models.Planet
+	theme       UITheme
 }
 
 func (p *PlanetInfoPane) Init() tea.Cmd { return nil }
 func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	var paneID core.PaneID
 
 	switch msg := msg.(type) {
@@ -62,27 +63,29 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *PlanetInfoPane) View() string {
+	p.theme = GetPaneTheme(p)
+
 	title := p.planet.Name
 	if p.planet.ColonyName != "" {
-		title += consts.Theme.BlurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
+		title += p.theme.BlurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
 	}
 
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
 
-	resources := "Resources:\n"
+	resources := "\n"
 	resources += fmt.Sprintf("Food:     %d\n", p.planet.Resources.Food.GetQuantity())
 	resources += fmt.Sprintf("Minerals: %d\n", p.planet.Resources.Minerals.GetQuantity())
 	resources += fmt.Sprintf("Energy:   %d", p.planet.Resources.Energy.GetQuantity())
 
-	constructions := "Constructions:\n"
+	constructions := "\n"
 	constructions += fmt.Sprintf("Farms:       %d\n", len(p.planet.Constructions.Farms))
 	constructions += fmt.Sprintf("Mines:       %d\n", len(p.planet.Constructions.Mines))
 	constructions += fmt.Sprintf("Solar Grids: %d", len(p.planet.Constructions.SolarGrids))
 
-	title = consts.Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
+	title = Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
 
-	info := lipgloss.JoinHorizontal(lipgloss.Top, resources, constructions)
-	info = consts.Style.
+	info := lipgloss.JoinVertical(lipgloss.Left, resources, constructions)
+	info = Style.
 		Render(info)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Left, title, population, info)
@@ -92,7 +95,7 @@ func (p *PlanetInfoPane) View() string {
 	changeAllocationsButton := "Change Allocations: A"
 
 	buttons := lipgloss.JoinHorizontal(lipgloss.Left, colonizeButton, " | ", scoutButton, " | ", changeAllocationsButton)
-	buttons = consts.Style.Width(p.width).Border(lipgloss.NormalBorder(), true, false, false, false).Render(buttons)
+	buttons = Style.Width(p.width).Border(lipgloss.NormalBorder(), true, false, false, false).Render(buttons)
 
 	topContent := lipgloss.Place(
 		p.width,

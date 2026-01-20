@@ -8,7 +8,6 @@ import (
 	"golang.org/x/term"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
 )
 
@@ -124,24 +123,34 @@ func (p *paneManager) FlushDetailPaneStack() {
 
 func (p *paneManager) Init() tea.Cmd {
 
+	var cmds []tea.Cmd
+
 	if p.MainPane == nil {
 		p.SetMainPane(p.TabLine.tabs[0])
 	}
 
-	var cmds []tea.Cmd
-
-	for i := range p.Panes {
-		cmds = append(cmds, p.Panes[i].Init())
+	if p.TabLine != nil {
+		cmds = append(cmds, p.TabLine.Init())
 	}
 
-	cmds = append(cmds, core.TickCmd(p.UITick))
+	if p.MainPane != nil {
+		cmds = append(cmds, p.MainPane.Init())
+	}
 
-	cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
-	cmds = append(cmds, paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight))
+	if p.PeekDetailPaneStack() != nil {
+		cmds = append(cmds, p.PeekDetailPaneStack().Init())
+	}
+
+	cmds = append(
+		cmds,
+		paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight),
+		paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight),
+		core.TickCmd(p.UITick),
+	)
 
 	p.PushFocusStack(p.MainPane.ID())
 
-	return tea.Batch(cmds...)
+	return tea.Sequence(cmds...)
 }
 
 func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -159,16 +168,14 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case setMainFocusMsg:
 		if pane, ok := p.Panes[msg.id]; ok {
 			p.SetMainPane(pane)
-			tea.Sequence(paneResizeCmd(pane.ID(), mainWidth, mainHeight), p.MainPane.Init())
+			return p, tea.Sequence(paneResizeCmd(pane.ID(), mainWidth, mainHeight), p.MainPane.Init())
 		}
 	case pushDetailStackMsg:
 		if pane, ok := p.Panes[msg.id]; ok {
 			pane.SetSize(detailWidth, detailHeight)
 			p.PushDetailPaneStack(pane)
-
 			return p, tea.Sequence(paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight))
 		}
-
 	case popDetailStackMsg:
 		p.PopDetailPaneStack()
 		return p, tea.Sequence(paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight))
@@ -185,7 +192,6 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.Pane.height = msg.Height
 	case core.TickMsg:
 		p.UITick++
-
 		cmds := []tea.Cmd{core.TickCmd(p.UITick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
@@ -226,13 +232,13 @@ func (p *paneManager) View() string {
 	}
 	detailContent := p.PeekDetailPaneStack().View()
 
-	tablineStyle := consts.Style.Width(p.width).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
+	tablineStyle := Style.Width(p.width).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
 
 	mainHeight = p.height - lipgloss.Height(tablineStyle)
 	detailHeight = p.height - lipgloss.Height(tablineStyle)
 
-	mainStyled := consts.Style.Height(mainHeight).Width(mainWidth).Border(lipgloss.NormalBorder(), false, true, false, false).Padding(0, 1).Render(mainContent)
-	detailStyled := consts.Style.Padding(0, 1).Render(detailContent)
+	mainStyled := Style.Height(mainHeight).Width(mainWidth).Border(lipgloss.NormalBorder(), false, true, false, false).Padding(0, 1).Render(mainContent)
+	detailStyled := Style.Padding(0, 1).Render(detailContent)
 
 	contentView := lipgloss.JoinHorizontal(lipgloss.Left, mainStyled, detailStyled)
 

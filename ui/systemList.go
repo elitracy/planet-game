@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
 )
 
@@ -20,10 +19,11 @@ type SystemsPane struct {
 	cursor    int
 	searching bool
 	textInput textinput.Model
-	gamestate *models.GameState
+	systems   []*models.StarSystem
+	theme     UITheme
 }
 
-func NewSystemsPane(title string, gamestate *models.GameState) *SystemsPane {
+func NewSystemsPane(title string, systems []*models.StarSystem) *SystemsPane {
 	ti := textinput.New()
 	ti.Placeholder = "Search Star Systems \"/\""
 	ti.Blur()
@@ -34,7 +34,7 @@ func NewSystemsPane(title string, gamestate *models.GameState) *SystemsPane {
 		Pane: &Pane{
 			title: title,
 		},
-		gamestate: gamestate,
+		systems:   systems,
 		searching: false,
 		textInput: ti,
 	}
@@ -43,12 +43,11 @@ func NewSystemsPane(title string, gamestate *models.GameState) *SystemsPane {
 }
 
 func (p *SystemsPane) filteredSystems() {
-	systems := p.gamestate.StarSystems
 	if len(p.textInput.Value()) == 0 {
-		filteredSystems = systems
+		filteredSystems = p.systems
 	} else {
 		filteredSystems = []*models.StarSystem{}
-		for _, s := range systems {
+		for _, s := range p.systems {
 			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(p.textInput.Value())) {
 				filteredSystems = append(filteredSystems, s)
 			}
@@ -61,7 +60,7 @@ func (p *SystemsPane) filteredSystems() {
 }
 
 func (p *SystemsPane) Init() tea.Cmd {
-	filteredSystems = p.gamestate.StarSystems
+	filteredSystems = p.systems
 
 	system := filteredSystems[p.cursor]
 	systemInfoPane := NewSystemInfoPane(system.Name, system)
@@ -161,11 +160,13 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *SystemsPane) View() string {
+	p.theme = GetPaneTheme(p)
+
 	var systemRows []string
 	for i, s := range filteredSystems {
 		row := fmt.Sprintf("%v", s.Name)
 		if i == p.cursor {
-			row = consts.Theme.FocusedStyle.Render(row)
+			row = p.theme.FocusedStyle.Render(row)
 
 		}
 		systemRows = append(systemRows, row)
@@ -176,7 +177,7 @@ func (p *SystemsPane) View() string {
 		systemList = lipgloss.JoinVertical(lipgloss.Left, systemRows...)
 	}
 
-	systemList = consts.Style.Width(36).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
+	systemList = Style.Width(36).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)
 

@@ -5,7 +5,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
 )
 
@@ -14,6 +13,7 @@ type PlanetListPane struct {
 
 	planets []*models.Planet
 	cursor  int
+	theme   UITheme
 }
 
 func NewPlanetListPane(planets []*models.Planet, title string) *PlanetListPane {
@@ -37,6 +37,7 @@ func (p *PlanetListPane) Init() tea.Cmd {
 }
 
 func (p *PlanetListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		p.width = msg.width
@@ -91,20 +92,22 @@ func (p *PlanetListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *PlanetListPane) View() string {
+	p.theme = GetPaneTheme(p)
+
 	s := "Available Planets:\n"
 
 	for i, choice := range p.planets {
 		cursor := " "
 		if p.cursor == i {
 			cursor = ">"
-			s += consts.Theme.FocusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
+			s += p.theme.FocusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
 		} else {
 			s += fmt.Sprintf("%s %s", cursor, choice.Name)
 		}
 
 		if choice.ColonyName != "" {
 			colony := fmt.Sprintf(" (%s)", choice.ColonyName)
-			colony = consts.Style.Foreground(lipgloss.Color("240")).Render(colony)
+			colony = Style.Foreground(lipgloss.Color("240")).Render(colony)
 			s += colony
 		}
 

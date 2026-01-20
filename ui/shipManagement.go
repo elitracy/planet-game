@@ -7,7 +7,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/models"
 )
@@ -19,6 +18,7 @@ type ShipManagementPane struct {
 	sortedShips   []*models.Ship
 	manager       *models.ShipManager
 	OnSelect      func(ship *models.Ship)
+	theme         UITheme
 }
 
 func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, callback func(ship *models.Ship)) *ShipManagementPane {
@@ -45,6 +45,7 @@ func (p *ShipManagementPane) Init() tea.Cmd {
 }
 
 func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		if msg.paneID == p.Pane.id {
@@ -78,6 +79,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *ShipManagementPane) View() string {
+	p.theme = GetPaneTheme(p)
 
 	var rows []string
 
@@ -88,12 +90,12 @@ func (p *ShipManagementPane) View() string {
 			p.currentShipID = ship.GetID()
 
 			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetPosition())
-			row = consts.Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
-			row = consts.Theme.FocusedStyle.Render(row)
+			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
+			row = p.theme.FocusedStyle.Render(row)
 		} else {
 			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetPosition())
-			row = consts.Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
-			row = consts.Theme.BlurredStyle.Render(row)
+			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
+			row = p.theme.BlurredStyle.Render(row)
 		}
 
 		rows = append(rows, row)
@@ -103,7 +105,7 @@ func (p *ShipManagementPane) View() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 	title := "Ships"
-	title = consts.Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(title)
+	title = Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(title)
 
 	content = lipgloss.JoinVertical(lipgloss.Left, title, content)
 

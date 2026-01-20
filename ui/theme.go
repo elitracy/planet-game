@@ -1,6 +1,8 @@
-package consts
+package ui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 type UITheme struct {
 	FocusedStyle        lipgloss.Style
@@ -20,6 +22,18 @@ var Theme = UITheme{
 	NoStyle:             Style,
 	HelpStyle:           Style.Foreground(lipgloss.Color("240")),
 	CursorModeHelpStyle: Style.Foreground(lipgloss.Color("244")),
+}
+
+func GetPaneTheme(pane ManagedPane) UITheme {
+	focused := PaneManager.PeekFocusStack() == pane.ID()
+
+	var theme = Theme
+
+	if !focused {
+		theme.FocusedStyle = theme.DimmedStyle
+	}
+
+	return theme
 }
 
 var Style = lipgloss.NewStyle()

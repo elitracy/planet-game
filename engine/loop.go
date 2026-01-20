@@ -19,7 +19,7 @@ func RunGame() {
 
 	planetList := ui.NewPlanetListPane(state.State.StarSystems[0].Planets, "Planet List")
 	orderList := ui.NewOrderStatusPane(&state.State.OrderScheduler, "Orders")
-	systemsPane := ui.NewSystemsPane("Systems", &state.State)
+	systemsPane := ui.NewSystemsPane("Systems", state.State.StarSystems)
 
 	ui.PaneManager.AddPane(planetList)
 	ui.PaneManager.AddPane(orderList)
