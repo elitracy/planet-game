@@ -5,11 +5,12 @@ import (
 	"github.com/elitracy/planets/core"
 )
 
-type pushMainFocusMsg struct{ id core.PaneID }
+type setMainFocusMsg struct{ id core.PaneID }
 type popMainFocusMsg struct{ id core.PaneID }
 
-type pushDetailsFocusMsg struct{ id core.PaneID }
-type popDetailsFocusMsg struct{ id core.PaneID }
+type pushDetailStackMsg struct{ id core.PaneID }
+type popDetailStackMsg struct{ id core.PaneID }
+type flushDetailStackMsg struct{}
 
 type focusTabsMsg struct{ lastActiveID core.PaneID }
 
@@ -19,18 +20,17 @@ type paneResizeMsg struct {
 	height int
 }
 
-func pushMainFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return pushMainFocusMsg{id} } }
-func popMainFocusCmd(id core.PaneID) tea.Cmd  { return func() tea.Msg { return popMainFocusMsg{id} } }
+func setMainFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return setMainFocusMsg{id} } }
+func popMainFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return popMainFocusMsg{id} } }
 
-func pushDetailsFocusCmd(id core.PaneID) tea.Cmd {
-	return func() tea.Msg { return pushDetailsFocusMsg{id} }
+func pushDetailStackCmd(id core.PaneID) tea.Cmd {
+	return func() tea.Msg { return pushDetailStackMsg{id} }
 }
-func popDetailsFocusCmd(id core.PaneID) tea.Cmd {
-	return func() tea.Msg { return popDetailsFocusMsg{id} }
+func popDetailStackCmd(id core.PaneID) tea.Cmd {
+	return func() tea.Msg { return popDetailStackMsg{id} }
 }
-
-func focusTabsCmd(lastActiveID core.PaneID) tea.Cmd {
-	return func() tea.Msg { return focusTabsMsg{lastActiveID: lastActiveID} }
+func flushDetailStackCmd() tea.Cmd {
+	return func() tea.Msg { return flushDetailStackMsg{} }
 }
 
 func paneResizeCmd(id core.PaneID, width, height int) tea.Cmd {

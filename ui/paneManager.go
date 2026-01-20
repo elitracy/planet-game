@@ -8,8 +8,17 @@ import (
 	"golang.org/x/term"
 
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
 )
+
+var mainWidthPercentage float32
+
+var mainWidth int
+var mainHeight int
+
+var detailWidth int
+var detailHeight int
 
 type paneManager struct {
 	*Pane
@@ -43,6 +52,14 @@ func NewPaneManager() *paneManager {
 		},
 	}
 
+	mainWidthPercentage = .4
+
+	mainWidth = int(float32(pm.width) * mainWidthPercentage)
+	detailWidth = int(float32(pm.width) * (1 - mainWidthPercentage))
+
+	mainHeight = pm.height
+	detailHeight = pm.height
+
 	return pm
 }
 
@@ -66,12 +83,15 @@ func (p *paneManager) PushDetailPane(pane ManagedPane) {
 	p.DetailPaneStack = append(p.DetailPaneStack, pane)
 }
 
-func (p *paneManager) PopDetailPane(pane ManagedPane) {
+func (p *paneManager) PopDetailPane() {
 	if len(p.DetailPaneStack) == 0 {
 		return
 	}
 
 	p.DetailPaneStack = p.DetailPaneStack[:len(p.DetailPaneStack)-1]
+}
+func (p *paneManager) FlushDetailPane() {
+	p.DetailPaneStack = nil
 }
 
 func (p *paneManager) Init() tea.Cmd {
@@ -84,10 +104,14 @@ func (p *paneManager) Init() tea.Cmd {
 
 	for i := range p.Panes {
 		cmds = append(cmds, p.Panes[i].Init())
-		cmds = append(cmds, paneResizeCmd(i, p.Pane.width, p.Pane.height))
+		// cmds = append(cmds, paneResizeCmd(i, p.Pane.width, p.Pane.height))
 	}
 	cmds = append(cmds, core.TickCmd(p.UITick))
 
+	logging.Info("main dims: %vx%v", mainWidth, mainHeight)
+	logging.Info("detail dims: %vx%v", detailWidth, detailHeight)
+	cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
+	cmds = append(cmds, paneResizeCmd(p.ActiveDetailPane().ID(), detailWidth, detailHeight))
 	return tea.Batch(cmds...)
 }
 
@@ -98,45 +122,63 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	var cmds []tea.Cmd
+	var cmd tea.Cmd
+	var model tea.Model
 
 	switch msg := msg.(type) {
-	case pushMainFocusMsg:
+	case paneResizeMsg:
+		for _, pane := range p.Panes {
+			if pane.ID() == msg.paneID {
+				model, _ = p.Panes[msg.paneID].Update(msg)
+				p.Panes[msg.paneID] = model.(ManagedPane)
+			}
+		}
+	case setMainFocusMsg:
 		p.SetMainPane(p.Panes[msg.id])
-	case pushDetailsFocusMsg:
+
+		cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
+		cmds = append(cmds, paneResizeCmd(p.ActiveDetailPane().ID(), detailWidth, detailHeight))
+	case pushDetailStackMsg:
 		p.PushDetailPane(p.Panes[msg.id])
-	case popDetailsFocusMsg:
-		p.PushDetailPane(NewErrorPane("No details selected"))
-	case core.TickMsg:
-		p.UITick++
-		cmds = append(cmds, core.TickCmd(p.UITick))
+
+		cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
+		cmds = append(cmds, paneResizeCmd(p.ActiveDetailPane().ID(), detailWidth, detailHeight))
+		logging.Info("pushed new detail")
+		logging.Info("commands after push: %v", cmds)
+	case popDetailStackMsg:
+		p.PopDetailPane()
+
+		cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
+		cmds = append(cmds, paneResizeCmd(p.ActiveDetailPane().ID(), detailWidth, detailHeight))
+	case flushDetailStackMsg:
+		p.FlushDetailPane()
+
+		cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
+		cmds = append(cmds, paneResizeCmd(p.ActiveDetailPane().ID(), detailWidth, detailHeight))
 	case tea.WindowSizeMsg:
 		p.Pane.width = msg.Width
 		p.Pane.height = msg.Height
-	}
 
-	for id := range p.Panes {
-		var cmd tea.Cmd
-		var model tea.Model
+		cmds = append(cmds, paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight))
+		cmds = append(cmds, paneResizeCmd(p.ActiveDetailPane().ID(), detailWidth, detailHeight))
+	case core.TickMsg:
+		p.UITick++
+		cmds = append(cmds, core.TickCmd(p.UITick))
+	case tea.KeyMsg:
 
-		switch msg := msg.(type) {
-		case tea.WindowSizeMsg:
-			cmds = append(cmds, paneResizeCmd(id, p.Pane.width, p.Pane.height))
-		case tea.KeyMsg:
+		switch msg.String() {
+		case "tab", "shift+tab":
+			_, cmd := p.TabLine.Update(msg)
+			return p, cmd
+		}
 
-			switch msg.String() {
-			case "h", "l", "left", "right":
-				_, cmd = p.TabLine.Update(msg)
-				return p, cmd
-			}
-
-			if p.Panes[id].ID() == p.MainPane.ID() || p.Panes[id].ID() == p.ActiveDetailPane().ID() {
-				model, cmd = p.Panes[id].Update(msg)
-				p.Panes[id] = model.(ManagedPane)
-			}
-		default:
-			model, cmd = p.Panes[id].Update(msg)
-
-			p.Panes[id] = model.(ManagedPane)
+		if len(p.DetailPaneStack) == 0 {
+			model, cmd = p.MainPane.Update(msg)
+			p.MainPane = model.(ManagedPane)
+		} else {
+			detailPane := p.ActiveDetailPane()
+			model, cmd = detailPane.Update(msg)
+			detailPane = model.(ManagedPane)
 		}
 
 		if cmd != nil {
@@ -152,12 +194,19 @@ func (p *paneManager) View() string {
 	if p.MainPane != nil {
 		mainContent = p.MainPane.View()
 	}
-
 	detailContent := p.ActiveDetailPane().View()
 
-	contentView := lipgloss.JoinHorizontal(lipgloss.Left, mainContent, detailContent)
+	tablineStyle := consts.Style.Width(p.width).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
 
-	return lipgloss.JoinVertical(lipgloss.Top, p.TabLine.View(), contentView)
+	mainHeight = p.height - lipgloss.Height(tablineStyle)
+	detailHeight = p.height - lipgloss.Height(tablineStyle)
+
+	mainStyled := consts.Style.Height(mainHeight).Width(mainWidth).Border(lipgloss.NormalBorder(), false, true, false, false).Padding(0, 1).Render(mainContent)
+	detailStyled := consts.Style.Padding(0, 1).Render(detailContent)
+
+	contentView := lipgloss.JoinHorizontal(lipgloss.Left, mainStyled, detailStyled)
+
+	return lipgloss.JoinVertical(lipgloss.Top, tablineStyle, contentView)
 }
 
 func (p *paneManager) AddPane(pane ManagedPane) core.PaneID {

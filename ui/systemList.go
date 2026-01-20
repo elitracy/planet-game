@@ -82,7 +82,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, pushMainFocusCmd(paneID)
+			return p, setMainFocusCmd(paneID)
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--

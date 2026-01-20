@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models"
 )
 
@@ -34,6 +35,12 @@ func (p *PlanetListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var childPaneID core.PaneID
 
 	switch msg := msg.(type) {
+	case paneResizeMsg:
+		if msg.paneID == p.ID() {
+			logging.Info("%v", msg)
+			p.width = msg.width
+			p.height = msg.height
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -51,12 +58,12 @@ func (p *PlanetListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				},
 				planet: p.planets[p.cursor],
 			}
-			childPaneID := PaneManager.AddPane(pane)
-			return p, pushDetailsFocusCmd(childPaneID)
+			paneID := PaneManager.AddPane(pane)
+			return p, pushDetailStackCmd(paneID)
 
 		case "esc":
 			PaneManager.RemovePane(childPaneID)
-			return p, popDetailsFocusCmd(p.Pane.id)
+			return p, popDetailStackCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

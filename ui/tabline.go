@@ -48,16 +48,18 @@ func (p *TablinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, popMainFocusCmd(p.Pane.id)
 		case "ctrl+c", "q":
 			return p, tea.Quit
-		case "h", "left":
+		case "shift+tab":
 			if p.cursor > 0 {
 				p.cursor--
 				PaneManager.SetMainPane(p.tabs[p.cursor])
 			}
-		case "l", "right":
+			flushDetailStackCmd()
+		case "tab":
 			if p.cursor < len(p.tabs)-1 {
 				p.cursor++
 				PaneManager.SetMainPane(p.tabs[p.cursor])
 			}
+			flushDetailStackCmd()
 		}
 
 	}
