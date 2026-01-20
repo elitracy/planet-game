@@ -68,7 +68,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case "esc":
-			return p, popFocusCmd(p.Pane.id)
+			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

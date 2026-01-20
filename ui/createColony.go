@@ -46,7 +46,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.Tick)
 
 				state.State.OrderScheduler.Push(createColonyOrder)
-				return p, popFocusCmd(p.Pane.id)
+				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())
 			}
 
 			if p.cursorMode > 0 {
@@ -60,15 +60,15 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if p.cursorMode >= cursor.CursorHide {
-				return p, popFocusCmd(p.Pane.id)
+				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())
 			}
 
 			cmds := make([]tea.Cmd, len(p.inputs))
 			for i := range p.inputs {
 				cmds[i] = p.inputs[i].Cursor.SetMode(p.cursorMode)
 			}
+
 			return p, tea.Batch(cmds...)
-		// nav
 		case "j":
 			if p.focusIndex < len(p.inputs) && p.cursorMode != cursor.CursorBlink {
 				p.focusIndex++

@@ -20,7 +20,6 @@ type StarSystemInfoPane struct {
 
 func (p *StarSystemInfoPane) Init() tea.Cmd { return nil }
 func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var childPaneID core.PaneID
 
 	switch msg := msg.(type) {
 	case core.TickMsg:
@@ -28,8 +27,7 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			PaneManager.RemovePane(childPaneID)
-			return p, popFocusCmd(p.Pane.id)
+			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
 		case "enter":
 			pane := &PlanetInfoPane{
 				Pane: &Pane{
@@ -37,8 +35,8 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				},
 				planet: p.system.Planets[p.cursor],
 			}
-			childPaneID := PaneManager.AddPane(pane)
-			return p, pushFocusCmd(childPaneID)
+			paneID := PaneManager.AddPane(pane)
+			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		case "k":

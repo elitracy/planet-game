@@ -66,7 +66,7 @@ func (p *PlayerInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ":
 			p.selected = p.cursor
 		case "esc":
-			return p, popFocusCmd(p.ID())
+			return p, popMainFocusCmd(p.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

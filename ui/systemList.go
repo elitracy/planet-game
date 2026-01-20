@@ -18,7 +18,6 @@ type SystemsPane struct {
 	*Pane
 
 	cursor    int
-	focused   bool
 	searching bool
 	textInput textinput.Model
 	gamestate *models.GameState
@@ -43,12 +42,35 @@ func NewSystemsPane(title string, gamestate *models.GameState) *SystemsPane {
 	return pane
 }
 
+func (p *SystemsPane) filteredSystems() {
+	systems := p.gamestate.StarSystems
+	if len(p.textInput.Value()) == 0 {
+		filteredSystems = systems
+	} else {
+		filteredSystems = []*models.StarSystem{}
+		for _, s := range systems {
+			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(p.textInput.Value())) {
+				filteredSystems = append(filteredSystems, s)
+			}
+		}
+	}
+
+	if p.cursor >= len(filteredSystems) {
+		p.cursor = max(0, len(filteredSystems)-1)
+	}
+}
+
 func (p *SystemsPane) Init() tea.Cmd {
-	return nil
+	filteredSystems = p.gamestate.StarSystems
+
+	system := filteredSystems[p.cursor]
+	systemInfoPane := NewSystemInfoPane(system.Name, system)
+	paneID := PaneManager.AddPane(systemInfoPane)
+
+	return pushDetailStackCmd(paneID)
 }
 
 func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	p.focused = PaneManager.ActivePane().ID() == p.Pane.id
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
@@ -70,31 +92,66 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			var cmd tea.Cmd
+			var cmds []tea.Cmd
 			p.textInput, cmd = p.textInput.Update(msg)
 
-			return p, cmd
+			cmds = append(cmds, cmd)
+
+			p.filteredSystems()
+
+			if len(filteredSystems) > 0 {
+				system := filteredSystems[p.cursor]
+				systemInfoPane := NewSystemInfoPane(system.Name, system)
+				paneID := PaneManager.AddPane(systemInfoPane)
+				cmds = append(cmds, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID)))
+			}
+
+			return p, tea.Sequence(cmds...)
 		}
 
 		switch msg.String() {
-		case "/":
+		case "/", "i", "a":
 			p.searching = true
 			p.textInput.Focus()
+			p.cursor = 0
+
 			return p, textinput.Blink
 		case "enter":
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, pushFocusCmd(paneID)
+			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
+			} else {
+				p.cursor = len(filteredSystems) - 1
 			}
+
+			if len(filteredSystems) == 0 {
+				return p, nil
+			}
+
+			system := filteredSystems[p.cursor]
+			systemInfoPane := NewSystemInfoPane(system.Name, system)
+			paneID := PaneManager.AddPane(systemInfoPane)
+			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 		case "down", "j":
 			if p.cursor < len(filteredSystems)-1 {
 				p.cursor++
+			} else {
+				p.cursor = 0
 			}
+
+			if len(filteredSystems) == 0 {
+				return p, nil
+			}
+			system := filteredSystems[p.cursor]
+			systemInfoPane := NewSystemInfoPane(system.Name, system)
+			paneID := PaneManager.AddPane(systemInfoPane)
+			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 		case "esc":
-			return p, popFocusCmd(p.Pane.id)
+			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -104,37 +161,21 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *SystemsPane) View() string {
-
-	systems := p.gamestate.StarSystems
-
-	if len(p.textInput.Value()) == 0 {
-		filteredSystems = systems
-	} else {
-		filteredSystems = []*models.StarSystem{}
-		for _, s := range systems {
-			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(p.textInput.Value())) {
-				filteredSystems = append(filteredSystems, s)
-			}
-		}
-	}
-
 	var systemRows []string
 	for i, s := range filteredSystems {
 		row := fmt.Sprintf("%v", s.Name)
-		if i == p.cursor && p.focused {
+		if i == p.cursor {
 			row = consts.Theme.FocusedStyle.Render(row)
 
 		}
-
-		if i == p.cursor && !p.focused {
-			row = consts.Theme.DimmedStyle.Render(row)
-		}
-
 		systemRows = append(systemRows, row)
 
 	}
+	systemList := ""
+	if len(systemRows) > 0 {
+		systemList = lipgloss.JoinVertical(lipgloss.Left, systemRows...)
+	}
 
-	systemList := lipgloss.JoinVertical(lipgloss.Left, systemRows...)
 	systemList = consts.Style.Width(36).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)

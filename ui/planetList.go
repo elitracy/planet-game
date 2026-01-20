@@ -5,7 +5,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
 )
@@ -27,36 +26,63 @@ func NewPlanetListPane(planets []*models.Planet, title string) *PlanetListPane {
 }
 
 func (p *PlanetListPane) Init() tea.Cmd {
-	return nil
+	pane := &PlanetInfoPane{
+		Pane: &Pane{
+			title: p.planets[p.cursor].Name,
+		},
+		planet: p.planets[p.cursor],
+	}
+	paneID := PaneManager.AddPane(pane)
+	return pushDetailStackCmd(paneID)
 }
 
 func (p *PlanetListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var childPaneID core.PaneID
-
 	switch msg := msg.(type) {
+	case paneResizeMsg:
+		p.width = msg.width
+		p.height = msg.height
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
+			} else {
+				p.cursor = len(p.planets) - 1
 			}
-		case "down", "j":
-			if p.cursor < len(p.planets)-1 {
-				p.cursor++
-			}
-		case "enter":
 			pane := &PlanetInfoPane{
 				Pane: &Pane{
-					title: "Planet Info",
+					title: p.planets[p.cursor].Name,
 				},
 				planet: p.planets[p.cursor],
 			}
-			childPaneID := PaneManager.AddPane(pane)
-			return p, pushFocusCmd(childPaneID)
+			paneID := PaneManager.AddPane(pane)
+			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+		case "down", "j":
+			if p.cursor < len(p.planets)-1 {
+				p.cursor++
+			} else {
+				p.cursor = 0
+			}
 
+			pane := &PlanetInfoPane{
+				Pane: &Pane{
+					title: p.planets[p.cursor].Name,
+				},
+				planet: p.planets[p.cursor],
+			}
+			paneID := PaneManager.AddPane(pane)
+			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 		case "esc":
-			PaneManager.RemovePane(childPaneID)
-			return p, popFocusCmd(p.Pane.id)
+			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+		case "enter":
+			pane := &PlanetInfoPane{
+				Pane: &Pane{
+					title: p.planets[p.cursor].Name,
+				},
+				planet: p.planets[p.cursor],
+			}
+			paneID := PaneManager.AddPane(pane)
+			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -69,7 +95,7 @@ func (p *PlanetListPane) View() string {
 
 	for i, choice := range p.planets {
 		cursor := " "
-		if p.cursor == i && PaneManager.ActivePane().ID() == p.Pane.ID() {
+		if p.cursor == i {
 			cursor = ">"
 			s += consts.Theme.FocusedStyle.Render(fmt.Sprintf("%s %s", cursor, choice.Name))
 		} else {
