@@ -7,7 +7,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/systems"
 	"github.com/elitracy/planets/ui"
 )
@@ -48,7 +47,7 @@ func RunGame() {
 			systems.TickStabilities()
 			systems.TickPopulation()
 
-			time.Sleep(TICK_SLEEP)
+			time.Sleep(core.TICK_SLEEP)
 		}
 	}
 

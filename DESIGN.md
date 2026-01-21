@@ -99,7 +99,7 @@ Pending → Executing → Complete
 - [x] Production system (Farms, Mines, Solar Grids)
 - [x] Order/Action queue with priority scheduling
 - [x] Game tick loop (8 ticks/sec)
-- [ ] Population growth (based on food surplus)
+- [x] Population growth (based on food surplus)
 - [ ] Resource scarcity consequences (starvation, power outages)
 - [ ] Threat/Event system (pirate raids, discoveries, disasters)
 - [ ] Win/Lose conditions

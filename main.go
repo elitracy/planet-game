@@ -13,9 +13,11 @@ import (
 
 const NUM_STAR_SYSTEMS = 3
 
+const START_YEAR_TICK = 2049 * 1000 * 100_000
+
 func main() {
 
-	State.Tick = core.Tick(rand.Intn(500_000) + 150_000)
+	State.Tick = core.Tick(rand.Intn(2049*100_000*1000) + 2049*100)
 
 	for range NUM_STAR_SYSTEMS {
 		system := State.GenerateStarSystem()

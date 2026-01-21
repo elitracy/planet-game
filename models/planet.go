@@ -10,12 +10,12 @@ import (
 	"github.com/elitracy/planets/models/stabilities"
 )
 
-// planets are a "colony"
 type Planet struct {
-	ID         int
-	Name       string
-	ColonyName string
-	Population int
+	ID                   int
+	Name                 string
+	ColonyName           string
+	Population           int
+	PopulationGrowthRate int
 	Resources
 	Stabilities
 	Constructions

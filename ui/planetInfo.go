@@ -71,18 +71,23 @@ func (p *PlanetInfoPane) View() string {
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
 
 	resources := "\n"
-	resources += fmt.Sprintf("Food:     %d\n", p.planet.Resources.Food.GetQuantity())
-	resources += fmt.Sprintf("Minerals: %d\n", p.planet.Resources.Minerals.GetQuantity())
-	resources += fmt.Sprintf("Energy:   %d", p.planet.Resources.Energy.GetQuantity())
+	resources += fmt.Sprintf("Food:     		  %d\n", p.planet.Food.GetQuantity())
+	resources += fmt.Sprintf("Minerals:			  %d\n", p.planet.Minerals.GetQuantity())
+	resources += fmt.Sprintf("Energy:             %d", p.planet.Energy.GetQuantity())
 
 	constructions := "\n"
-	constructions += fmt.Sprintf("Farms:       %d\n", len(p.planet.Constructions.Farms))
-	constructions += fmt.Sprintf("Mines:       %d\n", len(p.planet.Constructions.Mines))
-	constructions += fmt.Sprintf("Solar Grids: %d", len(p.planet.Constructions.SolarGrids))
+	constructions += fmt.Sprintf("Farms:          %d\n", len(p.planet.Farms))
+	constructions += fmt.Sprintf("Mines:          %d\n", len(p.planet.Mines))
+	constructions += fmt.Sprintf("Solar Grids:    %d", len(p.planet.SolarGrids))
+
+	stabilities := "\n"
+	stabilities += fmt.Sprintf("Happiness:        %2f%\n", p.planet.Happiness.GetQuantity()*100)
+	stabilities += fmt.Sprintf("Corruption:       %2f%\n", p.planet.Corruption.GetQuantity()*100)
+	stabilities += fmt.Sprintf("Unrest: 		  %2f%", p.planet.Unrest.GetQuantity()*100)
 
 	title = Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
 
-	info := lipgloss.JoinVertical(lipgloss.Left, resources, constructions)
+	info := lipgloss.JoinVertical(lipgloss.Left, resources, constructions, stabilities)
 	info = Style.
 		Render(info)
 

@@ -3,7 +3,6 @@ package models
 import (
 	"math/rand"
 	"slices"
-	"time"
 
 	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/core"
@@ -28,7 +27,6 @@ const MAX_PLANET_DIST = 5000
 
 const MIN_START_POP = 1000
 const MAX_START_POP = 1_000_000
-const STARTING_POPULATION_GROWTH_RATE = 100
 
 const STARTING_FARMS = 2
 const STARTING_MINES = 2
@@ -40,9 +38,6 @@ const STARTING_MINERAL = 5000
 const STARTING_MINERAL_CONSUMPTION_RATE = 1
 const STARTING_ENERGY = 5000
 const STARTING_ENERGY_CONSUMPTION_RATE = 1
-
-const TICKS_PER_SECOND = 8
-const TICK_SLEEP = time.Second / TICKS_PER_SECOND
 
 type GameState struct {
 	Tick            core.Tick

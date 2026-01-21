@@ -32,8 +32,7 @@ type paneManager struct {
 	currentID  core.PaneID
 	focusStack []core.PaneID
 
-	CurrentTick core.Tick
-	UITick      core.Tick
+	CurrentUITick core.Tick
 }
 
 var PaneManager = NewPaneManager()
@@ -47,11 +46,11 @@ func NewPaneManager() *paneManager {
 	}
 
 	pm := &paneManager{
-		Panes:      make(map[core.PaneID]ManagedPane),
-		currentID:  0,
-		UITick:     0,
-		TabLine:    NewTablinePane([]ManagedPane{}),
-		StatusLine: NewStatusLinePane(state.State.Tick),
+		Panes:         make(map[core.PaneID]ManagedPane),
+		currentID:     0,
+		CurrentUITick: 0,
+		TabLine:       NewTablinePane([]ManagedPane{}),
+		StatusLine:    NewStatusLinePane(state.State.Tick),
 		Pane: &Pane{
 			width:  width,
 			height: height,
@@ -154,7 +153,8 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds,
 		paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight),
 		paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight),
-		core.UITickCmd(p.UITick),
+		core.TickCmd(state.State.Tick),
+		core.UITickCmd(p.CurrentUITick),
 	)
 
 	p.PushFocusStack(p.MainPane.ID())
@@ -200,10 +200,8 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.Pane.width = msg.Width
 		p.Pane.height = msg.Height
 	case core.TickMsg:
-		p.CurrentTick = msg.Tick
-		cmds := []tea.Cmd{core.TickCmd(p.UITick)}
+		cmds := []tea.Cmd{core.TickCmd(state.State.Tick)}
 		for id, pane := range p.Panes {
-			logging.Info("pane: %v", id)
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(ManagedPane)
 
@@ -225,10 +223,9 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return p, tea.Batch(cmds...)
 
 	case core.UITickMsg:
-		p.UITick++
-		cmds := []tea.Cmd{core.UITickCmd(p.UITick)}
+		p.CurrentUITick++
+		cmds := []tea.Cmd{core.UITickCmd(p.CurrentUITick)}
 		for id, pane := range p.Panes {
-			logging.Info("pane: %v", id)
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(ManagedPane)
 

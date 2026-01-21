@@ -5,7 +5,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
 )
 
 func NewLoadingBarPane(title string, startTick, endTick core.Tick) *LoadingBarPane {
@@ -52,7 +51,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return p, cmd
 			}
 
-			increment := (float64(TICKS_PER_SECOND) / float64(core.TICKS_PER_SECOND_UI)) / float64(duration)
+			increment := (float64(core.TICKS_PER_SECOND) / float64(core.TICKS_PER_SECOND_UI)) / float64(duration)
 
 			cmd := p.progress.IncrPercent(increment)
 			return p, cmd

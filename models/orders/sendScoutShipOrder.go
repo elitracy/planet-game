@@ -34,7 +34,7 @@ func NewScoutShipOrder(ship *Ship, dest core.Position, execTick core.Tick) *Send
 	logging.Info("PLANET POS: %v", dest)
 	logging.Info("SHIP POS:   %v", ship.Position)
 	logging.Info("DISTANCE:   %v", d)
-	logging.Info("TIME (s):   %v", t/TICKS_PER_SECOND)
+	logging.Info("TIME (s):   %v", t/core.TICKS_PER_SECOND)
 
 	travelAction := actions.NewMoveShipAction(
 		ship,

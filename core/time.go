@@ -1,18 +1,20 @@
 package core
 
 import (
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Tick int64
+type Tick int64 // seconds (in game)
 
 const (
 	TICKS_PER_SECOND_UI = 2
 	TICK_SLEEP_UI       = time.Second / TICKS_PER_SECOND_UI
+	TICKS_PER_SECOND    = 100
+	TICK_SLEEP          = time.Second / TICKS_PER_SECOND
 )
-
 
 func (t Tick) ToDuration(tickRate int) time.Duration {
 	return time.Duration(t) * time.Second / time.Duration(tickRate)
@@ -35,21 +37,28 @@ func UITickCmd(tick Tick) tea.Cmd {
 }
 
 func TickCmd(tick Tick) tea.Cmd {
-	return func() tea.Msg { return TickMsg{Tick: tick + 1} }}
-
-
-
-// Megacycle = 1 year
-// Kiolcycle = 1 month
-// Cycle = 1 day = 100,000 ticks
-// Milicycle = 1 minute
-// Centicycle = 1 minute
-type Cycle float64
-
-func TickToCycle(t Tick) Cycle {
-	return Cycle(float64(t) / float64(100_000))
+	return tea.Tick(TICK_SLEEP, func(time.Time) tea.Msg { return TickMsg{Tick: tick + 1} })
 }
 
-func CycleToTick(c Cycle) Tick {
-	return Tick(c * 100_000)
+const (
+	TICKS_PER_PULSE  = 1_440
+	PULSES_PER_CYCLE = 365
+	TICKS_PER_CYCLE  = TICKS_PER_PULSE * PULSES_PER_CYCLE
+)
+
+type Pulse int64   // minutes
+type Cycle float64 // years
+
+func (t Tick) String() string {
+	total := int64(t)
+
+	ticks := total % int64(TICKS_PER_PULSE)
+	total /= int64(TICKS_PER_PULSE)
+
+	pulses := total % PULSES_PER_CYCLE
+	total /= pulses
+
+	cycles := total / PULSES_PER_CYCLE
+
+	return fmt.Sprintf("%d.%03d.%04d", cycles, pulses, ticks)
 }
