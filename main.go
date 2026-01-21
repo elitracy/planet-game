@@ -6,34 +6,39 @@ import (
 
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/logging"
-	. "github.com/elitracy/planets/core/state"
+	state "github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/engine"
-	. "github.com/elitracy/planets/models"
+	models "github.com/elitracy/planets/models"
 )
 
 const NUM_STAR_SYSTEMS = 3
 
-const START_YEAR_TICK = 2049 * 1000 * 100_000
+const START_YEAR_TICK = 2049 * core.TICKS_PER_CYCLE
 
 func main() {
 
-	State.Tick = core.Tick(rand.Intn(2049*100_000*1000) + 2049*100)
+	state.State.Tick = core.Tick(rand.Intn(START_YEAR_TICK) + START_YEAR_TICK)
 
 	for range NUM_STAR_SYSTEMS {
-		system := State.GenerateStarSystem()
-		State.StarSystems = append(State.StarSystems, &system)
+		system := state.State.GenerateStarSystem()
+		state.State.StarSystems = append(state.State.StarSystems, &system)
 	}
 
-	State.Player = Player{Position: core.Position{X: 0, Y: 0, Z: 0}}
+	startingSystem := state.State.StarSystems[0]
+	startingSystem.Colonized = true
+
+	startingPlanet := startingSystem.Planets[0]
+
+	state.State.CreatePlayer(startingPlanet.Position)
 	logging.Ok("Player Initialized")
 
-	State.ShipManager.Ships = make(map[int]*Ship)
+	state.State.ShipManager.Ships = make(map[int]*models.Ship)
 
 	for range 5 {
 		name := fmt.Sprintf("Hermes %03d", rand.Intn(1000))
-		ship := CreateNewShip(name, State.Player.Position, Scout)
+		ship := models.CreateNewShip(name, state.State.Player.Position, models.Scout)
 
-		State.ShipManager.AddShip(ship)
+		state.State.ShipManager.AddShip(ship)
 	}
 
 	logging.Ok("Ships Initialized")

@@ -64,9 +64,6 @@ func (p *PlanetInfoPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.planet.Name
-	if p.planet.ColonyName != "" {
-		title += p.theme.BlurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
-	}
 
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
 

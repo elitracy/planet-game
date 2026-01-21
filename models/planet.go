@@ -1,8 +1,6 @@
 package models
 
 import (
-	"fmt"
-
 	. "github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/core/interfaces"
 	"github.com/elitracy/planets/models/constructions"
@@ -10,12 +8,22 @@ import (
 	"github.com/elitracy/planets/models/stabilities"
 )
 
+const (
+	STARTING_FOOD                     = 1000
+	STARTING_FOOD_CONSUMPTION_RATE    = 1
+	STARTING_MINERAL                  = 1000
+	STARTING_MINERAL_CONSUMPTION_RATE = 1
+	STARTING_ENERGY                   = 1000
+	STARTING_ENERGY_CONSUMPTION_RATE  = 1
+)
+
 type Planet struct {
 	ID                   int
 	Name                 string
-	ColonyName           string
 	Population           int
 	PopulationGrowthRate int
+	Colonized            bool
+
 	Resources
 	Stabilities
 	Constructions
@@ -42,9 +50,8 @@ func (p *Planet) PopOrder() Event {
 	return order
 }
 
-func (p Planet) GetTotalFarmProduction() int {
+func (p Planet) GetFarmProduction() int {
 	total_rate := 0
-
 	for _, p := range p.Constructions.Farms {
 		total_rate += p.GetProductionRate()
 	}
@@ -52,7 +59,7 @@ func (p Planet) GetTotalFarmProduction() int {
 	return total_rate
 }
 
-func (p Planet) GetTotalMineProduction() int {
+func (p Planet) GetMineProduction() int {
 	total_rate := 0
 	for _, p := range p.Constructions.Mines {
 		total_rate += p.GetProductionRate()
@@ -61,9 +68,8 @@ func (p Planet) GetTotalMineProduction() int {
 	return total_rate
 }
 
-func (p Planet) GetTotalSolarGridProduction() int {
+func (p Planet) GetSolarGridProduction() int {
 	total_rate := 0
-
 	for _, p := range p.Constructions.SolarGrids {
 		total_rate += p.GetProductionRate()
 	}
@@ -71,23 +77,23 @@ func (p Planet) GetTotalSolarGridProduction() int {
 	return total_rate
 }
 
-func CreatePlanet(name string, x, y, z, pop, initial_food, initial_mineral, intital_energy, initial_food_rate, initial_mineral_rate, initial_energy_rate, num_farms, num_mines, num_solar_grids int) Planet {
+func CreatePlanet(name string, x, y, z, pop, num_farms, num_mines, num_solar_grids int) Planet {
 	planet := Planet{
 		Name:       name,
 		Population: pop,
 		Position:   Position{X: x, Y: y, Z: z},
 		Resources: Resources{
 			Food: resources.Food{
-				Quantity:        initial_food,
-				ConsumptionRate: initial_food_rate,
+				Quantity:        STARTING_FOOD,
+				ConsumptionRate: STARTING_FOOD_CONSUMPTION_RATE,
 			},
 			Minerals: resources.Mineral{
-				Quantity:        initial_mineral,
-				ConsumptionRate: initial_mineral_rate,
+				Quantity:        STARTING_MINERAL,
+				ConsumptionRate: STARTING_MINERAL_CONSUMPTION_RATE,
 			},
 			Energy: resources.Energy{
-				Quantity:        intital_energy,
-				ConsumptionRate: initial_energy_rate,
+				Quantity:        STARTING_ENERGY,
+				ConsumptionRate: STARTING_ENERGY_CONSUMPTION_RATE,
 			},
 		},
 	}
@@ -113,55 +119,14 @@ type Resources struct {
 	Energy   resources.Energy
 }
 
-func (r Resources) String() string {
-	var output string
-
-	output += fmt.Sprintf("| Food:       %d @ %d\n", r.Food.GetQuantity(), r.Food.GetConsumptionRate())
-	output += fmt.Sprintf("| Energy:     %d @ %d\n", r.Energy.GetQuantity(), r.Energy.GetConsumptionRate())
-	output += fmt.Sprintf("| Minerals:   %d @ %d", r.Minerals.GetQuantity(), r.Minerals.GetConsumptionRate())
-
-	return output
-}
-
 type Stabilities struct {
 	Corruption stabilities.Corruption
 	Happiness  stabilities.Happiness
 	Unrest     stabilities.Unrest
 }
 
-func (s Stabilities) String() string {
-	var output string
-
-	output += fmt.Sprintf("| Corruption: %.2f @ %.2f\n", s.Corruption.Quantity, s.Corruption.GetGrowthRate())
-	output += fmt.Sprintf("| Happiness:  %.2f @ %.2f\n", s.Happiness.Quantity, s.Happiness.GetGrowthRate())
-	output += fmt.Sprintf("| Unrest:     %.2f @ %.2f", s.Unrest.Quantity, s.Unrest.GetGrowthRate())
-
-	return output
-}
-
 type Constructions struct {
 	Farms      []constructions.Farm
 	Mines      []constructions.Mine
 	SolarGrids []constructions.SolarGrid
-}
-
-func (c Constructions) String() string {
-	var output string
-
-	output += "| Farms"
-	for i, f := range c.Farms {
-		output += fmt.Sprintf("\n 🌾 Farm[%d]: %d @ %d", i, f.GetQuantity(), f.GetProductionRate())
-	}
-
-	output += "| Mines\n"
-	for i, m := range c.Mines {
-		output += fmt.Sprintf("\n ⛏️ Mine[%d]: %d @ %d", i, m.GetQuantity(), m.GetProductionRate())
-	}
-
-	output += "| Solar Grids\n"
-	for i, sg := range c.SolarGrids {
-		output += fmt.Sprintf("\n ☀️ Solar Grid[%d]: %d @ %d", i, sg.GetQuantity(), sg.GetProductionRate())
-	}
-
-	return output
 }

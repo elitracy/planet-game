@@ -57,7 +57,7 @@ func NewPaneManager() *paneManager {
 		},
 	}
 
-	mainWidthPercentage = .4
+	mainWidthPercentage = .3
 
 	mainWidth = int(float32(pm.width) * mainWidthPercentage)
 	detailWidth = int(float32(pm.width) * (1 - mainWidthPercentage))

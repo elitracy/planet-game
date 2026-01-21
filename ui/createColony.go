@@ -33,7 +33,9 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "enter":
 			if p.focusIndex == len(p.inputs) {
-				p.planet.ColonyName = p.inputs[0].Value()
+				if p.inputs[0].Value() != "" {
+					p.planet.Name = p.inputs[0].Value()
+				}
 
 				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.Tick)
 

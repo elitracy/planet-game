@@ -30,7 +30,7 @@ func (p *StatusLinePane) View() string {
 	components[2] = Theme.DimmedStyle.Render(components[2])
 	componentsStyled := strings.Join(components, ".")
 
-	content += fmt.Sprintf("Time: %v", componentsStyled)
+	content += fmt.Sprintf("Time : %v", componentsStyled)
 
 	return content
 }

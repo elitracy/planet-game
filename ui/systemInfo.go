@@ -59,10 +59,6 @@ func (p *StarSystemInfoPane) View() string {
 	for i, planet := range p.system.Planets {
 		row := planet.Name
 
-		if planet.ColonyName != "" {
-			row += fmt.Sprintf(" [%v]", planet.ColonyName)
-		}
-
 		row += fmt.Sprintf(" %v - population %v", planet.Position, planet.Population)
 
 		if i == p.cursor {
