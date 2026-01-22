@@ -2,8 +2,7 @@ package models
 
 import (
 	"github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/core/consts"
-	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core/consts"
 )
 
 type Action interface {
@@ -12,7 +11,7 @@ type Action interface {
 	GetDescription() string
 	GetExecuteTick() core.Tick
 	GetDuration() core.Tick
-	GetStatus() EventStatus
-	SetStatus(EventStatus)
+	GetStatus() consts.EventStatus
+	SetStatus(consts.EventStatus)
 	Execute()
 }

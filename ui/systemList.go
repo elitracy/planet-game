@@ -16,14 +16,15 @@ var filteredSystems []*models.StarSystem
 type SystemsPane struct {
 	*Pane
 
-	cursor    int
-	searching bool
-	textInput textinput.Model
-	systems   []*models.StarSystem
-	theme     UITheme
+	cursor       int
+	searching    bool
+	textInput    textinput.Model
+	systems      []*models.StarSystem
+	knownSystems []*models.StarSystem
+	theme        UITheme
 }
 
-func NewSystemsPane(title string, systems []*models.StarSystem) *SystemsPane {
+func NewSystemListPane(title string, systems []*models.StarSystem) *SystemsPane {
 	ti := textinput.New()
 	ti.Placeholder = "Search Star Systems \"/\""
 	ti.Blur()
@@ -42,12 +43,21 @@ func NewSystemsPane(title string, systems []*models.StarSystem) *SystemsPane {
 	return pane
 }
 
+func (p *SystemsPane) updateKnownSystems() {
+	p.knownSystems = nil
+	for _, system := range p.systems {
+		if system.Colonized {
+			p.knownSystems = append(p.knownSystems, system)
+		}
+	}
+}
+
 func (p *SystemsPane) filteredSystems() {
 	if len(p.textInput.Value()) == 0 {
-		filteredSystems = p.systems
+		filteredSystems = p.knownSystems
 	} else {
 		filteredSystems = []*models.StarSystem{}
-		for _, s := range p.systems {
+		for _, s := range p.knownSystems {
 			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(p.textInput.Value())) {
 				filteredSystems = append(filteredSystems, s)
 			}
@@ -60,7 +70,12 @@ func (p *SystemsPane) filteredSystems() {
 }
 
 func (p *SystemsPane) Init() tea.Cmd {
-	filteredSystems = p.systems
+	p.updateKnownSystems()
+	filteredSystems = p.knownSystems
+
+	if len(filteredSystems) == 0 {
+		return nil
+	}
 
 	system := filteredSystems[p.cursor]
 	systemInfoPane := NewSystemInfoPane(system.Name, system)
@@ -79,8 +94,8 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return p, nil
 		}
-	case core.TickMsg:
-		return p, nil
+	case core.UITickMsg:
+		p.updateKnownSystems()
 	case tea.KeyMsg:
 		if p.searching {
 			switch msg.String() {
@@ -149,8 +164,6 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-		case "esc":
-			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -177,7 +190,7 @@ func (p *SystemsPane) View() string {
 		systemList = lipgloss.JoinVertical(lipgloss.Left, systemRows...)
 	}
 
-	systemList = Style.Width(36).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
+	systemList = Style.Width(p.width).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)
 

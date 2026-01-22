@@ -1,8 +1,7 @@
 package models
 
 import (
-	. "github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core"
 )
 
 type ShipType int
@@ -15,27 +14,27 @@ const (
 type Ship struct {
 	ID         int
 	Name       string
-	OrderQueue []interfaces.Event
-	Position
-	Velocity
+	OrderQueue []Event
+	core.Position
+	core.Velocity
 	ShipType
 }
 
-func CreateNewShip(name string, position Position, shipType ShipType) *Ship {
+func CreateNewShip(name string, position core.Position, shipType ShipType) *Ship {
 	ship := &Ship{
 		Name:     name,
 		Position: position,
 		ShipType: shipType,
-		Velocity: Velocity{X: 5, Y: 5, Z: 5},
+		Velocity: core.Velocity{X: 5, Y: 5, Z: 5},
 	}
 
 	return ship
 }
 
-func (s Ship) GetID() int                    { return s.ID }
-func (s Ship) GetName() string               { return s.Name }
-func (s Ship) GetPosition() Position         { return s.Position }
-func (s Ship) GetOrders() []interfaces.Event { return s.OrderQueue }
+func (s Ship) GetID() int                 { return s.ID }
+func (s Ship) GetName() string            { return s.Name }
+func (s Ship) GetPosition() core.Position { return s.Position }
+func (s Ship) GetOrders() []Event         { return s.OrderQueue }
 
 type ShipManager struct {
 	Ships     map[int]*Ship

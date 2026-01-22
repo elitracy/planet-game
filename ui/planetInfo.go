@@ -28,8 +28,6 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case paneResizeMsg:
 		p.height = msg.height
 		p.width = msg.width
-	case core.TickMsg:
-		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "o":
@@ -66,27 +64,25 @@ func (p *PlanetInfoPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.planet.Name
-	if p.planet.ColonyName != "" {
-		title += p.theme.BlurredStyle.Render(fmt.Sprintf(" [%s]", p.planet.ColonyName))
-	}
 
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
 
-	resources := "\n"
-	resources += fmt.Sprintf("Food:     %d\n", p.planet.Resources.Food.GetQuantity())
-	resources += fmt.Sprintf("Minerals: %d\n", p.planet.Resources.Minerals.GetQuantity())
-	resources += fmt.Sprintf("Energy:   %d", p.planet.Resources.Energy.GetQuantity())
+	resources := fmt.Sprintf("\nFood: %10d", p.planet.Food.GetQuantity())
+	resources += fmt.Sprintf("\nMinerals: %10d", p.planet.Minerals.GetQuantity())
+	resources += fmt.Sprintf("\nEnergy:  %10d", p.planet.Energy.GetQuantity())
 
-	constructions := "\n"
-	constructions += fmt.Sprintf("Farms:       %d\n", len(p.planet.Constructions.Farms))
-	constructions += fmt.Sprintf("Mines:       %d\n", len(p.planet.Constructions.Mines))
-	constructions += fmt.Sprintf("Solar Grids: %d", len(p.planet.Constructions.SolarGrids))
+	constructions := fmt.Sprintf("\nFarms: %10d", len(p.planet.Farms))
+	constructions += fmt.Sprintf("\nMines: %10d", len(p.planet.Mines))
+	constructions += fmt.Sprintf("\nSolar Grids: %10d", len(p.planet.SolarGrids))
+
+	stabilities := fmt.Sprintf("\nHappiness: %10.0f%%", p.planet.Happiness.GetQuantity()*100)
+	stabilities += fmt.Sprintf("\nCorruption: %10.0f%%", p.planet.Corruption.GetQuantity()*100)
+	stabilities += fmt.Sprintf("\nUnrest: %10.0f%%", p.planet.Unrest.GetQuantity()*100)
 
 	title = Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
 
-	info := lipgloss.JoinVertical(lipgloss.Left, resources, constructions)
-	info = Style.
-		Render(info)
+	info := lipgloss.JoinVertical(lipgloss.Left, resources, constructions, stabilities)
+	info = Style.Render(info)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Left, title, population, info)
 

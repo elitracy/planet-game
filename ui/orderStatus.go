@@ -51,10 +51,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, paneResizeCmd(val, progressBarWidth, msg.height))
 			}
 			return p, tea.Batch(cmds...)
-
 		}
-	case core.TickMsg:
-		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -83,9 +80,9 @@ func (p *OrderStatusPane) View() string {
 
 	for _, order := range p.orderScheduler.PriorityQueue {
 		switch order.GetStatus() {
-		case consts.Pending:
+		case consts.EventPending:
 			pendingOrders = append(pendingOrders, order)
-		case consts.Executing:
+		case consts.EventExecuting:
 			executingOrders = append(executingOrders, order)
 		}
 	}
@@ -108,7 +105,7 @@ func (p *OrderStatusPane) View() string {
 	for _, order := range pendingOrders {
 		row := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
 
-		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-State.Tick)/TICKS_PER_SECOND)
+		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-State.Tick)/core.TICKS_PER_SECOND)
 
 		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.Pane.width-5 {
 			row = Style.Render(row)

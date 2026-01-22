@@ -5,10 +5,20 @@ type Unrest struct {
 	GrowthRate float32
 }
 
-func (u *Unrest) GetQuantity() float32 {
-	return u.Quantity
+func (s *Unrest) GetQuantity() float32 {
+	return s.Quantity
 }
 
-func (u *Unrest) GetGrowthRate() float32 {
-	return u.GrowthRate
+func (s *Unrest) GetGrowthRate() float32 {
+	return s.GrowthRate
+}
+
+func (s *Unrest) Tick() {
+	if s.GrowthRate > 0 {
+		s.Quantity = min(1, s.Quantity+s.GrowthRate)
+	}
+
+	if s.GrowthRate < 0 {
+		s.Quantity = max(-1, s.Quantity+s.GrowthRate)
+	}
 }

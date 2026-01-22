@@ -1,4 +1,4 @@
-package interfaces
+package models
 
 import "github.com/elitracy/planets/core"
 

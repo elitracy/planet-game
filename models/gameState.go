@@ -3,46 +3,38 @@ package models
 import (
 	"math/rand"
 	"slices"
-	"time"
 
 	"github.com/elitracy/planets/core"
 	. "github.com/elitracy/planets/core"
 )
 
-var system_names = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Hohmann", "Horizon", "Oberth", "Parallax", "Aphelion"}
-var planet_names = []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
-var moon_names = []string{"Alpha", "Beta", "Gamma", "Delta", "Epsilon"}
-var world_type_names = []string{"Colony", "Station", "Outpost", "Relay", "Belt", "Gate"}
-var scout_ship_names = []string{"Hermes"}
+const (
+	MIN_PLANETS = 2
+	MAX_PLANETS = 10
 
-const MIN_PLANETS = 2
-const MAX_PLANETS = 10
+	// center of system
+	MIN_STAR_SYSTEM_DIST = 10000
+	MAX_STAR_SYSTEM_DIST = 1000000
 
-// center of system
-const MIN_STAR_SYSTEM_DIST = 10000
-const MAX_STAR_SYSTEM_DIST = 1000000
+	// from star system center
+	MIN_PLANET_DIST = 1000
+	MAX_PLANET_DIST = 5000
 
-// from star system center
-const MIN_PLANET_DIST = 1000
-const MAX_PLANET_DIST = 5000
+	MIN_START_POP = 1000
+	MAX_START_POP = 1_000_000
 
-const MIN_START_POP = 1000
-const MAX_START_POP = 1_000_000
-const STARTING_POPULATION_GROWTH_RATE = 100
+	STARTING_FARMS       = 2
+	STARTING_MINES       = 2
+	STARTING_SOLAR_GRIDS = 2
+)
 
-const STARTING_FARMS = 2
-const STARTING_MINES = 2
-const STARTING_SOLAR_GRIDS = 2
-
-const STARTING_FOOD = 5000
-const STARTING_FOOD_CONSUMPTION_RATE = 1
-const STARTING_MINERAL = 5000
-const STARTING_MINERAL_CONSUMPTION_RATE = 1
-const STARTING_ENERGY = 5000
-const STARTING_ENERGY_CONSUMPTION_RATE = 1
-
-const TICKS_PER_SECOND = 8
-const TICK_SLEEP = time.Second / TICKS_PER_SECOND
+var (
+	system_names     = []string{"Delta", "Zenith", "Umbra", "Roche", "Lagrange", "Hohmann", "Horizon", "Oberth", "Parallax", "Aphelion"}
+	planet_names     = []string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
+	moon_names       = []string{"Alpha", "Beta", "Gamma", "Delta", "Epsilon"}
+	world_type_names = []string{"Colony", "Station", "Outpost", "Relay", "Belt", "Gate"}
+	scout_ship_names = []string{"Hermes"}
+)
 
 type GameState struct {
 	Tick            core.Tick
@@ -56,6 +48,7 @@ type GameState struct {
 
 func (gs *GameState) CreatePlayer(location Position) Player {
 	player := Player{Position: location}
+	gs.Player = player
 	return player
 }
 
@@ -64,7 +57,6 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 	system_name_idx := rand.Intn(len(system_names))
 	system_name := system_names[system_name_idx]
 
-	// remove system name from list
 	system_names = slices.Delete(system_names, system_name_idx, system_name_idx+1)
 
 	system_location := Position{
@@ -92,12 +84,6 @@ func (gs *GameState) GenerateStarSystem() StarSystem {
 			planet_location.Y,
 			planet_location.Z,
 			starting_population,
-			STARTING_FOOD,
-			STARTING_MINERAL,
-			STARTING_ENERGY,
-			STARTING_FOOD_CONSUMPTION_RATE,
-			STARTING_MINERAL_CONSUMPTION_RATE,
-			STARTING_ENERGY_CONSUMPTION_RATE,
 			STARTING_FARMS,
 			STARTING_MINES,
 			STARTING_SOLAR_GRIDS,

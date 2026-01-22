@@ -10,20 +10,20 @@ import (
 func TickOrderScheduler() {
 	for _, order := range State.OrderScheduler.PriorityQueue {
 		switch order.GetStatus() {
-		case consts.Pending:
+		case consts.EventPending:
 			if order.GetExecuteTick() <= State.Tick {
 				logging.Info("[%s] Executing Order: %v", order.GetName(), order.GetID())
-				order.SetStatus(consts.Executing)
+				order.SetStatus(consts.EventExecuting)
 				for _, action := range order.GetActions() {
 					if action.GetExecuteTick() == State.Tick {
-						action.SetStatus(consts.Executing)
+						action.SetStatus(consts.EventExecuting)
 					}
 				}
 			}
-		case consts.Executing:
+		case consts.EventExecuting:
 			complete := true
 			for _, action := range order.GetActions() {
-				if action.GetStatus() != consts.Complete {
+				if action.GetStatus() != consts.EventComplete {
 					complete = false
 				}
 
@@ -33,10 +33,10 @@ func TickOrderScheduler() {
 			}
 
 			if complete {
-				order.SetStatus(consts.Complete)
+				order.SetStatus(consts.EventComplete)
 			}
 
-		case consts.Complete: // should be safe to pop order scheulder queue here
+		case consts.EventComplete: // should be safe to pop order scheulder queue here
 			poppedOrder := State.OrderScheduler.Pop()
 			if poppedOrder.GetID() != order.GetID() {
 				logging.Error("Order Scheduler out of sync")
@@ -57,18 +57,18 @@ func TickOrderScheduler() {
 
 func TickActionScheduler() {
 	for _, order := range State.OrderScheduler.PriorityQueue {
-		if order.GetStatus() == consts.Executing {
+		if order.GetStatus() == consts.EventExecuting {
 			for _, action := range order.GetActions() {
 
 				switch action.GetStatus() {
-				case consts.Pending:
+				case consts.EventPending:
 					if action.GetExecuteTick() <= State.Tick {
-						action.SetStatus(consts.Executing)
+						action.SetStatus(consts.EventExecuting)
 					}
-				case consts.Executing:
+				case consts.EventExecuting:
 					if action.GetExecuteTick()+action.GetDuration() <= State.Tick {
 						action.Execute()
-						action.SetStatus(consts.Complete)
+						action.SetStatus(consts.EventComplete)
 					}
 				}
 

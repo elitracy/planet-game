@@ -4,8 +4,8 @@ package consts
 type EventStatus int
 
 const (
-	Pending EventStatus = iota
-	Executing
-	Complete
+	EventPending EventStatus = iota
+	EventExecuting
+	EventComplete
 	Failed
 )

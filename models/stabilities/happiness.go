@@ -5,10 +5,20 @@ type Happiness struct {
 	GrowthRate float32
 }
 
-func (h *Happiness) GetQuantity() float32 {
-	return h.Quantity
+func (s *Happiness) GetQuantity() float32 {
+	return s.Quantity
 }
 
-func (h *Happiness) GetGrowthRate() float32 {
-	return h.GrowthRate
+func (s *Happiness) GetGrowthRate() float32 {
+	return s.GrowthRate
+}
+
+func (s *Happiness) Tick() {
+	if s.GrowthRate > 0 {
+		s.Quantity = min(1, s.Quantity+s.GrowthRate)
+	}
+
+	if s.GrowthRate < 0 {
+		s.Quantity = max(-1, s.Quantity+s.GrowthRate)
+	}
 }

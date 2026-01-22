@@ -22,7 +22,7 @@ func NewCreateColonyOrder(planet *Planet, execTick core.Tick) *CreateColony {
 		ID:          State.OrderScheduler.GetNextID(),
 		Name:        "Create Colony",
 		ExecuteTick: execTick,
-		Status:      consts.Pending,
+		Status:      consts.EventPending,
 		Planet:      planet,
 	}
 

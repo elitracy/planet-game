@@ -9,6 +9,7 @@ import (
 
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/logging"
+	"github.com/elitracy/planets/core/state"
 )
 
 var mainWidthPercentage float32
@@ -22,14 +23,16 @@ var detailHeight int
 type paneManager struct {
 	*Pane
 
-	TabLine         *TablinePane
+	TabLine         *TabLinePane
+	StatusLine      *StatusLinePane
 	MainPane        ManagedPane
 	DetailPaneStack []ManagedPane
-	Panes           map[core.PaneID]ManagedPane
-	currentID       core.PaneID
-	focusStack      []core.PaneID
 
-	UITick core.Tick
+	Panes      map[core.PaneID]ManagedPane
+	currentID  core.PaneID
+	focusStack []core.PaneID
+
+	CurrentUITick core.Tick
 }
 
 var PaneManager = NewPaneManager()
@@ -43,17 +46,18 @@ func NewPaneManager() *paneManager {
 	}
 
 	pm := &paneManager{
-		Panes:     make(map[core.PaneID]ManagedPane),
-		currentID: 0,
-		UITick:    0,
-		TabLine:   NewTablinePane("Tabs", []ManagedPane{}),
+		Panes:         make(map[core.PaneID]ManagedPane),
+		currentID:     0,
+		CurrentUITick: 0,
+		TabLine:       NewTablinePane([]ManagedPane{}),
+		StatusLine:    NewStatusLinePane(state.State.Tick),
 		Pane: &Pane{
 			width:  width,
 			height: height,
 		},
 	}
 
-	mainWidthPercentage = .4
+	mainWidthPercentage = .3
 
 	mainWidth = int(float32(pm.width) * mainWidthPercentage)
 	detailWidth = int(float32(pm.width) * (1 - mainWidthPercentage))
@@ -133,6 +137,10 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds = append(cmds, p.TabLine.Init())
 	}
 
+	if p.StatusLine != nil {
+		cmds = append(cmds, p.StatusLine.Init())
+	}
+
 	if p.MainPane != nil {
 		cmds = append(cmds, p.MainPane.Init())
 	}
@@ -145,7 +153,8 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds,
 		paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight),
 		paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight),
-		core.TickCmd(p.UITick),
+		core.TickCmd(state.State.Tick),
+		core.UITickCmd(p.CurrentUITick),
 	)
 
 	p.PushFocusStack(p.MainPane.ID())
@@ -191,14 +200,50 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.Pane.width = msg.Width
 		p.Pane.height = msg.Height
 	case core.TickMsg:
-		p.UITick++
-		cmds := []tea.Cmd{core.TickCmd(p.UITick)}
+		cmds := []tea.Cmd{core.TickCmd(state.State.Tick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(ManagedPane)
 
 			cmds = append(cmds, cmd)
 		}
+
+		if p.TabLine != nil {
+			model, cmd := p.TabLine.Update(msg)
+			p.TabLine = model.(*TabLinePane)
+			cmds = append(cmds, cmd)
+		}
+
+		if p.StatusLine != nil {
+			model, cmd := p.StatusLine.Update(msg)
+			p.StatusLine = model.(*StatusLinePane)
+			cmds = append(cmds, cmd)
+		}
+
+		return p, tea.Batch(cmds...)
+
+	case core.UITickMsg:
+		p.CurrentUITick++
+		cmds := []tea.Cmd{core.UITickCmd(p.CurrentUITick)}
+		for id, pane := range p.Panes {
+			model, cmd := pane.Update(msg)
+			p.Panes[id] = model.(ManagedPane)
+
+			cmds = append(cmds, cmd)
+		}
+
+		if p.TabLine != nil {
+			model, cmd := p.TabLine.Update(msg)
+			p.TabLine = model.(*TabLinePane)
+			cmds = append(cmds, cmd)
+		}
+
+		if p.StatusLine != nil {
+			model, cmd := p.StatusLine.Update(msg)
+			p.StatusLine = model.(*StatusLinePane)
+			cmds = append(cmds, cmd)
+		}
+
 		return p, tea.Batch(cmds...)
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -232,17 +277,18 @@ func (p *paneManager) View() string {
 	}
 	detailContent := p.PeekDetailPaneStack().View()
 
-	tablineStyle := Style.Width(p.width).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
+	tabLineStyle := Style.Width(p.width).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
+	statusLineStyle := Style.Width(p.width).Border(lipgloss.NormalBorder(), true, false, false, false).Render(p.StatusLine.View())
 
-	mainHeight = p.height - lipgloss.Height(tablineStyle)
-	detailHeight = p.height - lipgloss.Height(tablineStyle)
+	mainHeight = p.height - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
+	detailHeight = p.height - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
 
 	mainStyled := Style.Height(mainHeight).Width(mainWidth).Border(lipgloss.NormalBorder(), false, true, false, false).Padding(0, 1).Render(mainContent)
 	detailStyled := Style.Padding(0, 1).Render(detailContent)
 
 	contentView := lipgloss.JoinHorizontal(lipgloss.Left, mainStyled, detailStyled)
 
-	return lipgloss.JoinVertical(lipgloss.Top, tablineStyle, contentView)
+	return lipgloss.JoinVertical(lipgloss.Top, tabLineStyle, contentView, statusLineStyle)
 }
 
 func (p *paneManager) AddPane(pane ManagedPane) core.PaneID {

@@ -5,7 +5,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
 )
 
@@ -21,8 +20,6 @@ func (p *StarSystemInfoPane) Init() tea.Cmd { return nil }
 func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case core.TickMsg:
-		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
@@ -61,10 +58,6 @@ func (p *StarSystemInfoPane) View() string {
 	var rows []string
 	for i, planet := range p.system.Planets {
 		row := planet.Name
-
-		if planet.ColonyName != "" {
-			row += fmt.Sprintf(" [%v]", planet.ColonyName)
-		}
 
 		row += fmt.Sprintf(" %v - population %v", planet.Position, planet.Population)
 

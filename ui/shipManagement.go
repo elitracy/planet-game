@@ -6,7 +6,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/models"
 )
@@ -54,8 +53,6 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return p, nil
 		}
-	case core.TickMsg:
-		return p, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":

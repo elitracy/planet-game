@@ -1,93 +1,86 @@
 package models
 
 import (
-	"fmt"
-
-	. "github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/core/interfaces"
+	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models/constructions"
 	"github.com/elitracy/planets/models/resources"
 	"github.com/elitracy/planets/models/stabilities"
 )
 
-// planets are a "colony"
+const (
+	STARTING_FOOD                     = 1000
+	STARTING_FOOD_CONSUMPTION_RATE    = 1
+	STARTING_MINERAL                  = 10000
+	STARTING_MINERAL_CONSUMPTION_RATE = 1
+	STARTING_ENERGY                   = 10000
+	STARTING_ENERGY_CONSUMPTION_RATE  = 1
+)
+
+type Resources struct {
+	Food     resources.Food
+	Minerals resources.Mineral
+	Energy   resources.Energy
+}
+
+type Stabilities struct {
+	Corruption stabilities.Corruption
+	Happiness  stabilities.Happiness
+	Unrest     stabilities.Unrest
+}
+
+type Constructions struct {
+	Farms      []constructions.Farm
+	Mines      []constructions.Mine
+	SolarGrids []constructions.SolarGrid
+}
+
 type Planet struct {
-	ID         int
-	Name       string
-	ColonyName string
-	Population int
+	ID                   int
+	Name                 string
+	Population           int
+	PopulationGrowthRate int
+	Colonized            bool
+
 	Resources
 	Stabilities
 	Constructions
-	Position
+	core.Position
 	OrderQueue []Event
 }
 
-func (p Planet) GetID() int            { return p.ID }
-func (p Planet) GetName() string       { return p.Name }
-func (p Planet) GetPosition() Position { return p.Position }
-func (p Planet) GetOrders() []Event    { return p.OrderQueue }
-
-func (p *Planet) PushOrder(order Event) {
-	p.OrderQueue = append(p.OrderQueue, order)
-}
-
-func (p *Planet) PopOrder() Event {
-	if len(p.OrderQueue) == 0 {
-		return nil
-	}
-
-	order := p.OrderQueue[0]
-	p.OrderQueue = p.OrderQueue[1:]
-	return order
-}
-
-func (p Planet) GetTotalFarmProduction() int {
-	total_rate := 0
-
-	for _, p := range p.Constructions.Farms {
-		total_rate += p.GetProductionRate()
-	}
-
-	return total_rate
-}
-
-func (p Planet) GetTotalMineProduction() int {
-	total_rate := 0
-	for _, p := range p.Constructions.Mines {
-		total_rate += p.GetProductionRate()
-	}
-
-	return total_rate
-}
-
-func (p Planet) GetTotalSolarGridProduction() int {
-	total_rate := 0
-
-	for _, p := range p.Constructions.SolarGrids {
-		total_rate += p.GetProductionRate()
-	}
-
-	return total_rate
-}
-
-func CreatePlanet(name string, x, y, z, pop, initial_food, initial_mineral, intital_energy, initial_food_rate, initial_mineral_rate, initial_energy_rate, num_farms, num_mines, num_solar_grids int) Planet {
+func CreatePlanet(name string, x, y, z, pop, num_farms, num_mines, num_solar_grids int) Planet {
 	planet := Planet{
-		Name:       name,
-		Population: pop,
-		Position:   Position{X: x, Y: y, Z: z},
+		Name:                 name,
+		Population:           pop,
+		PopulationGrowthRate: consts.POPULATION_GROWTH_RATE,
+		Position:             core.Position{X: x, Y: y, Z: z},
 		Resources: Resources{
 			Food: resources.Food{
-				Quantity:        initial_food,
-				ConsumptionRate: initial_food_rate,
+				Quantity:        pop * consts.FOOD_PER_PERSON * consts.NUM_DAYS_FED,
+				ConsumptionRate: STARTING_FOOD_CONSUMPTION_RATE,
 			},
 			Minerals: resources.Mineral{
-				Quantity:        initial_mineral,
-				ConsumptionRate: initial_mineral_rate,
+				Quantity:        STARTING_MINERAL,
+				ConsumptionRate: STARTING_MINERAL_CONSUMPTION_RATE,
 			},
 			Energy: resources.Energy{
-				Quantity:        intital_energy,
-				ConsumptionRate: initial_energy_rate,
+				Quantity:        STARTING_ENERGY,
+				ConsumptionRate: STARTING_ENERGY_CONSUMPTION_RATE,
+			},
+		},
+		Stabilities: Stabilities{
+			Happiness: stabilities.Happiness{
+				Quantity:   1,
+				GrowthRate: 0,
+			},
+			Corruption: stabilities.Corruption{
+				Quantity:   0,
+				GrowthRate: 0,
+			},
+			Unrest: stabilities.Unrest{
+				Quantity:   0,
+				GrowthRate: 0,
 			},
 		},
 	}
@@ -107,61 +100,102 @@ func CreatePlanet(name string, x, y, z, pop, initial_food, initial_mineral, inti
 	return planet
 }
 
-type Resources struct {
-	Food     resources.Food
-	Minerals resources.Mineral
-	Energy   resources.Energy
+func (p Planet) GetID() int                 { return p.ID }
+func (p Planet) GetName() string            { return p.Name }
+func (p Planet) GetPosition() core.Position { return p.Position }
+func (p Planet) GetOrders() []Event         { return p.OrderQueue }
+
+func (p *Planet) PushOrder(order Event) {
+	p.OrderQueue = append(p.OrderQueue, order)
 }
 
-func (r Resources) String() string {
-	var output string
-
-	output += fmt.Sprintf("| Food:       %d @ %d\n", r.Food.GetQuantity(), r.Food.GetConsumptionRate())
-	output += fmt.Sprintf("| Energy:     %d @ %d\n", r.Energy.GetQuantity(), r.Energy.GetConsumptionRate())
-	output += fmt.Sprintf("| Minerals:   %d @ %d", r.Minerals.GetQuantity(), r.Minerals.GetConsumptionRate())
-
-	return output
-}
-
-type Stabilities struct {
-	Corruption stabilities.Corruption
-	Happiness  stabilities.Happiness
-	Unrest     stabilities.Unrest
-}
-
-func (s Stabilities) String() string {
-	var output string
-
-	output += fmt.Sprintf("| Corruption: %.2f @ %.2f\n", s.Corruption.Quantity, s.Corruption.GetGrowthRate())
-	output += fmt.Sprintf("| Happiness:  %.2f @ %.2f\n", s.Happiness.Quantity, s.Happiness.GetGrowthRate())
-	output += fmt.Sprintf("| Unrest:     %.2f @ %.2f", s.Unrest.Quantity, s.Unrest.GetGrowthRate())
-
-	return output
-}
-
-type Constructions struct {
-	Farms      []constructions.Farm
-	Mines      []constructions.Mine
-	SolarGrids []constructions.SolarGrid
-}
-
-func (c Constructions) String() string {
-	var output string
-
-	output += "| Farms"
-	for i, f := range c.Farms {
-		output += fmt.Sprintf("\n 🌾 Farm[%d]: %d @ %d", i, f.GetQuantity(), f.GetProductionRate())
+func (p *Planet) PopOrder() Event {
+	if len(p.OrderQueue) == 0 {
+		return nil
 	}
 
-	output += "| Mines\n"
-	for i, m := range c.Mines {
-		output += fmt.Sprintf("\n ⛏️ Mine[%d]: %d @ %d", i, m.GetQuantity(), m.GetProductionRate())
+	order := p.OrderQueue[0]
+	p.OrderQueue = p.OrderQueue[1:]
+	return order
+}
+
+func (p Planet) GetFarmProduction() int {
+	total_rate := 0
+	for _, p := range p.Constructions.Farms {
+		total_rate += p.GetProductionRate()
 	}
 
-	output += "| Solar Grids\n"
-	for i, sg := range c.SolarGrids {
-		output += fmt.Sprintf("\n ☀️ Solar Grid[%d]: %d @ %d", i, sg.GetQuantity(), sg.GetProductionRate())
+	return total_rate
+}
+
+func (p Planet) GetMineProduction() int {
+	total_rate := 0
+	for _, p := range p.Constructions.Mines {
+		total_rate += p.GetProductionRate()
 	}
 
-	return output
+	return total_rate
+}
+
+func (p Planet) GetSolarGridProduction() int {
+	total_rate := 0
+	for _, p := range p.Constructions.SolarGrids {
+		total_rate += p.GetProductionRate()
+	}
+
+	return total_rate
+}
+
+func (p *Planet) Tick() {
+	p.TickResources()
+	p.TickStabilities()
+	p.TickConstructions()
+
+}
+
+func (p *Planet) TickResources() {
+
+	currentFood := p.Food.Quantity
+	requiredFood := p.Population * consts.FOOD_PER_PERSON
+
+	if currentFood >= requiredFood {
+		p.Food.Quantity -= requiredFood
+
+		currentFood = p.Food.Quantity
+		addPopRequiredFood := consts.FOOD_PER_PERSON * p.PopulationGrowthRate
+
+		if currentFood >= addPopRequiredFood {
+			p.Food.Quantity -= consts.FOOD_PER_PERSON * p.PopulationGrowthRate
+			p.Population += p.PopulationGrowthRate
+		}
+	}
+}
+
+func (p *Planet) TickStabilities() {
+
+	currentFood := p.Food.Quantity
+	requiredFood := p.Population * consts.FOOD_PER_PERSON
+
+	if currentFood < requiredFood {
+		p.Stabilities.Happiness.GrowthRate -= .05
+	}
+
+	p.Happiness.Tick()
+	p.Corruption.Tick()
+	p.Unrest.Tick()
+}
+
+func (p *Planet) TickConstructions() {
+
+	for _, farm := range p.Constructions.Farms {
+		p.Resources.Food.Quantity += farm.Quantity * farm.ProductionRate
+	}
+
+	for _, mine := range p.Constructions.Mines {
+		p.Resources.Minerals.Quantity += mine.Quantity * mine.ProductionRate
+	}
+
+	for _, solarGrid := range p.Constructions.SolarGrids {
+		p.Resources.Energy.Quantity += solarGrid.Quantity * solarGrid.ProductionRate
+	}
 }
