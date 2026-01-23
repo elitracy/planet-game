@@ -12,6 +12,11 @@ import (
 	"github.com/elitracy/planets/models"
 )
 
+const (
+	DEFAULT_KEYS            = "Planet Info: enter | Back: esc | "
+	UNCOLONIZED_SYSTEM_KEYS = "Scout: s | Colonize: c"
+)
+
 type StarSystemInfoPane struct {
 	*Pane
 
@@ -65,14 +70,6 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
 		case "ctrl+c", "q":
 			return p, tea.Quit
-		case "k":
-			if p.cursor > 0 {
-				p.cursor--
-			}
-		case "j":
-			if p.cursor < len(p.system.Planets)-1 {
-				p.cursor++
-			}
 		}
 
 	}
@@ -86,25 +83,15 @@ func (p *StarSystemInfoPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.system.Name
+	if p.system.Colonized {
+		p.keys = DEFAULT_KEYS
+	} else {
+		p.keys = DEFAULT_KEYS + UNCOLONIZED_SYSTEM_KEYS
+	}
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Left, title, p.systemInfoTable.View())
 
-	scoutButton := "Scout : s"
-	colonizeButton := "Colonize: c"
-
-	buttons := lipgloss.JoinHorizontal(lipgloss.Left, scoutButton, " | ", colonizeButton)
-	buttons = Style.Width(p.width).Border(lipgloss.NormalBorder(), true, false, false, false).Render(buttons)
-
-	topContent := lipgloss.Place(
-		p.width,
-		p.height-lipgloss.Height(buttons),
-		lipgloss.Left,
-		lipgloss.Top,
-		infoContainer,
-	)
-
-	content := lipgloss.JoinVertical(lipgloss.Left, topContent, buttons)
-	return content
+	return infoContainer
 
 }
 
@@ -112,6 +99,7 @@ func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemInfoP
 	return &StarSystemInfoPane{
 		Pane: &Pane{
 			title: title,
+			keys:  "Planet Info: enter | Back: esc | ",
 		},
 		system: system,
 	}

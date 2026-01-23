@@ -12,6 +12,7 @@ type Pane struct {
 	title  string
 	width  int
 	height int
+	keys   string
 }
 
 func (p Pane) String() string {
@@ -24,6 +25,7 @@ func (p *Pane) SetID(id core.PaneID) { p.id = id }
 func (p *Pane) Title() string        { return p.title }
 func (p *Pane) Size() (int, int)     { return p.width, p.height }
 func (p *Pane) SetSize(w, h int)     { p.width, p.height = w, h }
+func (p *Pane) GetKeys() *string     { return &p.keys }
 
 type ManagedPane interface {
 	tea.Model
@@ -32,4 +34,5 @@ type ManagedPane interface {
 	Title() string
 	Size() (int, int)
 	SetSize(int, int)
+	GetKeys() *string
 }

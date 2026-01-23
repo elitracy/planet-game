@@ -32,6 +32,7 @@ func NewSystemListPane(title string, systems []*models.StarSystem) *SystemsPane 
 	pane := &SystemsPane{
 		Pane: &Pane{
 			title: title,
+			keys:  "System Info: enter | Down: j | Up: k",
 		},
 		systems:   systems,
 		searching: false,
@@ -73,7 +74,6 @@ func (p *SystemsPane) Init() tea.Cmd {
 }
 
 func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		if msg.paneID == p.Pane.id {
@@ -168,18 +168,18 @@ func (p *SystemsPane) View() string {
 	var systemRows []string
 	for i, system := range filteredSystems {
 		row := fmt.Sprintf("%v", system.Name)
-
 		if !system.Colonized {
 			row += " (unknown)"
 		}
 
 		if i == p.cursor {
-
 			if system.Colonized {
 				row = p.theme.FocusedStyle.Render(row)
-			} else {
-				row = p.theme.DimmedStyle.Render(row)
 			}
+		}
+
+		if i != p.cursor {
+			row = p.theme.DimmedStyle.Render(row)
 		}
 		systemRows = append(systemRows, row)
 
@@ -192,7 +192,8 @@ func (p *SystemsPane) View() string {
 
 	systemList = Style.Width(p.width).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
 
-	content := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)
+	infoContainer := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)
 
+	content := lipgloss.JoinVertical(lipgloss.Left, infoContainer)
 	return content
 }

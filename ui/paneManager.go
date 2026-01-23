@@ -23,8 +23,8 @@ var detailHeight int
 type paneManager struct {
 	*Pane
 
-	TabLine         *TabLinePane
-	StatusLine      *StatusLinePane
+	TabLine         ManagedPane
+	StatusLine      ManagedPane
 	MainPane        ManagedPane
 	DetailPaneStack []ManagedPane
 
@@ -57,7 +57,7 @@ func NewPaneManager() *paneManager {
 		},
 	}
 
-	mainWidthPercentage = .3
+	mainWidthPercentage = .4
 
 	mainWidth = int(float32(pm.width) * mainWidthPercentage)
 	detailWidth = int(float32(pm.width) * (1 - mainWidthPercentage))
@@ -72,14 +72,19 @@ func NewPaneManager() *paneManager {
 
 func (p *paneManager) PushFocusStack(id core.PaneID) {
 	p.focusStack = append(p.focusStack, id)
+	pane := p.Panes[id]
+	p.StatusLine.(*StatusLinePane).SetKeys(pane.GetKeys())
 }
 
 func (p *paneManager) PopFocusStack() {
-	if len(p.focusStack) <= 0 {
+	if len(p.focusStack) <= 1 {
 		return
 	}
 
 	p.focusStack = p.focusStack[:len(p.focusStack)-1]
+
+	paneID := p.focusStack[len(p.focusStack)-1]
+	p.StatusLine.(*StatusLinePane).SetKeys(p.Panes[paneID].GetKeys())
 }
 
 func (p *paneManager) PeekFocusStack() core.PaneID {
@@ -91,7 +96,7 @@ func (p *paneManager) PeekFocusStack() core.PaneID {
 }
 
 func (p *paneManager) AddTab(pane ManagedPane) {
-	p.TabLine.tabs = append(p.TabLine.tabs, pane)
+	p.TabLine.(*TabLinePane).tabs = append(p.TabLine.(*TabLinePane).tabs, pane)
 }
 
 func (p *paneManager) SetMainPane(pane ManagedPane) {
@@ -130,7 +135,7 @@ func (p *paneManager) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
 	if p.MainPane == nil {
-		p.SetMainPane(p.TabLine.tabs[0])
+		p.SetMainPane(p.TabLine.(*TabLinePane).tabs[0])
 	}
 
 	if p.TabLine != nil {

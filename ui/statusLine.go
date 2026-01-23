@@ -5,12 +5,14 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/state"
 )
 
 type StatusLinePane struct {
 	*Pane
+	keys *string
 }
 
 func NewStatusLinePane(tick core.Tick) *StatusLinePane {
@@ -32,5 +34,14 @@ func (p *StatusLinePane) View() string {
 
 	content += fmt.Sprintf("Time : %v", componentsStyled)
 
+	if len(*p.keys) == 0 {
+		return content
+	}
+
+	keysStyled := Theme.DimmedStyle.Render(*p.keys)
+	content = lipgloss.JoinVertical(lipgloss.Left, content, keysStyled)
+
 	return content
 }
+
+func (p *StatusLinePane) SetKeys(keys *string) { p.keys = keys }
