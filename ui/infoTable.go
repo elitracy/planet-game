@@ -10,19 +10,17 @@ type InfoTablePane struct {
 	*Pane
 	table   table.Model
 	keymaps map[string]func() tea.Cmd
-	onEsc   func() tea.Cmd
 	theme   UITheme
 }
 
 func NewInfoTablePane(table table.Model, keymaps map[string]func() tea.Cmd) *InfoTablePane {
 	pane := &InfoTablePane{
-		Pane:    &Pane{},
+		Pane:    &Pane{title: "Info Table"},
 		table:   table,
 		keymaps: keymaps,
 	}
 	return pane
 }
-
 func (p *InfoTablePane) Init() tea.Cmd {
 	return nil
 }
@@ -30,7 +28,6 @@ func (p *InfoTablePane) Init() tea.Cmd {
 func (p *InfoTablePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-
 		key := msg.String()
 		if handler, ok := p.keymaps[key]; ok {
 			return p, handler()
@@ -50,8 +47,6 @@ func (p *InfoTablePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *InfoTablePane) View() string {
-	p.theme = GetPaneTheme(p)
-
 	tableStyles := table.DefaultStyles()
 
 	tableStyles.Header = tableStyles.Header.
@@ -68,4 +63,8 @@ func (p *InfoTablePane) View() string {
 	p.table.SetStyles(tableStyles)
 
 	return p.table.View()
+}
+
+func (p *InfoTablePane) SetTheme(theme UITheme) {
+	p.theme = theme
 }

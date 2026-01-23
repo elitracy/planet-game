@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
 )
@@ -10,6 +12,11 @@ type Pane struct {
 	title  string
 	width  int
 	height int
+}
+
+func (p Pane) String() string {
+	return fmt.Sprintf("[%v] %v (%vx%v)", p.id, p.title, p.width, p.height)
+
 }
 
 func (p *Pane) ID() core.PaneID      { return p.id }

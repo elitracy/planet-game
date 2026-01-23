@@ -118,11 +118,9 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, textinput.Blink
 		case "enter":
 			system := filteredSystems[p.cursor]
-			if system.Colonized {
-				systemInfoPane := NewSystemInfoPane(system.Name, system)
-				paneID := PaneManager.AddPane(systemInfoPane)
-				return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
-			}
+			systemInfoPane := NewSystemInfoPane(system.Name, system)
+			paneID := PaneManager.AddPane(systemInfoPane)
+			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
@@ -135,13 +133,9 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			system := filteredSystems[p.cursor]
-			if system.Colonized {
-				systemInfoPane := NewSystemInfoPane(system.Name, system)
-				paneID := PaneManager.AddPane(systemInfoPane)
-				return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-			}
-
-			return p, popDetailStackCmd()
+			systemInfoPane := NewSystemInfoPane(system.Name, system)
+			paneID := PaneManager.AddPane(systemInfoPane)
+			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 
 		case "down", "j":
 			if p.cursor < len(filteredSystems)-1 {
@@ -156,13 +150,10 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			system := filteredSystems[p.cursor]
 
-			if system.Colonized {
-				systemInfoPane := NewSystemInfoPane(system.Name, system)
-				paneID := PaneManager.AddPane(systemInfoPane)
-				return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-			}
+			systemInfoPane := NewSystemInfoPane(system.Name, system)
+			paneID := PaneManager.AddPane(systemInfoPane)
+			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 
-			return p, popDetailStackCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

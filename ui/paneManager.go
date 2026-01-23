@@ -293,12 +293,13 @@ func (p *paneManager) View() string {
 
 func (p *paneManager) AddPane(pane ManagedPane) core.PaneID {
 	p.currentID++
-	pane.SetID(p.currentID)
-	p.Panes[p.currentID] = pane
+	id := p.currentID
+	pane.SetID(id)
+	p.Panes[id] = pane
 
-	p.Panes[p.currentID].Init()
+	p.Panes[id].Init()
 
-	return p.currentID
+	return id
 }
 
 func (p *paneManager) RemovePane(id core.PaneID) { delete(p.Panes, id) }
