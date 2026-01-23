@@ -103,7 +103,7 @@ func (p *paneManager) PushDetailPaneStack(pane ManagedPane) {
 }
 
 func (p *paneManager) PopDetailPaneStack() {
-	if len(p.DetailPaneStack) <= 1 {
+	if len(p.DetailPaneStack) <= 0 {
 		return
 	}
 

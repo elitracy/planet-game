@@ -25,12 +25,7 @@ func NewTablinePane(tabs []ManagedPane) *TabLinePane {
 }
 
 func (p *TabLinePane) Init() tea.Cmd {
-	var cmds []tea.Cmd
-	for _, pane := range p.tabs {
-		cmds = append(cmds, pane.Init())
-	}
-
-	return tea.Batch(cmds...)
+	return nil
 }
 
 func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

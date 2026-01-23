@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
 )
 
@@ -16,12 +15,11 @@ var filteredSystems []*models.StarSystem
 type SystemsPane struct {
 	*Pane
 
-	cursor       int
-	searching    bool
-	textInput    textinput.Model
-	systems      []*models.StarSystem
-	knownSystems []*models.StarSystem
-	theme        UITheme
+	cursor    int
+	searching bool
+	textInput textinput.Model
+	systems   []*models.StarSystem
+	theme     UITheme
 }
 
 func NewSystemListPane(title string, systems []*models.StarSystem) *SystemsPane {
@@ -43,21 +41,12 @@ func NewSystemListPane(title string, systems []*models.StarSystem) *SystemsPane 
 	return pane
 }
 
-func (p *SystemsPane) updateKnownSystems() {
-	p.knownSystems = nil
-	for _, system := range p.systems {
-		if system.Colonized {
-			p.knownSystems = append(p.knownSystems, system)
-		}
-	}
-}
-
-func (p *SystemsPane) filteredSystems() {
+func (p *SystemsPane) filterSystems() {
 	if len(p.textInput.Value()) == 0 {
-		filteredSystems = p.knownSystems
+		filteredSystems = p.systems
 	} else {
 		filteredSystems = []*models.StarSystem{}
-		for _, s := range p.knownSystems {
+		for _, s := range p.systems {
 			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(p.textInput.Value())) {
 				filteredSystems = append(filteredSystems, s)
 			}
@@ -70,8 +59,7 @@ func (p *SystemsPane) filteredSystems() {
 }
 
 func (p *SystemsPane) Init() tea.Cmd {
-	p.updateKnownSystems()
-	filteredSystems = p.knownSystems
+	filteredSystems = p.systems
 
 	if len(filteredSystems) == 0 {
 		return nil
@@ -94,8 +82,6 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return p, nil
 		}
-	case core.UITickMsg:
-		p.updateKnownSystems()
 	case tea.KeyMsg:
 		if p.searching {
 			switch msg.String() {
@@ -111,7 +97,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			cmds = append(cmds, cmd)
 
-			p.filteredSystems()
+			p.filterSystems()
 
 			if len(filteredSystems) > 0 {
 				system := filteredSystems[p.cursor]
@@ -132,9 +118,11 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, textinput.Blink
 		case "enter":
 			system := filteredSystems[p.cursor]
-			systemInfoPane := NewSystemInfoPane(system.Name, system)
-			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+			if system.Colonized {
+				systemInfoPane := NewSystemInfoPane(system.Name, system)
+				paneID := PaneManager.AddPane(systemInfoPane)
+				return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+			}
 		case "up", "k":
 			if p.cursor > 0 {
 				p.cursor--
@@ -147,9 +135,14 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			system := filteredSystems[p.cursor]
-			systemInfoPane := NewSystemInfoPane(system.Name, system)
-			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			if system.Colonized {
+				systemInfoPane := NewSystemInfoPane(system.Name, system)
+				paneID := PaneManager.AddPane(systemInfoPane)
+				return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			}
+
+			return p, popDetailStackCmd()
+
 		case "down", "j":
 			if p.cursor < len(filteredSystems)-1 {
 				p.cursor++
@@ -160,10 +153,16 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(filteredSystems) == 0 {
 				return p, nil
 			}
+
 			system := filteredSystems[p.cursor]
-			systemInfoPane := NewSystemInfoPane(system.Name, system)
-			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+
+			if system.Colonized {
+				systemInfoPane := NewSystemInfoPane(system.Name, system)
+				paneID := PaneManager.AddPane(systemInfoPane)
+				return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			}
+
+			return p, popDetailStackCmd()
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
@@ -176,15 +175,25 @@ func (p *SystemsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	var systemRows []string
-	for i, s := range filteredSystems {
-		row := fmt.Sprintf("%v", s.Name)
-		if i == p.cursor {
-			row = p.theme.FocusedStyle.Render(row)
+	for i, system := range filteredSystems {
+		row := fmt.Sprintf("%v", system.Name)
 
+		if !system.Colonized {
+			row += " (unknown)"
+		}
+
+		if i == p.cursor {
+
+			if system.Colonized {
+				row = p.theme.FocusedStyle.Render(row)
+			} else {
+				row = p.theme.DimmedStyle.Render(row)
+			}
 		}
 		systemRows = append(systemRows, row)
 
 	}
+
 	systemList := ""
 	if len(systemRows) > 0 {
 		systemList = lipgloss.JoinVertical(lipgloss.Left, systemRows...)
