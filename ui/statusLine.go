@@ -28,7 +28,7 @@ func (p *StatusLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) { return p, ni
 func (p *StatusLinePane) View() string {
 	content := ""
 
-	components := strings.Split(state.State.Tick.String(), ".")
+	components := strings.Split(state.State.CurrentTick.String(), ".")
 	components[2] = Theme.DimmedStyle.Render(components[2])
 	componentsStyled := strings.Join(components, ".")
 

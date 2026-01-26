@@ -39,21 +39,16 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case core.UITickMsg:
-		if p.progress.Percent() == 1.0 {
-			return p, nil
+		if state.State.CurrentTick >= p.endTick {
+			cmd := p.progress.SetPercent(1.0)
+			return p, cmd
 		}
 
-		if p.startTick <= state.State.Tick {
-			duration := p.endTick - p.startTick
-
-			if duration == 0 {
-				cmd := p.progress.IncrPercent(1)
-				return p, cmd
-			}
-
-			increment := (float64(core.TICKS_PER_SECOND) / float64(core.TICKS_PER_SECOND_UI)) / float64(duration)
-
-			cmd := p.progress.IncrPercent(increment)
+		if state.State.CurrentTick >= p.startTick {
+			duration := float64(p.endTick - p.startTick)
+			elapsed := float64(state.State.CurrentTick - p.startTick)
+			percent := elapsed / duration
+			cmd := p.progress.SetPercent(percent)
 			return p, cmd
 		}
 
@@ -63,9 +58,6 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		progressModel, cmd := p.progress.Update(msg)
 		p.progress = progressModel.(progress.Model)
 		return p, cmd
-
-	default:
-		return p, nil
 	}
 	return p, nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models/events"
-	"github.com/elitracy/planets/models/events/actions"
 	"github.com/elitracy/planets/models/events/orders"
 	"github.com/elitracy/planets/state"
 )
@@ -23,7 +22,7 @@ type OrderStatusPane struct {
 	*Pane
 	cursor         int
 	orderScheduler *events.EventScheduler[*orders.Order]
-	progressBars   map[actions.OrderAction]core.PaneID
+	progressBars   map[events.EventID]core.PaneID
 }
 
 func NewOrderStatusPane(title string, orderScheduler *events.EventScheduler[*orders.Order]) *OrderStatusPane {
@@ -38,22 +37,19 @@ func NewOrderStatusPane(title string, orderScheduler *events.EventScheduler[*ord
 }
 
 func (p *OrderStatusPane) Init() tea.Cmd {
-	p.updateProgressBars()
+	p.initProgrssBars()
 	return nil
 }
 
 func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	p.updateProgressBars()
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.Pane.id {
-			var cmds []tea.Cmd
-			for _, val := range p.progressBars {
-				cmds = append(cmds, paneResizeCmd(val, progressBarWidth, msg.height))
-			}
-			return p, tea.Batch(cmds...)
+		var cmds []tea.Cmd
+		for _, val := range p.progressBars {
+			cmds = append(cmds, paneResizeCmd(val, progressBarWidth, msg.height))
 		}
+		return p, tea.Batch(cmds...)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -71,7 +67,15 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return p, nil
+	var cmds []tea.Cmd
+	for _, paneID := range p.progressBars {
+		progressBar := PaneManager.Panes[paneID]
+		model, cmd := progressBar.Update(msg)
+		cmds = append(cmds, cmd)
+		progressBar = model.(ManagedPane)
+	}
+
+	return p, tea.Batch(cmds...)
 }
 
 func (p *OrderStatusPane) View() string {
@@ -93,7 +97,7 @@ func (p *OrderStatusPane) View() string {
 		completedOrders = append(completedOrders, order)
 	}
 
-	p.updateProgressBars()
+	// p.initProgrssBars()
 
 	title := Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(p.Pane.title + "\n")
 
@@ -107,7 +111,7 @@ func (p *OrderStatusPane) View() string {
 	for _, order := range pendingOrders {
 		row := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
 
-		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-state.State.Tick)/core.TICKS_PER_SECOND)
+		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-state.State.CurrentTick)/core.TICKS_PER_SECOND)
 
 		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.Pane.width-5 {
 			row = Style.Render(row)
@@ -148,23 +152,9 @@ func (p *OrderStatusPane) View() string {
 		orderStyle := Style.Width(p.Pane.width).Align(lipgloss.Left)
 		rows = append(rows, orderStyle.Render(orderLabel))
 
-		for _, action := range order.GetActions() {
-			progressBar := PaneManager.Panes[p.progressBars[action]]
-			label := fmt.Sprintf("\n• [%v] %v", action.GetStatus(), action.GetDescription())
-
-			label = Style.Width(lipgloss.Width(label)).Align(lipgloss.Left).Render(label)
-			label = Style.PaddingRight(p.Pane.width - lipgloss.Width(label) - lipgloss.Width(progressBar.View()) - 5).Render(label)
-
-			var row string
-			if lipgloss.Width(label)+lipgloss.Width(progressBar.View()) > p.Pane.width-5 {
-				row = lipgloss.JoinVertical(lipgloss.Left, label, progressBar.View())
-			} else {
-				row = lipgloss.JoinHorizontal(lipgloss.Bottom, label, progressBar.View())
-			}
-
-			rows = append(rows, row)
-		}
-
+		barID := p.progressBars[order.GetID()]
+		progressBar := PaneManager.Panes[barID]
+		rows = append(rows, progressBar.View())
 		orderContent := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 		if p.cursor == currentOrder {
@@ -213,18 +203,16 @@ func (p *OrderStatusPane) View() string {
 	return content
 }
 
-func (p *OrderStatusPane) updateProgressBars() {
+func (p *OrderStatusPane) initProgrssBars() {
 	if p.progressBars == nil {
-		p.progressBars = make(map[actions.OrderAction]core.PaneID)
+		p.progressBars = make(map[events.EventID]core.PaneID)
 	}
 
 	for _, order := range p.orderScheduler.PriorityQueue {
-		for _, action := range order.GetActions() {
-			if _, ok := p.progressBars[action]; !ok {
-				progressBar := NewLoadingBarPane("Order Status: "+order.GetName(), action.GetExecuteTick(), action.GetExecuteTick()+action.GetDuration())
-				id := PaneManager.AddPane(progressBar)
-				p.progressBars[action] = id
-			}
+		if _, ok := p.progressBars[order.ID]; !ok {
+			progressBar := NewLoadingBarPane("Order Status: "+order.GetName(), order.GetExecuteTick(), order.GetEndTick())
+			id := PaneManager.AddPane(progressBar)
+			p.progressBars[order.GetID()] = id
 
 		}
 	}

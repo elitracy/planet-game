@@ -9,7 +9,7 @@ import (
 
 type Action struct {
 	events.Event
-	ID           int
+	ID           events.EventID
 	TargetEntity models.Entity
 	Description  string
 	ExecuteTick  core.Tick
@@ -17,8 +17,8 @@ type Action struct {
 	Status       consts.EventStatus
 }
 
-func (a Action) GetID() int                           { return a.ID }
-func (a *Action) SetID(id int)                        { a.ID = id }
+func (a Action) GetID() events.EventID                { return a.ID }
+func (a *Action) SetID(id events.EventID)             { a.ID = id }
 func (a Action) GetTargetEntity() models.Entity       { return a.TargetEntity }
 func (a Action) GetDescription() string               { return a.Description }
 func (a Action) GetExecuteTick() core.Tick            { return a.ExecuteTick }
@@ -27,8 +27,8 @@ func (a Action) GetStatus() consts.EventStatus        { return a.Status }
 func (a *Action) SetStatus(status consts.EventStatus) { a.Status = status }
 
 type OrderAction interface {
-	GetID() int
-	SetID(int)
+	GetID() events.EventID
+	SetID(events.EventID)
 	GetTargetEntity() models.Entity
 	GetDescription() string
 	GetExecuteTick() core.Tick

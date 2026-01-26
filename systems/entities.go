@@ -7,7 +7,7 @@ import (
 
 func TickSystems() {
 
-	if state.State.Tick%(core.TICKS_PER_PULSE) != 0 {
+	if state.State.CurrentTick%(core.TICKS_PER_PULSE) != 0 {
 		return
 	}
 

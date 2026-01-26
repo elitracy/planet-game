@@ -6,8 +6,8 @@ import (
 )
 
 type Event interface {
-	GetID() int
-	SetID(int)
+	GetID() EventID
+	SetID(EventID)
 	GetExecuteTick() core.Tick
 	GetDuration() core.Tick
 	GetStatus() consts.EventStatus

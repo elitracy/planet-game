@@ -52,7 +52,7 @@ func NewPaneManager() *paneManager {
 		currentID:     0,
 		CurrentUITick: 0,
 		TabLine:       NewTablinePane([]ManagedPane{}),
-		StatusLine:    NewStatusLinePane(state.State.Tick),
+		StatusLine:    NewStatusLinePane(state.State.CurrentTick),
 		Pane: &Pane{
 			width:  width,
 			height: height,
@@ -160,7 +160,7 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds,
 		paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight),
 		paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight),
-		core.TickCmd(state.State.Tick),
+		core.TickCmd(state.State.CurrentTick),
 		core.UITickCmd(p.CurrentUITick),
 	)
 
@@ -207,7 +207,7 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.Pane.width = msg.Width
 		p.Pane.height = msg.Height
 	case core.TickMsg:
-		cmds := []tea.Cmd{core.TickCmd(state.State.Tick)}
+		cmds := []tea.Cmd{core.TickCmd(state.State.CurrentTick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(ManagedPane)

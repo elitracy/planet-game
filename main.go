@@ -19,8 +19,8 @@ const START_YEAR_TICK = 2049 * core.TICKS_PER_CYCLE
 func main() {
 
 	state.State = &state.GameState{}
-	state.State.Tick = core.Tick(rand.Intn(START_YEAR_TICK) + START_YEAR_TICK)
-	logging.SetTick(&state.State.Tick)
+	state.State.CurrentTick = core.Tick(rand.Intn(START_YEAR_TICK) + START_YEAR_TICK)
+	logging.SetTick(&state.State.CurrentTick)
 
 	ui.InitPaneManager()
 

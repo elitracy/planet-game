@@ -1,8 +1,10 @@
 package events
 
+type EventID int
+
 type EventScheduler[E Event] struct {
 	PriorityQueue []E
-	currentID     int
+	currentID     EventID
 }
 
 func (s *EventScheduler[E]) Push(e E) {
@@ -49,7 +51,7 @@ func (s *EventScheduler[E]) Peek() E {
 	return s.PriorityQueue[0]
 }
 
-func (s *EventScheduler[E]) GetNextID() int {
+func (s *EventScheduler[E]) GetNextID() EventID {
 	s.currentID++
 	return s.currentID
 }

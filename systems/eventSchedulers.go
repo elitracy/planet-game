@@ -11,11 +11,11 @@ func TickOrderScheduler() {
 	for _, order := range state.State.OrderScheduler.PriorityQueue {
 		switch order.GetStatus() {
 		case consts.EventPending:
-			if order.GetExecuteTick() <= state.State.Tick {
+			if order.GetExecuteTick() <= state.State.CurrentTick {
 				logging.Info("[%s] Executing Order: %v", order.GetName(), order.GetID())
 				order.SetStatus(consts.EventExecuting)
 				for _, action := range order.GetActions() {
-					if action.GetExecuteTick() == state.State.Tick {
+					if action.GetExecuteTick() == state.State.CurrentTick {
 						action.SetStatus(consts.EventExecuting)
 					}
 				}
@@ -62,11 +62,11 @@ func TickActionScheduler() {
 
 				switch action.GetStatus() {
 				case consts.EventPending:
-					if action.GetExecuteTick() <= state.State.Tick {
+					if action.GetExecuteTick() <= state.State.CurrentTick {
 						action.SetStatus(consts.EventExecuting)
 					}
 				case consts.EventExecuting:
-					if action.GetExecuteTick()+action.GetDuration() <= state.State.Tick {
+					if action.GetExecuteTick()+action.GetDuration() <= state.State.CurrentTick {
 						action.Execute()
 						action.SetStatus(consts.EventComplete)
 					}

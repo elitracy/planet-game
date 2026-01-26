@@ -37,7 +37,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					p.planet.Name = p.inputs[0].Value()
 				}
 
-				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.Tick)
+				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.CurrentTick)
 
 				state.State.OrderScheduler.Push(createColonyOrder)
 				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())

@@ -141,7 +141,7 @@ func (p *StarSystemInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 		"Ship Management",
 		&state.State.ShipManager,
 		func(ship *models.Ship) {
-			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system}, state.State.Tick+40)
+			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system}, state.State.CurrentTick+40)
 			state.State.OrderScheduler.Push(order)
 		},
 	)

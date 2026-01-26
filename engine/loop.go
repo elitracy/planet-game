@@ -39,7 +39,7 @@ func RunGame() {
 		case <-quit:
 			return
 		default:
-			state.State.Tick++
+			state.State.CurrentTick++
 
 			systems.TickOrderScheduler()
 			systems.TickActionScheduler()

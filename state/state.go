@@ -42,7 +42,7 @@ var (
 )
 
 type GameState struct {
-	Tick            core.Tick
+	CurrentTick            core.Tick
 	StarSystems     []*models.StarSystem
 	Player          models.Player
 	OrderScheduler  events.EventScheduler[*orders.Order]
