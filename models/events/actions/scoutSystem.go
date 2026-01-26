@@ -12,12 +12,12 @@ type ScoutSystemAction struct {
 	*Action
 }
 
-func NewScoutSystemAction(system *models.StarSystem, executeTick core.Tick, duration core.Tick) *TimeoutAction {
+func NewScoutEntityAction(entity models.Entity, executeTick core.Tick, duration core.Tick) *TimeoutAction {
 
 	action := &TimeoutAction{
 		Action: &Action{
-			TargetEntity: system,
-			Description:  fmt.Sprintf("Scoutting %v", system.GetName()),
+			TargetEntity: entity,
+			Description:  fmt.Sprintf("Scoutting %v", entity.GetName()),
 			ExecuteTick:  executeTick,
 			Duration:     duration,
 			Status:       events.EventPending,
@@ -30,5 +30,9 @@ func NewScoutSystemAction(system *models.StarSystem, executeTick core.Tick, dura
 func (a *ScoutSystemAction) Execute() {
 	if system, ok := a.TargetEntity.(*models.StarSystem); ok {
 		system.Scouted = true
+	}
+
+	if planet, ok := a.TargetEntity.(*models.Planet); ok {
+		planet.Scouted = true
 	}
 }

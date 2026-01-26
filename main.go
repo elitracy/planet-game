@@ -34,6 +34,10 @@ func main() {
 
 	startingPlanet := startingSystem.Planets[0]
 
+	for _, planet := range startingSystem.Planets {
+		planet.Colonized = true
+	}
+
 	state.State.CreatePlayer(startingPlanet.GetPosition())
 	logging.Ok("Player Initialized")
 

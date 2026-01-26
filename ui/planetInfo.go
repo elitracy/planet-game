@@ -89,10 +89,6 @@ func (p *PlanetInfoPane) View() string {
 func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
 	keys := "Back: esc"
 
-	if !planet.Colonized {
-		keys += " | Colonize: c | Scout: s"
-	}
-
 	return &PlanetInfoPane{
 		Pane: &Pane{
 			title: title,

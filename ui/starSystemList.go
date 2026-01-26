@@ -8,11 +8,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/state"
 )
 
 var filteredSystems []*models.StarSystem
 
-type SystemsPane struct {
+type StarSystemListPane struct {
 	*Pane
 
 	cursor    int
@@ -22,17 +24,17 @@ type SystemsPane struct {
 	theme     UITheme
 }
 
-func NewSystemListPane(title string, systems []*models.StarSystem) *SystemsPane {
+func NewStarSystemListPane(title string, systems []*models.StarSystem) *StarSystemListPane {
 	ti := textinput.New()
 	ti.Placeholder = "Search Star Systems \"/\""
 	ti.Blur()
 	ti.CharLimit = 156
 	ti.Width = 36
 
-	pane := &SystemsPane{
+	pane := &StarSystemListPane{
 		Pane: &Pane{
 			title: title,
-			keys:  "System Info: enter | Down: j | Up: k",
+			keys:  "Select: enter | Down: j | Up: k",
 		},
 		systems:   systems,
 		searching: false,
@@ -42,7 +44,7 @@ func NewSystemListPane(title string, systems []*models.StarSystem) *SystemsPane 
 	return pane
 }
 
-func (p *SystemsPane) filterSystems() {
+func (p *StarSystemListPane) filterSystems() {
 	if len(p.textInput.Value()) == 0 {
 		filteredSystems = p.systems
 	} else {
@@ -59,7 +61,7 @@ func (p *SystemsPane) filterSystems() {
 	}
 }
 
-func (p *SystemsPane) Init() tea.Cmd {
+func (p *StarSystemListPane) Init() tea.Cmd {
 	filteredSystems = p.systems
 
 	if len(filteredSystems) == 0 {
@@ -73,7 +75,7 @@ func (p *SystemsPane) Init() tea.Cmd {
 	return pushDetailStackCmd(paneID)
 }
 
-func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		if msg.paneID == p.Pane.id {
@@ -162,7 +164,7 @@ func (p *SystemsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-func (p *SystemsPane) View() string {
+func (p *StarSystemListPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	var systemRows []string
@@ -200,4 +202,18 @@ func (p *SystemsPane) View() string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, infoContainer)
 	return content
+}
+
+func (p *StarSystemListPane) handleScoutOrder() (tea.Model, tea.Cmd) {
+	pane := CreateNewShipManagementPane(
+		"Ship Management",
+		&state.State.ShipManager,
+		func(ship *models.Ship) {
+			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.systems[p.cursor].Position, Entity: p.systems[p.cursor]}, state.State.CurrentTick+40)
+			state.State.OrderScheduler.Push(order)
+		},
+	)
+
+	paneID := PaneManager.AddPane(pane)
+	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 }

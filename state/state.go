@@ -18,8 +18,8 @@ const (
 	MAX_PLANETS = 10
 
 	// center of system
-	MIN_STAR_SYSTEM_DIST = 10000
-	MAX_STAR_SYSTEM_DIST = 1000000
+	MIN_STAR_SYSTEM_DIST = 10_000
+	MAX_STAR_SYSTEM_DIST = 1_000_000
 
 	// from star system center
 	MIN_PLANET_DIST = 1000
@@ -42,7 +42,7 @@ var (
 )
 
 type GameState struct {
-	CurrentTick            core.Tick
+	CurrentTick     core.Tick
 	StarSystems     []*models.StarSystem
 	Player          models.Player
 	OrderScheduler  events.EventScheduler[*orders.Order]

@@ -2,9 +2,11 @@ package ui
 
 import (
 	"fmt"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models/events"
@@ -82,8 +84,16 @@ func (p *OrderListPane) View() string {
 		}
 
 		row := order.GetName()
+
+		if order.Status == events.EventPending {
+			duration := (order.GetExecuteTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+			countDown := fmt.Sprintf("ETA: %v", humanize.Time(time.Now().Add(duration)))
+			row += fmt.Sprintf(" %v", countDown)
+		}
+
 		if order.Status == events.EventExecuting {
-			countDown := fmt.Sprintf("ETA: %vs", int((order.GetEndTick()-state.State.CurrentTick)/consts.TICKS_PER_SECOND))
+			duration := (order.GetEndTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+			countDown := fmt.Sprintf("ETA: %v", humanize.Time(time.Now().Add(duration)))
 			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
 			row += fmt.Sprintf(" %v %v", progressBar.View(), countDown)
 		}

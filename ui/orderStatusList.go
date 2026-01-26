@@ -29,7 +29,7 @@ func NewOrderStatusListPane(title string, orderScheduler *events.EventScheduler[
 		Pane: &Pane{
 			title: title,
 		},
-
+		cursor:         0,
 		orderScheduler: orderScheduler,
 	}
 

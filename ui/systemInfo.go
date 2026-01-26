@@ -15,14 +15,15 @@ import (
 )
 
 const (
-	DEFAULT_KEYS            = "Planet Info: enter | Back: esc | "
-	UNCOLONIZED_SYSTEM_KEYS = "Scout: s | Colonize: c"
+	DEFAULT_KEYS = "Back: esc"
+	INFO_KEY     = " | Info: enter"
+	SCOUT_KEY    = " | Scout: s"
+	COLONIZE_KEY = " | Colonize: c"
 )
 
 type StarSystemInfoPane struct {
 	*Pane
 
-	cursor          int
 	system          *models.StarSystem
 	theme           UITheme
 	systemInfoTable ManagedPane
@@ -37,6 +38,11 @@ func (p *StarSystemInfoPane) Init() tea.Cmd {
 	}
 	keymaps["enter"] = func() tea.Cmd {
 		cursor := p.systemInfoTable.(*InfoTablePane).table.Cursor()
+		planet := p.system.Planets[cursor]
+
+		if !planet.Scouted && !planet.Colonized {
+			return nil
+		}
 
 		pane := NewPlanetInfoPane("Planet Info", p.system.Planets[cursor])
 		paneID := PaneManager.AddPane(pane)
@@ -83,18 +89,21 @@ func (p *StarSystemInfoPane) View() string {
 
 	title := p.system.Name
 	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
-	if p.system.Colonized {
-		p.keys = DEFAULT_KEYS
+	p.keys = DEFAULT_KEYS
+
+	if !p.system.Planets[p.createInfoTable().Cursor()].Colonized {
+		p.keys += COLONIZE_KEY
 	} else {
-		p.keys = DEFAULT_KEYS + UNCOLONIZED_SYSTEM_KEYS
+		p.keys += INFO_KEY
 	}
 
-	if p.system.Colonized {
-		return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.systemInfoTable.View())
+	if !p.system.Scouted {
+		p.keys += SCOUT_KEY
+	} else {
+		p.keys += INFO_KEY
 	}
 
-	return titleStyled
-
+	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.systemInfoTable.View())
 }
 
 func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemInfoPane {
@@ -130,7 +139,15 @@ func (p *StarSystemInfoPane) createRows() []table.Row {
 	rows := []table.Row{}
 	for _, planet := range p.system.Planets {
 		populationString := fmt.Sprintf("%v (%v)", humanize.Comma(int64(planet.Population)), strconv.Itoa(planet.PopulationGrowthRate))
-		rows = append(rows, table.Row{planet.Name, planet.Position.String(), populationString})
+
+		var row table.Row
+		if planet.Scouted || planet.Colonized {
+			row = table.Row{planet.Name, planet.Position.String(), populationString}
+		} else {
+			row = table.Row{planet.Name, planet.Position.String(), ""}
+		}
+
+		rows = append(rows, row)
 	}
 
 	return rows
@@ -141,7 +158,7 @@ func (p *StarSystemInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 		"Ship Management",
 		&state.State.ShipManager,
 		func(ship *models.Ship) {
-			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system}, state.State.CurrentTick+40)
+			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system.Planets[p.createInfoTable().Cursor()]}, state.State.CurrentTick+40)
 			state.State.OrderScheduler.Push(order)
 		},
 	)

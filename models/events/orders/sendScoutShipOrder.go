@@ -2,6 +2,7 @@ package orders
 
 import (
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/events/actions"
@@ -14,9 +15,15 @@ type ScoutPositionOrder struct {
 }
 
 func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTick core.Tick) *Order {
+	name := ""
+	if dest.Entity != nil {
+		name = dest.Entity.GetName()
+	} else {
+		name = dest.Entity.GetPosition().String()
+	}
 	order := &ScoutPositionOrder{
 		Order: &Order{
-			Name:        "Scout destination",
+			Name:        "Scout " + name,
 			ExecuteTick: execTick,
 			Status:      events.EventPending,
 		},
@@ -28,6 +35,8 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTi
 	t := d / ship.Velocity.Vector()
 
 	initialPos := ship.GetPosition()
+
+	logging.Info("Distance: %v", d)
 
 	travelAction := actions.NewMoveEntityAction(
 		ship,
@@ -45,10 +54,9 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTi
 
 	order.Actions = append(order.Actions, travelAction, returnAction)
 
-	if system, ok := dest.Entity.(*models.StarSystem); ok {
-
-		scoutSystemAction := actions.NewScoutSystemAction(system, order.ExecuteTick, core.Tick(t)*2)
-		order.Actions = append(order.Actions, scoutSystemAction)
+	if dest.Entity != nil {
+		scoutEntityAction := actions.NewScoutEntityAction(dest.Entity, order.ExecuteTick, core.Tick(t)*2)
+		order.Actions = append(order.Actions, scoutEntityAction)
 	}
 
 	return order.Order
