@@ -7,8 +7,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
-	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events"
+	"github.com/elitracy/planets/models/events/actions"
+	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/state"
 )
 
 var (
@@ -20,11 +22,11 @@ var (
 type OrderStatusPane struct {
 	*Pane
 	cursor         int
-	orderScheduler *EventScheduler[Order]
-	progressBars   map[Action]core.PaneID
+	orderScheduler *events.EventScheduler[*orders.Order]
+	progressBars   map[actions.OrderAction]core.PaneID
 }
 
-func NewOrderStatusPane(orderScheduler *EventScheduler[Order], title string) *OrderStatusPane {
+func NewOrderStatusPane(title string, orderScheduler *events.EventScheduler[*orders.Order]) *OrderStatusPane {
 	pane := &OrderStatusPane{
 		Pane: &Pane{
 			title: title,
@@ -59,7 +61,7 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 		case "down", "j":
-			if p.cursor < len(p.orderScheduler.PriorityQueue)+len(State.CompletedOrders)-1 {
+			if p.cursor < len(p.orderScheduler.PriorityQueue)+len(state.State.CompletedOrders)-1 {
 				p.cursor++
 			}
 		case "esc":
@@ -74,9 +76,9 @@ func (p *OrderStatusPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p *OrderStatusPane) View() string {
 
-	var pendingOrders []Order
-	var executingOrders []Order
-	var completedOrders []Order
+	var pendingOrders []*orders.Order
+	var executingOrders []*orders.Order
+	var completedOrders []*orders.Order
 
 	for _, order := range p.orderScheduler.PriorityQueue {
 		switch order.GetStatus() {
@@ -87,7 +89,7 @@ func (p *OrderStatusPane) View() string {
 		}
 	}
 
-	for _, order := range State.CompletedOrders {
+	for _, order := range state.State.CompletedOrders {
 		completedOrders = append(completedOrders, order)
 	}
 
@@ -105,7 +107,7 @@ func (p *OrderStatusPane) View() string {
 	for _, order := range pendingOrders {
 		row := fmt.Sprintf("[%v] %v", order.GetStatus(), order.GetName())
 
-		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-State.Tick)/core.TICKS_PER_SECOND)
+		countDown := fmt.Sprintf("ETA: %vs", (order.GetExecuteTick()-state.State.Tick)/core.TICKS_PER_SECOND)
 
 		if lipgloss.Width(countDown)+lipgloss.Width(row) > p.Pane.width-5 {
 			row = Style.Render(row)
@@ -213,7 +215,7 @@ func (p *OrderStatusPane) View() string {
 
 func (p *OrderStatusPane) updateProgressBars() {
 	if p.progressBars == nil {
-		p.progressBars = make(map[Action]core.PaneID)
+		p.progressBars = make(map[actions.OrderAction]core.PaneID)
 	}
 
 	for _, order := range p.orderScheduler.PriorityQueue {

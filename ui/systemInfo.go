@@ -10,6 +10,8 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/state"
 )
 
 const (
@@ -36,12 +38,7 @@ func (p *StarSystemInfoPane) Init() tea.Cmd {
 	keymaps["enter"] = func() tea.Cmd {
 		cursor := p.systemInfoTable.(*InfoTablePane).table.Cursor()
 
-		pane := &PlanetInfoPane{
-			Pane: &Pane{
-				title: "Planet Info",
-			},
-			planet: p.system.Planets[cursor],
-		}
+		pane := NewPlanetInfoPane("Planet Info", p.system.Planets[cursor])
 		paneID := PaneManager.AddPane(pane)
 		return tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 	}
@@ -66,6 +63,8 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.systemInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "s":
+			return p.handleScoutOrder()
 		case "esc":
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
 		case "ctrl+c", "q":
@@ -83,15 +82,18 @@ func (p *StarSystemInfoPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.system.Name
+	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
 	if p.system.Colonized {
 		p.keys = DEFAULT_KEYS
 	} else {
 		p.keys = DEFAULT_KEYS + UNCOLONIZED_SYSTEM_KEYS
 	}
 
-	infoContainer := lipgloss.JoinVertical(lipgloss.Left, title, p.systemInfoTable.View())
+	if p.system.Colonized {
+		return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.systemInfoTable.View())
+	}
 
-	return infoContainer
+	return titleStyled
 
 }
 
@@ -132,4 +134,18 @@ func (p *StarSystemInfoPane) createRows() []table.Row {
 	}
 
 	return rows
+}
+
+func (p *StarSystemInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
+	pane := CreateNewShipManagementPane(
+		"Ship Management",
+		&state.State.ShipManager,
+		func(ship *models.Ship) {
+			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system}, state.State.Tick+40)
+			state.State.OrderScheduler.Push(order)
+		},
+	)
+
+	paneID := PaneManager.AddPane(pane)
+	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 }

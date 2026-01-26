@@ -8,9 +8,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/orders"
+	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/state"
 )
 
 type PlanetInfoPane struct {
@@ -50,7 +50,7 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.width = msg.width
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "o":
+		case "c":
 			return p.handleColonization()
 		case "s":
 			return p.handleScoutOrder()
@@ -76,36 +76,27 @@ func (p *PlanetInfoPane) View() string {
 
 	population := fmt.Sprintf("Population: %d", p.planet.Population)
 
-	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
+	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
 
-	infoContainer := lipgloss.JoinVertical(lipgloss.Left, titleStyled, population, p.infoTable.View())
+	infoContainer := lipgloss.JoinVertical(lipgloss.Left, population, p.infoTable.View())
 
-	colonizeButton := "Order Colonization: O"
-	scoutButton := "Scout: S"
-	changeAllocationsButton := "Change Allocations: A"
-
-	buttons := lipgloss.JoinHorizontal(lipgloss.Left, colonizeButton, " | ", scoutButton, " | ", changeAllocationsButton)
-	buttons = Style.Width(p.width).Border(lipgloss.NormalBorder(), true, false, false, false).Render(buttons)
-
-	topContent := lipgloss.Place(
-		p.width,
-		p.height-lipgloss.Height(buttons),
-		lipgloss.Left,
-		lipgloss.Top,
-		infoContainer,
-	)
-
-	content := lipgloss.JoinVertical(lipgloss.Left, topContent, buttons)
+	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, infoContainer)
 
 	return content
 
 }
 
 func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
+	keys := "Back: esc"
+
+	if !planet.Colonized {
+		keys += " | Colonize: c | Scout: s"
+	}
 
 	return &PlanetInfoPane{
 		Pane: &Pane{
 			title: title,
+			keys:  keys,
 		},
 		planet: planet,
 	}
@@ -165,7 +156,7 @@ func (p *PlanetInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 		"Ship Management",
 		&state.State.ShipManager,
 		func(ship *models.Ship) {
-			order := orders.NewScoutShipOrder(ship, p.planet.Position, state.State.Tick+40)
+			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.planet.Position, Entity: p.planet}, state.State.Tick+40)
 			state.State.OrderScheduler.Push(order)
 		},
 	)

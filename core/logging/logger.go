@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/state"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -34,6 +33,7 @@ type LogMessage struct {
 type Logger struct {
 	queue    chan LogMessage
 	filepath string
+	tick     *core.Tick
 }
 
 func (l *Logger) run() {
@@ -74,7 +74,7 @@ func (l *Logger) log(level, color, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	logger.queue <- LogMessage{
 		Time:     time.Now(),
-		Tick:     state.State.Tick,
+		Tick:     *l.tick,
 		Level:    level,
 		Filename: fileName,
 		Message:  msg,
@@ -96,5 +96,7 @@ func Warn(format string, args ...any) {
 func Ok(format string, args ...any) {
 	logger.log("STABLE", colorGreen, format, args...)
 }
+
+func SetTick(tick *core.Tick) { logger.tick = tick }
 
 func init() { logger = NewLogger("logs/debug.log") }

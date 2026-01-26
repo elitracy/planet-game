@@ -6,8 +6,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/state"
 )
 
 type ShipManagementPane struct {

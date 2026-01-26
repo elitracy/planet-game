@@ -1,17 +1,14 @@
-package models
+package events
 
 import (
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 )
 
-type Action interface {
+type Event interface {
 	GetID() int
-	GetTargetEntity() Entity
-	GetDescription() string
+	SetID(int)
 	GetExecuteTick() core.Tick
 	GetDuration() core.Tick
 	GetStatus() consts.EventStatus
-	SetStatus(consts.EventStatus)
-	Execute()
 }

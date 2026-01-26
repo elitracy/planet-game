@@ -2,7 +2,7 @@ package systems
 
 import (
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/state"
+	"github.com/elitracy/planets/state"
 )
 
 func TickSystems() {

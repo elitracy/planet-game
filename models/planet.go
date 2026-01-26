@@ -4,6 +4,7 @@ import (
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models/constructions"
+	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/resources"
 	"github.com/elitracy/planets/models/stabilities"
 )
@@ -16,6 +17,17 @@ const (
 	STARTING_ENERGY                   = 10000
 	STARTING_ENERGY_CONSUMPTION_RATE  = 1
 )
+
+type Planet struct {
+	*CoreEntity
+	Population           int
+	PopulationGrowthRate int
+	Colonized            bool
+
+	Resources
+	Stabilities
+	Constructions
+}
 
 type Resources struct {
 	Food     resources.Food
@@ -35,26 +47,14 @@ type Constructions struct {
 	SolarGrids []constructions.SolarGrid
 }
 
-type Planet struct {
-	ID                   int
-	Name                 string
-	Population           int
-	PopulationGrowthRate int
-	Colonized            bool
-
-	Resources
-	Stabilities
-	Constructions
-	core.Position
-	OrderQueue []Event
-}
-
 func CreatePlanet(name string, x, y, z, pop, num_farms, num_mines, num_solar_grids int) Planet {
 	planet := Planet{
-		Name:                 name,
+		CoreEntity: &CoreEntity{
+			Name:     name,
+			Position: core.Position{X: x, Y: y, Z: z},
+		},
 		Population:           pop,
 		PopulationGrowthRate: consts.POPULATION_GROWTH_RATE,
-		Position:             core.Position{X: x, Y: y, Z: z},
 		Resources: Resources{
 			Food: resources.Food{
 				Quantity:        pop * consts.FOOD_PER_PERSON * consts.NUM_DAYS_FED,
@@ -100,16 +100,11 @@ func CreatePlanet(name string, x, y, z, pop, num_farms, num_mines, num_solar_gri
 	return planet
 }
 
-func (p Planet) GetID() int                 { return p.ID }
-func (p Planet) GetName() string            { return p.Name }
-func (p Planet) GetPosition() core.Position { return p.Position }
-func (p Planet) GetOrders() []Event         { return p.OrderQueue }
-
-func (p *Planet) PushOrder(order Event) {
+func (p *Planet) PushOrder(order events.Event) {
 	p.OrderQueue = append(p.OrderQueue, order)
 }
 
-func (p *Planet) PopOrder() Event {
+func (p *Planet) PopOrder() events.Event {
 	if len(p.OrderQueue) == 0 {
 		return nil
 	}

@@ -6,9 +6,10 @@ import (
 
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/logging"
-	state "github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/engine"
-	models "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/ui"
 )
 
 const NUM_STAR_SYSTEMS = 3
@@ -17,11 +18,15 @@ const START_YEAR_TICK = 2049 * core.TICKS_PER_CYCLE
 
 func main() {
 
+	state.State = &state.GameState{}
 	state.State.Tick = core.Tick(rand.Intn(START_YEAR_TICK) + START_YEAR_TICK)
+	logging.SetTick(&state.State.Tick)
+
+	ui.InitPaneManager()
 
 	for range NUM_STAR_SYSTEMS {
 		system := state.State.GenerateStarSystem()
-		state.State.StarSystems = append(state.State.StarSystems, &system)
+		state.State.StarSystems = append(state.State.StarSystems, system)
 	}
 
 	startingSystem := state.State.StarSystems[0]
@@ -29,7 +34,7 @@ func main() {
 
 	startingPlanet := startingSystem.Planets[0]
 
-	state.State.CreatePlayer(startingPlanet.Position)
+	state.State.CreatePlayer(startingPlanet.GetPosition())
 	logging.Ok("Player Initialized")
 
 	state.State.ShipManager.Ships = make(map[int]*models.Ship)

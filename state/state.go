@@ -1,12 +1,17 @@
-package models
+package state
 
 import (
 	"math/rand"
 	"slices"
 
 	"github.com/elitracy/planets/core"
-	. "github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events"
+	"github.com/elitracy/planets/models/events/actions"
+	"github.com/elitracy/planets/models/events/orders"
 )
+
+var State *GameState
 
 const (
 	MIN_PLANETS = 2
@@ -38,47 +43,47 @@ var (
 
 type GameState struct {
 	Tick            core.Tick
-	StarSystems     []*StarSystem
-	Player          Player
-	OrderScheduler  EventScheduler[Order]
-	ActionScheduler EventScheduler[Action]
-	CompletedOrders []Order
-	ShipManager
+	StarSystems     []*models.StarSystem
+	Player          models.Player
+	OrderScheduler  events.EventScheduler[*orders.Order]
+	ActionScheduler events.EventScheduler[*actions.Action]
+	CompletedOrders []*orders.Order
+	ShipManager     models.ShipManager
 }
 
-func (gs *GameState) CreatePlayer(location Position) Player {
-	player := Player{Position: location}
+func (gs *GameState) CreatePlayer(location core.Position) models.Player {
+	player := models.Player{Position: location}
 	gs.Player = player
 	return player
 }
 
-func (gs *GameState) GenerateStarSystem() StarSystem {
+func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 
 	system_name_idx := rand.Intn(len(system_names))
 	system_name := system_names[system_name_idx]
 
 	system_names = slices.Delete(system_names, system_name_idx, system_name_idx+1)
 
-	system_location := Position{
+	system_position := core.Position{
 		X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
 		Y: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
 		Z: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
 	}
 
-	system := StarSystem{Name: system_name, Planets: []*Planet{}, Position: system_location}
+	system := models.CreateStarSystem(system_name, []*models.Planet{}, system_position)
 
 	num_planets := rand.Intn(MAX_PLANETS-MIN_PLANETS) + MIN_PLANETS
 	for i := range num_planets {
 
 		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
 
-		planet_location := Position{
+		planet_location := core.Position{
 			X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
 			Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
 			Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
 		}
 
-		planet := CreatePlanet(
+		planet := models.CreatePlanet(
 			system_name+"-"+planet_names[i],
 			planet_location.X,
 			planet_location.Y,

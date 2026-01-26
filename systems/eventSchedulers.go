@@ -3,19 +3,19 @@ package systems
 import (
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
-	. "github.com/elitracy/planets/core/state"
-	. "github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/state"
 )
 
 func TickOrderScheduler() {
-	for _, order := range State.OrderScheduler.PriorityQueue {
+	for _, order := range state.State.OrderScheduler.PriorityQueue {
 		switch order.GetStatus() {
 		case consts.EventPending:
-			if order.GetExecuteTick() <= State.Tick {
+			if order.GetExecuteTick() <= state.State.Tick {
 				logging.Info("[%s] Executing Order: %v", order.GetName(), order.GetID())
 				order.SetStatus(consts.EventExecuting)
 				for _, action := range order.GetActions() {
-					if action.GetExecuteTick() == State.Tick {
+					if action.GetExecuteTick() == state.State.Tick {
 						action.SetStatus(consts.EventExecuting)
 					}
 				}
@@ -37,15 +37,15 @@ func TickOrderScheduler() {
 			}
 
 		case consts.EventComplete: // should be safe to pop order scheulder queue here
-			poppedOrder := State.OrderScheduler.Pop()
+			poppedOrder := state.State.OrderScheduler.Pop()
 			if poppedOrder.GetID() != order.GetID() {
 				logging.Error("Order Scheduler out of sync")
-				logging.Error("Order Sheduler Queue: %v", State.OrderScheduler)
+				logging.Error("Order Sheduler Queue: %v", state.State.OrderScheduler)
 				logging.Error("Popped Order: %v", order)
 				logging.Error("Expected Order: %v", poppedOrder)
 			}
 
-			State.CompletedOrders = append([]Order{poppedOrder}, State.CompletedOrders...)
+			state.State.CompletedOrders = append([]*orders.Order{poppedOrder}, state.State.CompletedOrders...)
 
 			logging.Info("[%v] Completed Order: %v", order.GetName(), order.GetID())
 
@@ -56,17 +56,17 @@ func TickOrderScheduler() {
 }
 
 func TickActionScheduler() {
-	for _, order := range State.OrderScheduler.PriorityQueue {
+	for _, order := range state.State.OrderScheduler.PriorityQueue {
 		if order.GetStatus() == consts.EventExecuting {
 			for _, action := range order.GetActions() {
 
 				switch action.GetStatus() {
 				case consts.EventPending:
-					if action.GetExecuteTick() <= State.Tick {
+					if action.GetExecuteTick() <= state.State.Tick {
 						action.SetStatus(consts.EventExecuting)
 					}
 				case consts.EventExecuting:
-					if action.GetExecuteTick()+action.GetDuration() <= State.Tick {
+					if action.GetExecuteTick()+action.GetDuration() <= state.State.Tick {
 						action.Execute()
 						action.SetStatus(consts.EventComplete)
 					}

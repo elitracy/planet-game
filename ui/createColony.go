@@ -7,9 +7,9 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/core/state"
 	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/orders"
+	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/state"
 )
 
 type CreateColonyPane struct {

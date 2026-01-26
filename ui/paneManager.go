@@ -9,7 +9,7 @@ import (
 
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/logging"
-	"github.com/elitracy/planets/core/state"
+	"github.com/elitracy/planets/state"
 )
 
 var mainWidthPercentage float32
@@ -35,7 +35,9 @@ type paneManager struct {
 	CurrentUITick core.Tick
 }
 
-var PaneManager = NewPaneManager()
+var PaneManager *paneManager
+
+func InitPaneManager() { PaneManager = NewPaneManager() }
 
 func NewPaneManager() *paneManager {
 

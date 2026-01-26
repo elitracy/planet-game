@@ -5,23 +5,28 @@ import (
 )
 
 type StarSystem struct {
-	Name      string
+	*CoreEntity
 	Planets   []*Planet
+	Scouted   bool
 	Colonized bool
-	core.Position
 }
 
 func CreateStarSystem(name string, planets []*Planet, position core.Position) *StarSystem {
 	return &StarSystem{
-		Name:      name,
+		CoreEntity: &CoreEntity{
+			Name:     name,
+			Position: position,
+		},
 		Planets:   planets,
 		Colonized: false,
-		Position:  position,
 	}
 }
 
 func (s *StarSystem) Tick() {
 	for _, planet := range s.Planets {
 		planet.Tick()
+		if planet.Colonized {
+			s.Colonized = true
+		}
 	}
 }

@@ -1,4 +1,4 @@
-package models
+package events
 
 type EventScheduler[E Event] struct {
 	PriorityQueue []E
@@ -6,6 +6,9 @@ type EventScheduler[E Event] struct {
 }
 
 func (s *EventScheduler[E]) Push(e E) {
+
+	e.SetID(s.GetNextID())
+
 	n := len(s.PriorityQueue)
 
 	if n == 0 {

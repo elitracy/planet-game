@@ -169,7 +169,11 @@ func (p *SystemsPane) View() string {
 	for i, system := range filteredSystems {
 		row := fmt.Sprintf("%v", system.Name)
 		if !system.Colonized {
-			row += " (unknown)"
+			row += " (uncolonized)"
+
+			if system.Scouted {
+				row += " (scouted)"
+			}
 		}
 
 		if i == p.cursor {
