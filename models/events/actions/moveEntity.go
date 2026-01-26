@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events"
 )
 
 type MoveEntityAction struct {
@@ -23,7 +23,7 @@ func NewMoveEntityAction(target models.Entity, dest models.Destination, executeT
 			Description:  fmt.Sprintf("Sending %v to %v", target.GetName(), dest),
 			ExecuteTick:  executeTick,
 			Duration:     duration,
-			Status:       consts.EventPending,
+			Status:       events.EventPending,
 		},
 		Destination: dest,
 	}

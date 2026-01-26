@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/constructions"
+	"github.com/elitracy/planets/models/events"
 )
 
 type BuildSolarGridAction struct {
@@ -22,7 +22,7 @@ func NewBuildSolarGridAction(targetEntity models.Entity, executeTick core.Tick, 
 			Description:  fmt.Sprintf("Building a solar grid on %v", targetEntity.GetName()),
 			ExecuteTick:  executeTick,
 			Duration:     duration,
-			Status:       consts.EventPending,
+			Status:       events.EventPending,
 		},
 	}
 

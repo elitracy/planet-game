@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/core"
-	consts "github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/constructions"
+	"github.com/elitracy/planets/models/events"
 )
 
 type BuildMineAction struct {
@@ -22,7 +22,7 @@ func NewBuildMineAction(targetEntity models.Entity, executeTick core.Tick, durat
 			Description:  fmt.Sprintf("Building a mine on %v", targetEntity.GetName()),
 			ExecuteTick:  executeTick,
 			Duration:     duration, // TODO: eventually Tick * 40 for clarity
-			Status:       consts.EventPending,
+			Status:       events.EventPending,
 		},
 	}
 

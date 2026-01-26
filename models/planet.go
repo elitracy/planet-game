@@ -54,7 +54,7 @@ func CreatePlanet(name string, x, y, z, pop, num_farms, num_mines, num_solar_gri
 			Position: core.Position{X: x, Y: y, Z: z},
 		},
 		Population:           pop,
-		PopulationGrowthRate: consts.POPULATION_GROWTH_RATE,
+		PopulationGrowthRate: consts.POPULATION_GROWTH_PER_PULSE,
 		Resources: Resources{
 			Food: resources.Food{
 				Quantity:        pop * consts.FOOD_PER_PERSON * consts.NUM_DAYS_FED,

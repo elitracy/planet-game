@@ -24,9 +24,7 @@ func NewTablinePane(tabs []ManagedPane) *TabLinePane {
 	return pane
 }
 
-func (p *TabLinePane) Init() tea.Cmd {
-	return nil
-}
+func (p *TabLinePane) Init() tea.Cmd { return nil }
 
 func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 

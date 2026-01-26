@@ -5,16 +5,10 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/core/consts"
 )
 
 type Tick int64 // seconds (in game)
-
-const (
-	TICKS_PER_SECOND_UI = 2
-	TICK_SLEEP_UI       = time.Second / TICKS_PER_SECOND_UI
-	TICKS_PER_SECOND    = 100
-	TICK_SLEEP          = time.Second / TICKS_PER_SECOND
-)
 
 func (t Tick) ToDuration(tickRate int) time.Duration {
 	return time.Duration(t) * time.Second / time.Duration(tickRate)
@@ -33,11 +27,11 @@ type UITickMsg struct {
 }
 
 func UITickCmd(tick Tick) tea.Cmd {
-	return tea.Tick(TICK_SLEEP_UI, func(time.Time) tea.Msg { return UITickMsg{Tick: tick + 1} })
+	return tea.Tick(consts.TICK_SLEEP_UI, func(time.Time) tea.Msg { return UITickMsg{Tick: tick + 1} })
 }
 
 func TickCmd(tick Tick) tea.Cmd {
-	return tea.Tick(TICK_SLEEP, func(time.Time) tea.Msg { return TickMsg{Tick: tick + 1} })
+	return tea.Tick(consts.TICK_SLEEP, func(time.Time) tea.Msg { return TickMsg{Tick: tick + 1} })
 }
 
 const (

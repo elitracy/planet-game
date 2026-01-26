@@ -2,7 +2,16 @@ package events
 
 import (
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
+)
+
+//go:generate stringer -type=EventStatus
+type EventStatus int
+
+const (
+	EventPending EventStatus = iota
+	EventExecuting
+	EventComplete
+	EventFailed
 )
 
 type Event interface {
@@ -10,5 +19,5 @@ type Event interface {
 	SetID(EventID)
 	GetExecuteTick() core.Tick
 	GetDuration() core.Tick
-	GetStatus() consts.EventStatus
+	GetStatus() EventStatus
 }

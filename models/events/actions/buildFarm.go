@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/constructions"
+	"github.com/elitracy/planets/models/events"
 )
 
 type BuildFarmAction struct {
@@ -21,7 +21,7 @@ func NewBuildFarmAction(targetEntity models.Entity, executeTick core.Tick, durat
 			Description:  fmt.Sprintf("Building a farm on %v", targetEntity.GetName()),
 			ExecuteTick:  executeTick,
 			Duration:     duration,
-			Status:       consts.EventPending,
+			Status:       events.EventPending,
 		},
 	}
 

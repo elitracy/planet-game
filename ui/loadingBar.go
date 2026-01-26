@@ -15,11 +15,9 @@ type LoadingBarPane struct {
 	progress  progress.Model
 }
 
-func NewLoadingBarPane(title string, startTick, endTick core.Tick) *LoadingBarPane {
+func NewLoadingBarPane(startTick, endTick core.Tick) *LoadingBarPane {
 	return &LoadingBarPane{
-		Pane: &Pane{
-			title: title,
-		},
+		Pane:      &Pane{},
 		progress:  progress.New(progress.WithDefaultGradient()),
 		startTick: startTick,
 		endTick:   endTick,

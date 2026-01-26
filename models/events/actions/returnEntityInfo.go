@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events"
 )
 
 type TimeoutAction struct {
@@ -20,7 +20,7 @@ func NewTimeoutAction(targetEntity models.Entity, executeTick core.Tick, duratio
 			Description:  fmt.Sprintf("Sending info about %v", targetEntity.GetName()),
 			ExecuteTick:  executeTick,
 			Duration:     duration,
-			Status:       consts.EventPending,
+			Status:       events.EventPending,
 		},
 	}
 

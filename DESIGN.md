@@ -115,7 +115,7 @@ Pending → Executing → Complete
 - [x] OrderStatus (with progress bars)
 - [x] CreateColonyPane (form)
 - [x] ShipManagement
-- [ ] Dashboard (grid layout container)
+- [x] Dashboard (grid layout container)
 - [ ] ColonyManager (post-creation management)
 - [ ] ResourceAllocation (sliders for distribution)
 - [ ] ThreatAlert (incoming dangers)

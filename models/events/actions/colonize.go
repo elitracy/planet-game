@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events"
 )
 
 type ColonizeAction struct {
 	*Action
-
 }
 
 func NewColonizeAction(targetEntity models.Entity, executeTick core.Tick, duration core.Tick) *ColonizeAction {
@@ -20,8 +19,8 @@ func NewColonizeAction(targetEntity models.Entity, executeTick core.Tick, durati
 			TargetEntity: targetEntity,
 			Description:  fmt.Sprintf("Colonize %v", targetEntity.GetName()),
 			ExecuteTick:  executeTick,
-			Duration:     duration, 
-			Status:       consts.EventPending,
+			Duration:     duration,
+			Status:       events.EventPending,
 		},
 	}
 

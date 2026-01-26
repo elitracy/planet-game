@@ -2,8 +2,8 @@ package orders
 
 import (
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/events/actions"
 )
 
@@ -18,7 +18,7 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTi
 		Order: &Order{
 			Name:        "Scout destination",
 			ExecuteTick: execTick,
-			Status:      consts.EventPending,
+			Status:      events.EventPending,
 		},
 		ship:        ship,
 		destination: dest,
