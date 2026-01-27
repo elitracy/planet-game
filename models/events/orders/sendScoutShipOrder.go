@@ -56,6 +56,7 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTi
 
 	if dest.Entity != nil {
 		scoutEntityAction := actions.NewScoutEntityAction(dest.Entity, order.ExecuteTick, core.Tick(t)*2)
+		logging.Info("entity: %v", dest.Entity.GetName())
 		order.Actions = append(order.Actions, scoutEntityAction)
 	}
 

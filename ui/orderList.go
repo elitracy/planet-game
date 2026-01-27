@@ -25,7 +25,9 @@ type OrderListPane struct {
 
 func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderListPane {
 	pane := &OrderListPane{
-		Pane:   &Pane{},
+		Pane: &Pane{
+			keys: NewKeyBindings(),
+		},
 		orders: orders,
 		status: status,
 	}
@@ -34,6 +36,12 @@ func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderL
 }
 
 func (p *OrderListPane) Init() tea.Cmd {
+	p.keys.
+		Set(Quit, "q").
+		Set(Back, "esc").
+		Set(Up, "k").
+		Set(Down, "j")
+
 	p.initProgrssBars()
 	return nil
 }
@@ -43,17 +51,17 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "up", "k":
+		case p.keys.Get(Up):
 			if p.cursor > 0 {
 				p.cursor--
 			}
-		case "down", "j":
+		case p.keys.Get(Down):
 			if p.cursor < len(p.orders) {
 				p.cursor++
 			}
-		case "esc":
+		case p.keys.Get(Back):
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
-		case "ctrl+c", "q":
+		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
 	}

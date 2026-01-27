@@ -15,10 +15,10 @@ import (
 )
 
 const (
-	DEFAULT_KEYS = "Back: esc"
-	INFO_KEY     = " | Info: enter"
-	SCOUT_KEY    = " | Scout: s"
-	COLONIZE_KEY = " | Colonize: c"
+	back_key      = "Back: esc"
+	details_key   = " | Info: enter"
+	scout_key     = " | Scout: s"
+	coloniize_key = " | Colonize: c"
 )
 
 type StarSystemInfoPane struct {
@@ -29,14 +29,30 @@ type StarSystemInfoPane struct {
 	systemInfoTable ManagedPane
 }
 
+func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemInfoPane {
+	return &StarSystemInfoPane{
+		Pane: &Pane{
+			title: title,
+			keys:  NewKeyBindings(),
+		},
+		system: system,
+	}
+}
+
 func (p *StarSystemInfoPane) Init() tea.Cmd {
+	p.keys.
+		Set(Quit, "q").
+		Set(Back, "esc").
+		Set(Up, "k").
+		Set(Down, "j").
+		Set(Select, "enter")
 
 	keymaps := make(map[string]func() tea.Cmd)
 
-	keymaps["esc"] = func() tea.Cmd {
+	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
-	keymaps["enter"] = func() tea.Cmd {
+	keymaps[p.keys.Get(Select)] = func() tea.Cmd {
 		cursor := p.systemInfoTable.(*InfoTablePane).table.Cursor()
 		planet := p.system.Planets[cursor]
 
@@ -69,7 +85,9 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.systemInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "s":
+		case p.keys.Get(Colonize):
+			return p.handleColonizeOrder()
+		case p.keys.Get(Scout):
 			return p.handleScoutOrder()
 		case "esc":
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
@@ -89,31 +107,26 @@ func (p *StarSystemInfoPane) View() string {
 
 	title := p.system.Name
 	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
-	p.keys = DEFAULT_KEYS
+	p.keys.Set(Back, "esc")
 
 	if !p.system.Planets[p.createInfoTable().Cursor()].Colonized {
-		p.keys += COLONIZE_KEY
+		p.keys.Set(Colonize, "c")
 	} else {
-		p.keys += INFO_KEY
+		p.keys.Set(Select, "enter")
 	}
 
 	if !p.system.Scouted {
-		p.keys += SCOUT_KEY
+		p.keys.Set(Scout, "s")
 	} else {
-		p.keys += INFO_KEY
+		p.keys.Set(Colonize, "c")
+	}
+
+	if !p.system.Scouted && !p.system.Colonized {
+		noDataMsg := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Bold(true).Render("<No Data for System>")
+		return lipgloss.JoinVertical(lipgloss.Left, titleStyled, noDataMsg)
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.systemInfoTable.View())
-}
-
-func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemInfoPane {
-	return &StarSystemInfoPane{
-		Pane: &Pane{
-			title: title,
-			keys:  "Planet Info: enter | Back: esc | ",
-		},
-		system: system,
-	}
 }
 
 func (p StarSystemInfoPane) createInfoTable() table.Model {
@@ -161,6 +174,17 @@ func (p *StarSystemInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system.Planets[p.createInfoTable().Cursor()]}, state.State.CurrentTick+40)
 			state.State.OrderScheduler.Push(order)
 		},
+	)
+
+	paneID := PaneManager.AddPane(pane)
+	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+}
+
+func (p *StarSystemInfoPane) handleColonizeOrder() (tea.Model, tea.Cmd) {
+	cursor := p.systemInfoTable.(*InfoTablePane).table.Cursor()
+	pane := NewCreateColonyPane(
+		"Order Colonization: "+p.system.Planets[cursor].Name,
+		p.system.Planets[cursor],
 	)
 
 	paneID := PaneManager.AddPane(pane)

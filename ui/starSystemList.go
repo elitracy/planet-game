@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
 	"github.com/elitracy/planets/models/events/orders"
 	"github.com/elitracy/planets/state"
@@ -34,7 +35,7 @@ func NewStarSystemListPane(title string, systems []*models.StarSystem) *StarSyst
 	pane := &StarSystemListPane{
 		Pane: &Pane{
 			title: title,
-			keys:  "Select: enter | Down: j | Up: k",
+			keys:  NewKeyBindings(),
 		},
 		systems:   systems,
 		searching: false,
@@ -62,6 +63,12 @@ func (p *StarSystemListPane) filterSystems() {
 }
 
 func (p *StarSystemListPane) Init() tea.Cmd {
+	p.keys.
+		Set(Quit, "q").
+		Set(Select, "enter").
+		Set(Down, "j").
+		Set(Up, "k").
+		Set(Search, "/")
 	filteredSystems = p.systems
 
 	if len(filteredSystems) == 0 {
@@ -84,6 +91,21 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return p, nil
 		}
+	case core.TickMsg:
+
+		p.keys.
+			Unset(Scout).
+			Unset(Select)
+
+		system := p.systems[p.cursor]
+		if !system.Scouted && !system.Colonized {
+			p.keys.Set(Scout, "s")
+		}
+
+		if system.Scouted || system.Colonized {
+			p.keys.Set(Select, "enter")
+		}
+
 	case tea.KeyMsg:
 		if p.searching {
 			switch msg.String() {
@@ -91,6 +113,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.textInput.Blur()
 				p.searching = false
 				p.cursor = 0
+				p.keys.Unset(Back)
 			}
 
 			var cmd tea.Cmd
@@ -112,18 +135,21 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		switch msg.String() {
-		case "/", "i", "a":
+		case p.keys.Get(Search):
 			p.searching = true
 			p.textInput.Focus()
 			p.cursor = 0
+			p.keys.Set(Back, "esc")
 
 			return p, textinput.Blink
-		case "enter":
+		case p.keys.Get(Scout):
+			return p.handleScoutOrder()
+		case p.keys.Get(Select):
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
-		case "up", "k":
+		case p.keys.Get(Up):
 			if p.cursor > 0 {
 				p.cursor--
 			} else {
@@ -139,7 +165,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 
-		case "down", "j":
+		case p.keys.Get(Down):
 			if p.cursor < len(filteredSystems)-1 {
 				p.cursor++
 			} else {
@@ -156,7 +182,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 
-		case "ctrl+c", "q":
+		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
 	}
@@ -169,19 +195,18 @@ func (p *StarSystemListPane) View() string {
 
 	var systemRows []string
 	for i, system := range filteredSystems {
-		row := fmt.Sprintf("%v", system.Name)
-		if !system.Colonized {
-			row += " (uncolonized)"
 
-			if system.Scouted {
-				row += " (scouted)"
-			}
+		row := fmt.Sprintf("%v", system.Name)
+		if system.Colonized {
+			row += " (colonized)"
+		}
+
+		if !system.Colonized && system.Scouted {
+			row += " (scouted)"
 		}
 
 		if i == p.cursor {
-			if system.Colonized {
-				row = p.theme.FocusedStyle.Render(row)
-			}
+			row = p.theme.FocusedStyle.Render(row)
 		}
 
 		if i != p.cursor {

@@ -9,8 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/events/orders"
-	"github.com/elitracy/planets/state"
 )
 
 type PlanetInfoPane struct {
@@ -22,9 +20,14 @@ type PlanetInfoPane struct {
 }
 
 func (p *PlanetInfoPane) Init() tea.Cmd {
+	p.keys.
+		Set(Back, "esc").
+		Set(Colonize, "c").
+		Set(Quit, "q")
+
 	keymaps := make(map[string]func() tea.Cmd)
 
-	keymaps["esc"] = func() tea.Cmd {
+	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
 
@@ -50,13 +53,11 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.width = msg.width
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "c":
+		case p.keys.Get(Colonize):
 			return p.handleColonization()
-		case "s":
-			return p.handleScoutOrder()
-		case "esc":
+		case p.keys.Get(Back):
 			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
-		case "ctrl+c", "q":
+		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
 	}
@@ -87,12 +88,11 @@ func (p *PlanetInfoPane) View() string {
 }
 
 func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
-	keys := "Back: esc"
 
 	return &PlanetInfoPane{
 		Pane: &Pane{
 			title: title,
-			keys:  keys,
+			keys:  NewKeyBindings(),
 		},
 		planet: planet,
 	}
@@ -141,20 +141,6 @@ func (p *PlanetInfoPane) handleColonization() (tea.Model, tea.Cmd) {
 	pane := NewCreateColonyPane(
 		"Order Colonization: "+p.planet.Name,
 		p.planet,
-	)
-
-	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
-}
-
-func (p *PlanetInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
-	pane := CreateNewShipManagementPane(
-		"Ship Management",
-		&state.State.ShipManager,
-		func(ship *models.Ship) {
-			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.planet.Position, Entity: p.planet}, state.State.CurrentTick+40)
-			state.State.OrderScheduler.Push(order)
-		},
 	)
 
 	paneID := PaneManager.AddPane(pane)
