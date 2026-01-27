@@ -8,16 +8,16 @@ import (
 	"github.com/elitracy/planets/models/events"
 )
 
-type ScoutSystemAction struct {
+type ScoutEntityAction struct {
 	*Action
 }
 
-func NewScoutSystemAction(system *models.StarSystem, executeTick core.Tick, duration core.Tick) *TimeoutAction {
+func NewScoutEntityAction(entity models.Entity, executeTick core.Tick, duration core.Tick) *ScoutEntityAction{
 
-	action := &TimeoutAction{
+	action := &ScoutEntityAction{
 		Action: &Action{
-			TargetEntity: system,
-			Description:  fmt.Sprintf("Scoutting %v", system.GetName()),
+			TargetEntity: entity,
+			Description:  fmt.Sprintf("Scoutting %v", entity.GetName()),
 			ExecuteTick:  executeTick,
 			Duration:     duration,
 			Status:       events.EventPending,
@@ -27,8 +27,12 @@ func NewScoutSystemAction(system *models.StarSystem, executeTick core.Tick, dura
 	return action
 }
 
-func (a *ScoutSystemAction) Execute() {
+func (a *ScoutEntityAction) Execute() {
 	if system, ok := a.TargetEntity.(*models.StarSystem); ok {
 		system.Scouted = true
+	}
+
+	if planet, ok := a.TargetEntity.(*models.Planet); ok {
+		planet.Scouted = true
 	}
 }

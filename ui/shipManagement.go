@@ -24,6 +24,7 @@ func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, 
 	pane := &ShipManagementPane{
 		Pane: &Pane{
 			title: title,
+			keys:  NewKeyBindings(),
 		},
 		manager:  shipManager,
 		OnSelect: callback,
@@ -33,6 +34,13 @@ func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, 
 }
 
 func (p *ShipManagementPane) Init() tea.Cmd {
+	p.keys.
+		Set(Select, "enter").
+		Set(Back, "esc").
+		Set(Up, "k").
+		Set(Down, "j").
+		Set(Quit, "q")
+
 	for _, ship := range p.manager.Ships {
 		p.sortedShips = append(p.sortedShips, ship)
 	}
@@ -55,19 +63,19 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "enter":
+		case p.keys.Get(Select):
 			p.OnSelect(state.State.ShipManager.Ships[p.currentShipID])
-		case "up", "k":
+		case p.keys.Get(Up):
 			if p.cursor > 0 {
 				p.cursor--
 			}
-		case "down", "j":
+		case p.keys.Get(Down):
 			if p.cursor < len(p.sortedShips)-1 {
 				p.cursor++
 			}
-		case "esc":
+		case p.keys.Get(Back):
 			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
-		case "ctrl+c", "q":
+		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
 	}

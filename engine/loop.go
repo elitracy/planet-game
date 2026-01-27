@@ -18,7 +18,7 @@ func RunGame() {
 	quit := make(chan struct{})
 
 	orderStatusList := ui.NewOrderStatusListPane("Orders", &state.State.OrderScheduler)
-	systemsPane := ui.NewSystemListPane("Systems", state.State.StarSystems)
+	systemsPane := ui.NewStarSystemListPane("Systems", state.State.StarSystems)
 
 	ui.PaneManager.AddPane(orderStatusList)
 	ui.PaneManager.AddPane(systemsPane)

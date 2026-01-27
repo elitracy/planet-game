@@ -2,9 +2,11 @@ package ui
 
 import (
 	"fmt"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models/events"
@@ -23,7 +25,9 @@ type OrderListPane struct {
 
 func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderListPane {
 	pane := &OrderListPane{
-		Pane:   &Pane{},
+		Pane: &Pane{
+			keys: NewKeyBindings(),
+		},
 		orders: orders,
 		status: status,
 	}
@@ -32,6 +36,12 @@ func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderL
 }
 
 func (p *OrderListPane) Init() tea.Cmd {
+	p.keys.
+		Set(Quit, "q").
+		Set(Back, "esc").
+		Set(Up, "k").
+		Set(Down, "j")
+
 	p.initProgrssBars()
 	return nil
 }
@@ -41,17 +51,17 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "up", "k":
+		case p.keys.Get(Up):
 			if p.cursor > 0 {
 				p.cursor--
 			}
-		case "down", "j":
+		case p.keys.Get(Down):
 			if p.cursor < len(p.orders) {
 				p.cursor++
 			}
-		case "esc":
+		case p.keys.Get(Back):
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
-		case "ctrl+c", "q":
+		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
 	}
@@ -82,8 +92,16 @@ func (p *OrderListPane) View() string {
 		}
 
 		row := order.GetName()
+
+		if order.Status == events.EventPending {
+			duration := (order.GetExecuteTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+			countDown := fmt.Sprintf("ETA: %v", humanize.Time(time.Now().Add(duration)))
+			row += fmt.Sprintf(" %v", countDown)
+		}
+
 		if order.Status == events.EventExecuting {
-			countDown := fmt.Sprintf("ETA: %vs", int((order.GetEndTick()-state.State.CurrentTick)/consts.TICKS_PER_SECOND))
+			duration := (order.GetEndTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+			countDown := fmt.Sprintf("ETA: %v", humanize.Time(time.Now().Add(duration)))
 			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
 			row += fmt.Sprintf(" %v %v", progressBar.View(), countDown)
 		}

@@ -12,20 +12,19 @@ import (
 
 type StatusLinePane struct {
 	*Pane
-	keys *string
 }
 
 func NewStatusLinePane(tick core.Tick) *StatusLinePane {
 	return &StatusLinePane{Pane: &Pane{}}
 }
 
-func (p *StatusLinePane) Init() tea.Cmd {
-	return nil
-}
+func (p *StatusLinePane) Init() tea.Cmd { return nil }
 
 func (p *StatusLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) { return p, nil }
 
 func (p *StatusLinePane) View() string {
+	focusedPane := PaneManager.Panes[PaneManager.PeekFocusStack()]
+
 	content := ""
 
 	components := strings.Split(state.State.CurrentTick.String(), ".")
@@ -34,14 +33,19 @@ func (p *StatusLinePane) View() string {
 
 	content += fmt.Sprintf("Time : %v", componentsStyled)
 
-	if len(*p.keys) == 0 {
-		return content
+	var keys *KeyBindings
+	if focusedPane != nil {
+		keys = focusedPane.GetKeys()
 	}
 
-	keysStyled := Theme.DimmedStyle.Render(*p.keys)
+	keysStyled := ""
+	if keys != nil {
+		keysStyled = Theme.DimmedStyle.Render(keys.String())
+	}
+
 	content = lipgloss.JoinVertical(lipgloss.Left, content, keysStyled)
 
 	return content
 }
 
-func (p *StatusLinePane) SetKeys(keys *string) { p.keys = keys }
+func (p *StatusLinePane) SetKeys(keys *KeyBindings) { p.keys = keys }

@@ -23,6 +23,7 @@ type Planet struct {
 	Population           int
 	PopulationGrowthRate int
 	Colonized            bool
+	Scouted              bool
 
 	Resources
 	Stabilities

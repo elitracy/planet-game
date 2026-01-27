@@ -28,15 +28,28 @@ func NewOrderStatusListPane(title string, orderScheduler *events.EventScheduler[
 	pane := &OrderStatusListPane{
 		Pane: &Pane{
 			title: title,
+			keys:  NewKeyBindings(),
 		},
-
+		cursor:         0,
 		orderScheduler: orderScheduler,
 	}
 
 	return pane
 }
 
-func (p *OrderStatusListPane) Init() tea.Cmd { return nil }
+func (p *OrderStatusListPane) Init() tea.Cmd {
+	p.keys.
+		Set(Quit, "q").
+		Set(Back, "esc").
+		Set(Up, "k").
+		Set(Down, "j")
+
+	p.updateOrderStatusMap()
+
+	orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
+	paneID := PaneManager.AddPane(orderList)
+	return tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+}
 
 func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	p.updateOrderStatusMap()
@@ -47,7 +60,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.height = msg.height
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "up", "k":
+		case p.keys.Get(Up):
 			if p.cursor > 0 {
 				p.cursor--
 			}
@@ -55,7 +68,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-		case "down", "j":
+		case p.keys.Get(Down):
 			if p.cursor < len(orderStatuses)-1 {
 				p.cursor++
 			}
@@ -63,9 +76,9 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-		case "esc":
+		case p.keys.Get(Back):
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
-		case "ctrl+c", "q":
+		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
 	}

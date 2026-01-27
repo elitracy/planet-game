@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/models/events"
 )
 
@@ -26,7 +27,7 @@ func CreateNewShip(name string, position core.Position, shipType ShipType) *Ship
 		Name:     name,
 		Position: position,
 		ShipType: shipType,
-		Velocity: core.Velocity{X: 5, Y: 5, Z: 5},
+		Velocity: core.Velocity{X: consts.SCOUT_VELOCITY, Y: consts.SCOUT_VELOCITY, Z: consts.SCOUT_VELOCITY},
 	}
 
 	return ship
