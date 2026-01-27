@@ -3,6 +3,7 @@ package state
 import (
 	"math/rand"
 	"slices"
+	"sort"
 
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
@@ -51,8 +52,8 @@ type GameState struct {
 	ShipManager     models.ShipManager
 }
 
-func (gs *GameState) CreatePlayer(location core.Position) models.Player {
-	player := models.Player{Position: location}
+func (gs *GameState) CreatePlayer(position core.Position) models.Player {
+	player := models.Player{Position: position}
 	gs.Player = player
 	return player
 }
@@ -73,27 +74,36 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 	system := models.CreateStarSystem(system_name, []*models.Planet{}, system_position)
 
 	num_planets := rand.Intn(MAX_PLANETS-MIN_PLANETS) + MIN_PLANETS
-	for i := range num_planets {
+	var planet_positions []core.Position
 
-		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
-
-		planet_location := core.Position{
-			X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
-			Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
-			Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST,
+	for range num_planets {
+		position := core.Position{
+			X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST + system_position.X,
+			Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST + system_position.Y,
+			Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST + system_position.Z,
 		}
+		planet_positions = append(planet_positions, position)
+	}
+
+	sort.Slice(planet_positions, func(i, j int) bool {
+		d_i := core.EuclidianDistance(planet_positions[i], system_position)
+		d_j := core.EuclidianDistance(planet_positions[j], system_position)
+		return d_i < d_j
+	})
+
+	for i := range num_planets {
+		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
 
 		planet := models.CreatePlanet(
 			system_name+"-"+planet_names[i],
-			planet_location.X,
-			planet_location.Y,
-			planet_location.Z,
+			planet_positions[i],
 			starting_population,
 			STARTING_FARMS,
 			STARTING_MINES,
 			STARTING_SOLAR_GRIDS,
 		)
 		system.Planets = append(system.Planets, &planet)
+
 	}
 
 	return system

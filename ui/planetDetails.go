@@ -7,11 +7,12 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/models"
 )
 
-type PlanetInfoPane struct {
+type PlanetDetailsPane struct {
 	*Pane
 
 	infoTable ManagedPane
@@ -19,9 +20,12 @@ type PlanetInfoPane struct {
 	theme     UITheme
 }
 
-func (p *PlanetInfoPane) Init() tea.Cmd {
+func (p *PlanetDetailsPane) Init() tea.Cmd {
 	p.keys.
+		Set(Quit, "q").
 		Set(Back, "esc").
+		Set(Up, "k").
+		Set(Down, "j").
 		Set(Colonize, "c").
 		Set(Quit, "q")
 
@@ -42,10 +46,12 @@ func (p *PlanetInfoPane) Init() tea.Cmd {
 
 	return nil
 }
-func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *PlanetDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
+	case core.TickMsg:
+		p.infoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
 	case core.UITickMsg:
 		p.infoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case paneResizeMsg:
@@ -70,26 +76,28 @@ func (p *PlanetInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, tea.Batch(cmds...)
 }
 
-func (p *PlanetInfoPane) View() string {
+func (p *PlanetDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.planet.Name
 
-	population := fmt.Sprintf("Population: %d", p.planet.Population)
+	population := fmt.Sprintf("Population: %v", humanize.Comma(int64(p.planet.Population)))
+	populationStyled := p.theme.DimmedStyle.Width(p.width).AlignHorizontal(lipgloss.Center).Render(population)
 
-	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
+	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
 
-	infoContainer := lipgloss.JoinVertical(lipgloss.Left, population, p.infoTable.View())
+	header := lipgloss.JoinVertical(lipgloss.Center, titleStyled, populationStyled)
+	headerStyled := Style.PaddingBottom(1).Render(header)
 
-	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, infoContainer)
+	content := lipgloss.JoinVertical(lipgloss.Left, headerStyled, p.infoTable.View())
 
 	return content
 
 }
 
-func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
+func NewPlanetDetailsPane(title string, planet *models.Planet) *PlanetDetailsPane {
 
-	return &PlanetInfoPane{
+	return &PlanetDetailsPane{
 		Pane: &Pane{
 			title: title,
 			keys:  NewKeyBindings(),
@@ -98,46 +106,46 @@ func NewPlanetInfoPane(title string, planet *models.Planet) *PlanetInfoPane {
 	}
 }
 
-func (p *PlanetInfoPane) createInfoTable() table.Model {
+func (p *PlanetDetailsPane) createInfoTable() table.Model {
 
 	columns := []table.Column{
 		{Title: "Stat", Width: 15},
 		{Title: "Quantity", Width: 10},
-		{Title: "Rate", Width: 4},
+		{Title: "Rate (units/p)", Width: 15},
 	}
 
 	infoTable := table.New(
 		table.WithColumns(columns),
 		table.WithRows(p.createRows()),
 		table.WithFocused(true),
-		table.WithHeight(10),
+		table.WithHeight(12),
 	)
 
 	return infoTable
 }
 
-func (p *PlanetInfoPane) createRows() []table.Row {
+func (p *PlanetDetailsPane) createRows() []table.Row {
 
 	rows := []table.Row{
-		{"Food", strconv.Itoa(p.planet.Food.Quantity), strconv.Itoa(p.planet.Food.ConsumptionRate)},
-		{"Minerals", strconv.Itoa(p.planet.Minerals.Quantity), strconv.Itoa(p.planet.Minerals.ConsumptionRate)},
-		{"Energy", strconv.Itoa(p.planet.Energy.Quantity), strconv.Itoa(p.planet.Energy.ConsumptionRate)},
+		{"Food", humanize.Comma(int64(p.planet.Food.Quantity)), humanize.Comma(int64(p.planet.Food.ConsumptionRate))},
+		{"Mineral", humanize.Comma(int64(p.planet.Minerals.Quantity)), humanize.Comma(int64(p.planet.Minerals.ConsumptionRate))},
+		{"Energy", humanize.Comma(int64(p.planet.Energy.Quantity)), humanize.Comma(int64(p.planet.Energy.ConsumptionRate))},
 
 		{"", "", ""},
-		{"Farms", strconv.Itoa(len(p.planet.Farms)), strconv.Itoa(p.planet.GetFarmProduction())},
-		{"Mines", strconv.Itoa(len(p.planet.Mines)), strconv.Itoa(p.planet.GetMineProduction())},
-		{"Solar Grids", strconv.Itoa(len(p.planet.SolarGrids)), strconv.Itoa(p.planet.GetSolarGridProduction())},
+		{"Farms", humanize.Comma(int64(len(p.planet.Farms))), humanize.Comma(int64(p.planet.GetFarmProduction()))},
+		{"Mines", humanize.Comma(int64(len(p.planet.Mines))), humanize.Comma(int64(p.planet.GetMineProduction()))},
+		{"Solar Grids", humanize.Comma(int64(len(p.planet.SolarGrids))), humanize.Comma(int64(p.planet.GetSolarGridProduction()))},
 
 		{"", "", ""},
-		{"Happiness", strconv.FormatFloat(float64(p.planet.Happiness.Quantity), 'f', 2, 32), strconv.FormatFloat(float64(p.planet.Happiness.GrowthRate), 'f', 2, 32)},
-		{"Corruption", strconv.FormatFloat(float64(p.planet.Corruption.Quantity), 'f', 2, 32), strconv.FormatFloat(float64(p.planet.Corruption.GrowthRate), 'f', 2, 32)},
-		{"Unrest", strconv.FormatFloat(float64(p.planet.Unrest.Quantity), 'f', 2, 32), strconv.FormatFloat(float64(p.planet.Unrest.GrowthRate), 'f', 2, 32)},
+		{"Happiness", fmt.Sprintf("%v%%", int64(p.planet.Happiness.Quantity*100)), strconv.FormatFloat(float64(p.planet.Happiness.GrowthRate), 'f', 2, 32)},
+		{"Corruption", fmt.Sprintf("%v%%", int64(p.planet.Corruption.Quantity*100)), strconv.FormatFloat(float64(p.planet.Corruption.GrowthRate), 'f', 2, 32)},
+		{"Unrest", fmt.Sprintf("%v%%", int64(p.planet.Unrest.Quantity*100)), strconv.FormatFloat(float64(p.planet.Unrest.GrowthRate), 'f', 2, 32)},
 	}
 
 	return rows
 }
 
-func (p *PlanetInfoPane) handleColonization() (tea.Model, tea.Cmd) {
+func (p *PlanetDetailsPane) handleColonization() (tea.Model, tea.Cmd) {
 	pane := NewCreateColonyPane(
 		"Order Colonization: "+p.planet.Name,
 		p.planet,

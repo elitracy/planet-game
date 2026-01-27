@@ -14,14 +14,7 @@ import (
 	"github.com/elitracy/planets/state"
 )
 
-const (
-	back_key      = "Back: esc"
-	details_key   = " | Info: enter"
-	scout_key     = " | Scout: s"
-	coloniize_key = " | Colonize: c"
-)
-
-type StarSystemInfoPane struct {
+type StarSystemDetailsPane struct {
 	*Pane
 
 	system          *models.StarSystem
@@ -29,8 +22,8 @@ type StarSystemInfoPane struct {
 	systemInfoTable ManagedPane
 }
 
-func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemInfoPane {
-	return &StarSystemInfoPane{
+func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemDetailsPane {
+	return &StarSystemDetailsPane{
 		Pane: &Pane{
 			title: title,
 			keys:  NewKeyBindings(),
@@ -39,7 +32,7 @@ func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemInfoP
 	}
 }
 
-func (p *StarSystemInfoPane) Init() tea.Cmd {
+func (p *StarSystemDetailsPane) Init() tea.Cmd {
 	p.keys.
 		Set(Quit, "q").
 		Set(Back, "esc").
@@ -60,7 +53,7 @@ func (p *StarSystemInfoPane) Init() tea.Cmd {
 			return nil
 		}
 
-		pane := NewPlanetInfoPane("Planet Info", p.system.Planets[cursor])
+		pane := NewPlanetDetailsPane("Planet Info", p.system.Planets[cursor])
 		paneID := PaneManager.AddPane(pane)
 		return tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 	}
@@ -75,7 +68,7 @@ func (p *StarSystemInfoPane) Init() tea.Cmd {
 
 	return nil
 }
-func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *StarSystemDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
@@ -102,11 +95,19 @@ func (p *StarSystemInfoPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, tea.Batch(cmds...)
 }
 
-func (p *StarSystemInfoPane) View() string {
+func (p *StarSystemDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
-	title := p.system.Name
-	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
+	distance := core.EuclidianDistance(state.State.Player.Position, p.system.Position)
+	distanceStyled := fmt.Sprintf(" (%v AU)", humanize.Comma(int64(distance)))
+	distanceStyled = p.theme.DimmedStyle.Render(distanceStyled)
+
+	title := p.system.GetName()
+	titleStyled := Style.Bold(true).Render(title)
+
+	header := lipgloss.JoinHorizontal(lipgloss.Top, titleStyled, distanceStyled)
+	headerStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(header)
+
 	p.keys.Set(Back, "esc")
 
 	if !p.system.Planets[p.createInfoTable().Cursor()].Colonized {
@@ -123,22 +124,15 @@ func (p *StarSystemInfoPane) View() string {
 
 	if !p.system.Scouted && !p.system.Colonized {
 		noDataMsg := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Bold(true).Render("<No Data for System>")
-		return lipgloss.JoinVertical(lipgloss.Left, titleStyled, noDataMsg)
+		return lipgloss.JoinVertical(lipgloss.Left, headerStyled, noDataMsg)
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.systemInfoTable.View())
+	return lipgloss.JoinVertical(lipgloss.Left, headerStyled, p.systemInfoTable.View())
 }
 
-func (p StarSystemInfoPane) createInfoTable() table.Model {
-
-	columns := []table.Column{
-		{Title: "Planet", Width: 15},
-		{Title: "Position (x,y,z)", Width: 20},
-		{Title: "Population (Δpop/pulse)", Width: 25},
-	}
-
+func (p StarSystemDetailsPane) createInfoTable() table.Model {
 	infoTable := table.New(
-		table.WithColumns(columns),
+		table.WithColumns(p.createColumns()),
 		table.WithRows(p.createRows()),
 		table.WithFocused(true),
 		table.WithHeight(len(p.system.Planets)+1),
@@ -146,18 +140,28 @@ func (p StarSystemInfoPane) createInfoTable() table.Model {
 
 	return infoTable
 }
+func (p *StarSystemDetailsPane) createColumns() []table.Column {
 
-func (p *StarSystemInfoPane) createRows() []table.Row {
+	return []table.Column{
+		{Title: "Planet", Width: 15},
+		{Title: "Orbit Distance (AU)", Width: 20},
+		{Title: "Population (Δpop/pulse)", Width: 25},
+	}
+}
+
+func (p *StarSystemDetailsPane) createRows() []table.Row {
 
 	rows := []table.Row{}
 	for _, planet := range p.system.Planets {
 		populationString := fmt.Sprintf("%v (%v)", humanize.Comma(int64(planet.Population)), strconv.Itoa(planet.PopulationGrowthRate))
 
+		radialDistance := core.EuclidianDistance(planet.Position, p.system.Position)
+
 		var row table.Row
 		if planet.Scouted || planet.Colonized {
-			row = table.Row{planet.Name, planet.Position.String(), populationString}
+			row = table.Row{planet.Name, humanize.Comma(int64(radialDistance)), populationString}
 		} else {
-			row = table.Row{planet.Name, planet.Position.String(), ""}
+			row = table.Row{planet.Name, humanize.Comma(int64(radialDistance)), ""}
 		}
 
 		rows = append(rows, row)
@@ -166,7 +170,7 @@ func (p *StarSystemInfoPane) createRows() []table.Row {
 	return rows
 }
 
-func (p *StarSystemInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
+func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	pane := CreateNewShipManagementPane(
 		"Ship Management",
 		&state.State.ShipManager,
@@ -180,7 +184,7 @@ func (p *StarSystemInfoPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
 }
 
-func (p *StarSystemInfoPane) handleColonizeOrder() (tea.Model, tea.Cmd) {
+func (p *StarSystemDetailsPane) handleColonizeOrder() (tea.Model, tea.Cmd) {
 	cursor := p.systemInfoTable.(*InfoTablePane).table.Cursor()
 	pane := NewCreateColonyPane(
 		"Order Colonization: "+p.system.Planets[cursor].Name,
