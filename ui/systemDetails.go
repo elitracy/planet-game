@@ -140,6 +140,7 @@ func (p StarSystemDetailsPane) createInfoTable() table.Model {
 
 	return infoTable
 }
+
 func (p *StarSystemDetailsPane) createColumns() []table.Column {
 
 	return []table.Column{

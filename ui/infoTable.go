@@ -43,7 +43,9 @@ func (p *InfoTablePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return p, nil
+	model, cmd := p.table.Update(msg)
+	p.table = model
+	return p, cmd
 }
 
 func (p *InfoTablePane) View() string {

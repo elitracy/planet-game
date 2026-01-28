@@ -50,6 +50,7 @@ func (t Tick) String() string {
 	total /= int64(TICKS_PER_PULSE)
 
 	pulses := total % PULSES_PER_CYCLE
+	pulses = max(1, pulses)
 	total /= pulses
 
 	cycles := total / PULSES_PER_CYCLE

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/events/orders"
 	"github.com/elitracy/planets/state"
@@ -16,11 +18,12 @@ import (
 
 type OrderListPane struct {
 	*Pane
-	cursor       int
-	orders       []*orders.Order
-	progressBars map[events.EventID]core.PaneID
-	status       events.EventStatus
-	theme        UITheme
+	cursor         int
+	orders         []*orders.Order
+	orderInfoTable ManagedPane
+	progressBars   map[events.EventID]core.PaneID
+	status         events.EventStatus
+	theme          UITheme
 }
 
 func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderListPane {
@@ -28,8 +31,8 @@ func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderL
 		Pane: &Pane{
 			keys: NewKeyBindings(),
 		},
-		orders: orders,
 		status: status,
+		orders: orders,
 	}
 
 	return pane
@@ -43,12 +46,29 @@ func (p *OrderListPane) Init() tea.Cmd {
 		Set(Down, "j")
 
 	p.initProgrssBars()
+
+	keymaps := make(map[string]func() tea.Cmd)
+	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
+		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+	}
+
+	infoTable := p.createInfoTable()
+	p.orderInfoTable = NewInfoTablePane(
+		infoTable,
+		keymaps,
+	)
+
+	PaneManager.AddPane(p.orderInfoTable)
 	return nil
 }
 
 func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
+	case core.TickMsg:
+		p.orderInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
+	case core.UITickMsg:
+		p.orderInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
 		switch msg.String() {
 		case p.keys.Get(Up):
@@ -74,50 +94,20 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		progressBar = model.(ManagedPane)
 	}
 
+	model, cmd := p.orderInfoTable.Update(msg)
+	cmds = append(cmds, cmd)
+	p.orderInfoTable = model.(ManagedPane)
+
 	return p, tea.Batch(cmds...)
 }
 
 func (p *OrderListPane) View() string {
 	p.theme = GetPaneTheme(p)
 
-	var rows []string
-
 	title := fmt.Sprintf("%v Orders", p.status)
 	titleStyled := Style.Width(p.width).Bold(true).Align(lipgloss.Center).PaddingBottom(1).Render(title)
 
-	for i, order := range p.orders {
-
-		if order.Status != p.status {
-			continue
-		}
-
-		row := order.GetName()
-
-		if order.Status == events.EventPending {
-			duration := (order.GetExecuteTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
-			countDown := fmt.Sprintf("ETA: %v", humanize.Time(time.Now().Add(duration)))
-			row += fmt.Sprintf(" %v", countDown)
-		}
-
-		if order.Status == events.EventExecuting {
-			duration := (order.GetEndTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
-			countDown := fmt.Sprintf("ETA: %v", humanize.Time(time.Now().Add(duration)))
-			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
-			row += fmt.Sprintf(" %v %v", progressBar.View(), countDown)
-		}
-
-		if p.cursor == i {
-			row = p.theme.FocusedStyle.Render(row)
-		} else {
-			row = p.theme.BlurredStyle.Render(row)
-		}
-
-		rows = append(rows, row)
-	}
-
-	infoContainer := lipgloss.JoinVertical(lipgloss.Left, rows...)
-
-	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, infoContainer)
+	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.orderInfoTable.View())
 
 	return content
 }
@@ -135,4 +125,64 @@ func (p *OrderListPane) initProgrssBars() {
 
 		}
 	}
+}
+
+func (p OrderListPane) createInfoTable() table.Model {
+	infoTable := table.New(
+		table.WithColumns(p.createColumns()),
+		table.WithRows(p.createRows()),
+		table.WithFocused(true),
+		table.WithHeight(10),
+	)
+
+	return infoTable
+}
+
+func (p *OrderListPane) createColumns() []table.Column {
+	logging.Info("orders status: %v", p.status.String())
+
+	switch p.status {
+	case events.EventPending:
+		return []table.Column{
+			{Title: "Order", Width: 15},
+			{Title: "Time to Execution", Width: 25},
+		}
+	case events.EventExecuting:
+		return []table.Column{
+			{Title: "Order", Width: 15},
+			{Title: "Progress", Width: 25},
+			{Title: "Time Remaining", Width: 25},
+		}
+	default:
+		return []table.Column{
+			{Title: "Order", Width: 15},
+		}
+	}
+
+}
+
+func (p *OrderListPane) createRows() []table.Row {
+
+	rows := []table.Row{}
+	for _, order := range p.orders {
+		switch p.status {
+		case events.EventPending:
+			duration := (order.GetExecuteTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+
+			row := table.Row{order.GetName(), humanize.Time(time.Now().Add(duration))}
+			rows = append(rows, row)
+		case events.EventExecuting:
+			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
+			duration := (order.GetEndTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+
+			row := table.Row{order.GetName(), progressBar.View(), humanize.Time(time.Now().Add(duration))}
+			rows = append(rows, row)
+		default:
+			row := table.Row{order.GetName()}
+			rows = append(rows, row)
+		}
+
+	}
+
+	return rows
 }
