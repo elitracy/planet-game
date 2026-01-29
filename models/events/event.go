@@ -16,7 +16,7 @@ const (
 type Event interface {
 	GetID() EventID
 	SetID(EventID)
-	GetExecuteTick() core.Tick
+	GetStartTick() core.Tick
 	GetDuration() core.Tick
 	GetStatus() EventStatus
 }

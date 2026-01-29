@@ -12,13 +12,13 @@ type TimeoutAction struct {
 	*Action
 }
 
-func NewTimeoutAction(targetEntity models.Entity, executeTick core.Tick, duration core.Tick, destination models.Entity) *TimeoutAction {
+func NewTimeoutAction(targetEntity models.Entity, startTick core.Tick, duration core.Tick, destination models.Entity) *TimeoutAction {
 
 	action := &TimeoutAction{
 		Action: &Action{
 			TargetEntity: targetEntity,
 			Description:  fmt.Sprintf("Sending info about %v", targetEntity.GetName()),
-			ExecuteTick:  executeTick,
+			StartTick:  startTick,
 			Duration:     duration,
 			Status:       events.EventPending,
 		},

@@ -14,13 +14,13 @@ type BuildSolarGridAction struct {
 	*Action
 }
 
-func NewBuildSolarGridAction(targetEntity models.Entity, executeTick core.Tick, duration core.Tick) *BuildSolarGridAction {
+func NewBuildSolarGridAction(targetEntity models.Entity, startTick core.Tick, duration core.Tick) *BuildSolarGridAction {
 
 	action := &BuildSolarGridAction{
 		Action: &Action{
 			TargetEntity: targetEntity,
 			Description:  fmt.Sprintf("Building a solar grid on %v", targetEntity.GetName()),
-			ExecuteTick:  executeTick,
+			StartTick:  startTick,
 			Duration:     duration,
 			Status:       events.EventPending,
 		},

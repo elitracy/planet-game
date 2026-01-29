@@ -11,7 +11,7 @@ type Action struct {
 	ID           events.EventID
 	TargetEntity models.Entity
 	Description  string
-	ExecuteTick  core.Tick
+	StartTick    core.Tick
 	Duration     core.Tick
 	Status       events.EventStatus
 }
@@ -20,19 +20,8 @@ func (a Action) GetID() events.EventID                { return a.ID }
 func (a *Action) SetID(id events.EventID)             { a.ID = id }
 func (a Action) GetTargetEntity() models.Entity       { return a.TargetEntity }
 func (a Action) GetDescription() string               { return a.Description }
-func (a Action) GetExecuteTick() core.Tick            { return a.ExecuteTick }
+func (a Action) GetStartTick() core.Tick              { return a.StartTick }
 func (a Action) GetDuration() core.Tick               { return a.Duration }
 func (a Action) GetStatus() events.EventStatus        { return a.Status }
 func (a *Action) SetStatus(status events.EventStatus) { a.Status = status }
-
-type OrderAction interface {
-	GetID() events.EventID
-	SetID(events.EventID)
-	GetTargetEntity() models.Entity
-	GetDescription() string
-	GetExecuteTick() core.Tick
-	GetDuration() core.Tick
-	GetStatus() events.EventStatus
-	SetStatus(status events.EventStatus)
-	Execute()
-}
+func (a *Action) Execute()                            {}

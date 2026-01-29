@@ -14,14 +14,14 @@ type BuildMineAction struct {
 	*Action
 }
 
-func NewBuildMineAction(targetEntity models.Entity, executeTick core.Tick, duration core.Tick) *BuildMineAction {
+func NewBuildMineAction(targetEntity models.Entity, startTick core.Tick, duration core.Tick) *BuildMineAction {
 
 	action := &BuildMineAction{
 		Action: &Action{
 			TargetEntity: targetEntity,
 			Description:  fmt.Sprintf("Building a mine on %v", targetEntity.GetName()),
-			ExecuteTick:  executeTick,
-			Duration:     duration, // TODO: eventually Tick * 40 for clarity
+			StartTick:    startTick,
+			Duration:     duration,
 			Status:       events.EventPending,
 		},
 	}

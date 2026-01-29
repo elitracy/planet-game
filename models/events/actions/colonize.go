@@ -12,13 +12,13 @@ type ColonizeAction struct {
 	*Action
 }
 
-func NewColonizeAction(targetEntity models.Entity, executeTick core.Tick, duration core.Tick) *ColonizeAction {
+func NewColonizeAction(targetEntity models.Entity, startTick core.Tick, duration core.Tick) *ColonizeAction {
 
 	action := &ColonizeAction{
 		Action: &Action{
 			TargetEntity: targetEntity,
 			Description:  fmt.Sprintf("Colonize %v", targetEntity.GetName()),
-			ExecuteTick:  executeTick,
+			StartTick:  startTick,
 			Duration:     duration,
 			Status:       events.EventPending,
 		},

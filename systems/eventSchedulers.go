@@ -9,13 +9,14 @@ import (
 
 func TickOrderScheduler() {
 	for _, order := range state.State.OrderScheduler.PriorityQueue {
+
 		switch order.GetStatus() {
 		case events.EventPending:
-			if order.GetExecuteTick() <= state.State.CurrentTick {
+			if order.GetStartTick() <= state.State.CurrentTick {
 				logging.Info("[%s] Executing Order: %v", order.GetName(), order.GetID())
 				order.SetStatus(events.EventExecuting)
 				for _, action := range order.GetActions() {
-					if action.GetExecuteTick() == state.State.CurrentTick {
+					if action.GetStartTick() == state.State.CurrentTick {
 						action.SetStatus(events.EventExecuting)
 					}
 				}
@@ -36,11 +37,10 @@ func TickOrderScheduler() {
 				order.SetStatus(events.EventComplete)
 			}
 
-		case events.EventComplete: 
+		case events.EventComplete:
 			poppedOrder := state.State.OrderScheduler.Pop()
 			if poppedOrder.GetID() != order.GetID() {
 				logging.Error("Order Scheduler out of sync")
-				logging.Error("Order Sheduler Queue: %v", state.State.OrderScheduler)
 				logging.Error("Popped Order: %v", order)
 				logging.Error("Expected Order: %v", poppedOrder)
 			}
@@ -56,23 +56,30 @@ func TickOrderScheduler() {
 }
 
 func TickActionScheduler() {
-	for _, order := range state.State.OrderScheduler.PriorityQueue {
-		if order.GetStatus() == events.EventExecuting {
-			for _, action := range order.GetActions() {
-
-				switch action.GetStatus() {
-				case events.EventPending:
-					if action.GetExecuteTick() <= state.State.CurrentTick {
-						action.SetStatus(events.EventExecuting)
-					}
-				case events.EventExecuting:
-					if action.GetExecuteTick()+action.GetDuration() <= state.State.CurrentTick {
-						action.Execute()
-						action.SetStatus(events.EventComplete)
-					}
-				}
-
+	for _, action := range state.State.ActionScheduler.PriorityQueue {
+		switch action.GetStatus() {
+		case events.EventPending:
+			if action.GetStartTick() <= state.State.CurrentTick {
+				action.SetStatus(events.EventExecuting)
 			}
+		case events.EventExecuting:
+			if action.GetStartTick()+action.GetDuration() <= state.State.CurrentTick {
+				action.Execute()
+				action.SetStatus(events.EventComplete)
+			}
+		case events.EventComplete:
+			poppedAction := state.State.ActionScheduler.Pop()
+			if poppedAction.GetID() != action.GetID() {
+				logging.Error("Action Scheduler out of sync")
+				logging.Error("Popped Action: %v", action)
+				logging.Error("Expected Action: %v", poppedAction)
+			}
+
+			logging.Info("[%v] Completed Action: %v", action.GetDescription(), action.GetID())
+
+		case events.EventFailed:
+			logging.Error("[%v] Action Failed: %v", action.GetDescription(), action.GetID())
+
 		}
 	}
 }

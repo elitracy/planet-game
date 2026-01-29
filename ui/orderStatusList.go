@@ -3,10 +3,8 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/events/orders"
-	"github.com/elitracy/planets/state"
 )
 
 var orderStatusTypes = []events.EventStatus{
@@ -15,8 +13,6 @@ var orderStatusTypes = []events.EventStatus{
 	events.EventComplete,
 	events.EventFailed,
 }
-
-var orderStatuses [][]*orders.Order // eventStatus is the index
 
 type OrderStatusListPane struct {
 	*Pane
@@ -41,19 +37,17 @@ func NewOrderStatusListPane(title string, orderScheduler *events.EventScheduler[
 func (p *OrderStatusListPane) Init() tea.Cmd {
 	p.keys.
 		Set(Quit, "q").
+		Set(Select, "enter").
 		Set(Back, "esc").
 		Set(Up, "k").
 		Set(Down, "j")
 
-	p.updateOrderStatusMap()
-
-	orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
+	orderList := NewOrderListPane(events.EventStatus(p.cursor))
 	paneID := PaneManager.AddPane(orderList)
 	return tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 }
 
 func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	p.updateOrderStatusMap()
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
@@ -66,21 +60,21 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 
-			logging.Info("status %v", events.EventStatus(p.cursor))
-			orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
+			orderList := NewOrderListPane(events.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 		case p.keys.Get(Down):
-			if p.cursor < len(orderStatuses)-1 {
+			if p.cursor < len(orderStatusTypes)-1 {
 				p.cursor++
 			}
 
-			logging.Info("status %v", events.EventStatus(p.cursor))
-			orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
+			orderList := NewOrderListPane(events.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+		case p.keys.Get(Select):
+			return p, tea.Sequence(pushFocusStackCmd(PaneManager.PeekDetailPaneStack().ID()))
 		case p.keys.Get(Back):
-			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
+			return p, tea.Sequence(popFocusStackCmd())
 		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
@@ -95,19 +89,9 @@ func (p *OrderStatusListPane) View() string {
 	var rows []string
 
 	rowIdx := 0
-	for status := range orderStatuses {
+	for status := range orderStatusTypes {
 
 		row := events.EventStatus(status).String()
-		switch events.EventStatus(status) {
-		case events.EventPending:
-			if len(orderStatuses[status]) != 0 {
-				row += "*"
-			}
-		case events.EventExecuting:
-			if len(orderStatuses[status]) != 0 {
-				row += "*"
-			}
-		}
 
 		if p.cursor == rowIdx {
 			row = p.theme.FocusedStyle.Render(row)
@@ -127,29 +111,4 @@ func (p *OrderStatusListPane) View() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, infoContainer)
 
 	return content
-}
-
-func (p *OrderStatusListPane) updateOrderStatusMap() {
-	orderStatuses = make([][]*orders.Order, len(orderStatusTypes))
-
-	for _, order := range p.orderScheduler.PriorityQueue {
-		switch order.Status {
-		case events.EventPending:
-			orderStatuses[events.EventPending] = append(orderStatuses[events.EventPending], order)
-		case events.EventExecuting:
-			orderStatuses[events.EventExecuting] = append(orderStatuses[events.EventExecuting], order)
-		case events.EventFailed:
-			orderStatuses[events.EventFailed] = append(orderStatuses[events.EventFailed], order)
-		}
-	}
-
-	for _, order := range state.State.CompletedOrders {
-		switch order.Status {
-		case events.EventComplete:
-			orderStatuses[events.EventComplete] = append(orderStatuses[events.EventComplete], order)
-		case events.EventFailed:
-			orderStatuses[events.EventFailed] = append(orderStatuses[events.EventFailed], order)
-		}
-	}
-
 }

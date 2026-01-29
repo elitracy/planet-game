@@ -10,30 +10,28 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
 	"github.com/elitracy/planets/core/consts"
+	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/events/orders"
 	"github.com/elitracy/planets/state"
 )
 
-var loadingBarWidth = 0.5
-
 type OrderListPane struct {
 	*Pane
 	cursor         int
-	orders         []*orders.Order
+	filteredOrders []*orders.Order
 	orderInfoTable ManagedPane
 	progressBars   map[events.EventID]core.PaneID
 	status         events.EventStatus
 	theme          UITheme
 }
 
-func NewOrderListPane(orders []*orders.Order, status events.EventStatus) *OrderListPane {
+func NewOrderListPane(status events.EventStatus) *OrderListPane {
 	pane := &OrderListPane{
 		Pane: &Pane{
 			keys: NewKeyBindings(),
 		},
 		status: status,
-		orders: orders,
 	}
 
 	return pane
@@ -43,12 +41,21 @@ func (p *OrderListPane) Init() tea.Cmd {
 	p.keys.
 		Set(Quit, "q").
 		Set(Back, "esc").
+		Set(Select, "enter").
 		Set(Up, "k").
 		Set(Down, "j")
 
-	p.initProgrssBars()
+	p.filterOrders()
+	p.initProgressBars()
 
 	keymaps := make(map[string]func() tea.Cmd)
+	keymaps[p.keys.Get(Select)] = func() tea.Cmd {
+		order := p.filteredOrders[p.orderInfoTable.(*InfoTablePane).table.Cursor()]
+		pane := NewOrderDetailsPane(order)
+		paneID := PaneManager.AddPane(pane)
+
+		return tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+	}
 	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
@@ -64,14 +71,19 @@ func (p *OrderListPane) Init() tea.Cmd {
 }
 
 func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	var cmds []tea.Cmd
+
+	if PaneManager.PeekFocusStack() == p.ID() && len(p.filteredOrders) == 0 {
+		cmds = append(cmds, popFocusStackCmd())
+	}
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		p.width = msg.width
 		p.height = msg.height
 
-		msg.width = 25
+		msg.width = 30
 		for _, paneID := range p.progressBars {
 			progressBar := PaneManager.Panes[paneID]
 			model, cmd := progressBar.Update(msg)
@@ -80,8 +92,16 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return p, tea.Batch(cmds...)
 	case core.TickMsg:
+		p.filterOrders()
+		p.initProgressBars()
+
+		if len(p.filteredOrders) == 0 {
+			p.keys.Unset(Select)
+		} else {
+			p.keys.Set(Select, "enter")
+		}
+
 		p.orderInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
-	case core.UITickMsg:
 		p.orderInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 		p.orderInfoTable.(*InfoTablePane).table.SetColumns(p.createColumns())
 	case tea.KeyMsg:
@@ -91,11 +111,11 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 		case p.keys.Get(Down):
-			if p.cursor < len(p.orders) {
+			if p.cursor < len(p.filteredOrders) {
 				p.cursor++
 			}
 		case p.keys.Get(Back):
-			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
+			return p, tea.Sequence(popFocusStackCmd())
 		case p.keys.Get(Quit):
 			return p, tea.Quit
 		}
@@ -126,14 +146,17 @@ func (p *OrderListPane) View() string {
 	return content
 }
 
-func (p *OrderListPane) initProgrssBars() {
+func (p *OrderListPane) initProgressBars() {
 	if p.progressBars == nil {
 		p.progressBars = make(map[events.EventID]core.PaneID)
 	}
 
-	for _, order := range p.orders {
+	for _, order := range p.filteredOrders {
+		if order.GetStatus() != p.status {
+			continue
+		}
 		if _, ok := p.progressBars[order.ID]; !ok {
-			progressBar := NewLoadingBarPane(order.GetExecuteTick(), order.GetEndTick())
+			progressBar := NewProgressBarPane(order.GetStartTick(), order.GetStartTick()+order.GetDuration())
 			id := PaneManager.AddPane(progressBar)
 			p.progressBars[order.GetID()] = id
 
@@ -146,7 +169,7 @@ func (p OrderListPane) createInfoTable() table.Model {
 		table.WithColumns(p.createColumns()),
 		table.WithRows(p.createRows()),
 		table.WithFocused(true),
-		table.WithHeight(10),
+		table.WithHeight(40),
 	)
 
 	return infoTable
@@ -157,18 +180,18 @@ func (p *OrderListPane) createColumns() []table.Column {
 	switch p.status {
 	case events.EventPending:
 		return []table.Column{
-			{Title: "Order", Width: 15},
-			{Title: "Time to Execution", Width: 25},
+			{Title: "Order", Width: 25},
+			{Title: "Time to Execution", Width: 40},
 		}
 	case events.EventExecuting:
 		return []table.Column{
-			{Title: "Order", Width: 15},
+			{Title: "Order", Width: 25},
 			{Title: "Completion Time", Width: 25},
-			{Title: "Progress", Width: p.width - 40},
+			{Title: "Progress", Width: 40},
 		}
 	default:
 		return []table.Column{
-			{Title: "Order", Width: 15},
+			{Title: "Order", Width: 25},
 		}
 	}
 
@@ -177,20 +200,20 @@ func (p *OrderListPane) createColumns() []table.Column {
 func (p *OrderListPane) createRows() []table.Row {
 
 	rows := []table.Row{}
-	for _, order := range p.orders {
+	for _, order := range p.filteredOrders {
 		if order.GetStatus() != p.status {
 			continue
 		}
 
 		switch p.status {
 		case events.EventPending:
-			duration := (order.GetExecuteTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+			duration := (order.GetStartTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
 
 			row := table.Row{order.GetName(), humanize.Time(time.Now().Add(duration))}
 			rows = append(rows, row)
 		case events.EventExecuting:
 			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
-			duration := (order.GetEndTick() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
+			duration := (order.GetStartTick() + order.GetDuration() - state.State.CurrentTick).ToDuration(consts.TICKS_PER_SECOND)
 
 			row := table.Row{order.GetName(), humanize.Time(time.Now().Add(duration)), progressBar.View()}
 			rows = append(rows, row)
@@ -198,8 +221,24 @@ func (p *OrderListPane) createRows() []table.Row {
 			row := table.Row{order.GetName()}
 			rows = append(rows, row)
 		}
-
 	}
 
 	return rows
+}
+
+func (p *OrderListPane) filterOrders() {
+	p.filteredOrders = []*orders.Order{}
+	logging.Info("order list status: %v", p.status)
+
+	if p.status == events.EventComplete {
+		p.filteredOrders = state.State.CompletedOrders
+		return
+	}
+
+	for _, order := range state.State.OrderScheduler.PriorityQueue {
+		if order.GetStatus() == p.status {
+			p.filteredOrders = append(p.filteredOrders, order)
+		}
+	}
+
 }

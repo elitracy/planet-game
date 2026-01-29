@@ -10,7 +10,7 @@ import (
 	"github.com/elitracy/planets/state"
 )
 
-type LoadingBarPane struct {
+type ProgressBarPane struct {
 	*Pane
 
 	startTick core.Tick
@@ -18,8 +18,8 @@ type LoadingBarPane struct {
 	progress  progress.Model
 }
 
-func NewLoadingBarPane(startTick, endTick core.Tick) *LoadingBarPane {
-	return &LoadingBarPane{
+func NewProgressBarPane(startTick, endTick core.Tick) *ProgressBarPane {
+	return &ProgressBarPane{
 		Pane:      &Pane{},
 		progress:  progress.New(progress.WithDefaultGradient()),
 		startTick: startTick,
@@ -27,9 +27,9 @@ func NewLoadingBarPane(startTick, endTick core.Tick) *LoadingBarPane {
 	}
 }
 
-func (p *LoadingBarPane) Init() tea.Cmd { return nil }
+func (p *ProgressBarPane) Init() tea.Cmd { return nil }
 
-func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (p *ProgressBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
@@ -57,8 +57,6 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, cmd
 		}
 
-		return p, nil
-
 	case progress.FrameMsg:
 		progressModel, cmd := p.progress.Update(msg)
 		p.progress = progressModel.(progress.Model)
@@ -67,7 +65,7 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return p, nil
 }
 
-func (p *LoadingBarPane) View() string {
+func (p *ProgressBarPane) View() string {
 	filled := int(math.Ceil((float64(p.width) * p.progress.Percent())))
 	return strings.Repeat("█", filled) + strings.Repeat("░", p.width-filled)
 }

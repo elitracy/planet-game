@@ -15,13 +15,13 @@ type MoveEntityAction struct {
 	Destination models.Location
 }
 
-func NewMoveEntityAction(target models.Entity, dest models.Location, executeTick core.Tick, duration core.Tick) *MoveEntityAction {
+func NewMoveEntityAction(target models.Entity, dest models.Location, startTick core.Tick, duration core.Tick) *MoveEntityAction {
 
 	action := &MoveEntityAction{
 		Action: &Action{
 			TargetEntity: target,
-			Description:  fmt.Sprintf("Sending %v to %v", target.GetName(), dest),
-			ExecuteTick:  executeTick,
+			Description:  fmt.Sprintf("Send %v to %v", target.GetName(), dest),
+			StartTick:  startTick,
 			Duration:     duration,
 			Status:       events.EventPending,
 		},

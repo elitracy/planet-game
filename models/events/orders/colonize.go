@@ -13,37 +13,37 @@ type CreateColonyOrder struct {
 	planet *models.Planet
 }
 
-func NewCreateColonyOrder(planet *models.Planet, execTick core.Tick) *Order {
+func NewCreateColonyOrder(planet *models.Planet, startTick core.Tick) *Order {
 	order := &CreateColonyOrder{
 		Order: &Order{
-			Name:        "Create Colony",
-			ExecuteTick: execTick,
-			Status:      events.EventPending,
+			Name:      "Create Colony",
+			StartTick: startTick,
+			Status:    events.EventPending,
 		},
 		planet: planet,
 	}
 
 	createFarmAction := actions.NewBuildFarmAction(
 		planet,
-		order.ExecuteTick,
+		order.StartTick,
 		consts.TICKS_PER_SECOND*10,
 	)
 
 	createMineAction := actions.NewBuildMineAction(
 		planet,
-		order.ExecuteTick,
+		order.StartTick,
 		consts.TICKS_PER_SECOND*10,
 	)
 
 	createSolarGridAction := actions.NewBuildSolarGridAction(
 		planet,
-		order.ExecuteTick,
+		order.StartTick,
 		consts.TICKS_PER_SECOND*10,
 	)
 
-	colonizeAction := actions.NewColonizeAction(planet, order.ExecuteTick, consts.TICKS_PER_SECOND)
+	colonizeAction := actions.NewColonizeAction(planet, order.StartTick, consts.TICKS_PER_SECOND)
 
-	order.Actions = append(order.Actions, createFarmAction, createMineAction, createSolarGridAction, colonizeAction)
+	order.Actions = append(order.Actions, createFarmAction.Action, createMineAction.Action, createSolarGridAction.Action, colonizeAction.Action)
 
 	return order.Order
 }

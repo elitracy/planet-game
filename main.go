@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/core/consts"
 	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/engine"
 	"github.com/elitracy/planets/models"
@@ -14,7 +15,7 @@ import (
 
 const NUM_STAR_SYSTEMS = 3
 
-const START_YEAR_TICK = 2049 * core.TICKS_PER_CYCLE
+const START_YEAR_TICK = 2049 * consts.TICKS_PER_CYCLE
 
 func main() {
 

@@ -12,13 +12,13 @@ type ScoutEntityAction struct {
 	*Action
 }
 
-func NewScoutEntityAction(entity models.Entity, executeTick core.Tick, duration core.Tick) *ScoutEntityAction{
+func NewScoutEntityAction(entity models.Entity, startTick core.Tick, duration core.Tick) *ScoutEntityAction {
 
 	action := &ScoutEntityAction{
 		Action: &Action{
 			TargetEntity: entity,
-			Description:  fmt.Sprintf("Scoutting %v", entity.GetName()),
-			ExecuteTick:  executeTick,
+			Description:  fmt.Sprintf("Survey %v", entity.GetName()),
+			StartTick:    startTick,
 			Duration:     duration,
 			Status:       events.EventPending,
 		},
