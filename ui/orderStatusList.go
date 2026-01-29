@@ -3,6 +3,7 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/core/logging"
 	"github.com/elitracy/planets/models/events"
 	"github.com/elitracy/planets/models/events/orders"
 	"github.com/elitracy/planets/state"
@@ -65,6 +66,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 
+			logging.Info("status %v", events.EventStatus(p.cursor))
 			orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
@@ -73,6 +75,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 
+			logging.Info("status %v", events.EventStatus(p.cursor))
 			orderList := NewOrderListPane(orderStatuses[p.cursor], events.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))

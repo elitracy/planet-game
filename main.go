@@ -38,14 +38,14 @@ func main() {
 		planet.Colonized = true
 	}
 
-	state.State.CreatePlayer(startingPlanet.GetPosition())
+	state.State.CreatePlayer(startingPlanet.GetLocation())
 	logging.Ok("Player Initialized")
 
 	state.State.ShipManager.Ships = make(map[int]*models.Ship)
 
 	for range 5 {
 		name := fmt.Sprintf("Hermes %03d", rand.Intn(1000))
-		ship := models.CreateNewShip(name, state.State.Player.Position, models.Scout)
+		ship := models.CreateNewShip(name, startingPlanet.GetLocation(), models.Scout)
 
 		state.State.ShipManager.AddShip(ship)
 	}

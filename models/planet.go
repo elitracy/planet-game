@@ -52,7 +52,7 @@ func CreatePlanet(name string, position core.Position, pop, num_farms, num_mines
 	planet := Planet{
 		CoreEntity: &CoreEntity{
 			Name:     name,
-			Position: position,
+			Location: Location{Position: position},
 		},
 		Population:           pop,
 		PopulationGrowthRate: consts.POPULATION_GROWTH_PER_PULSE,

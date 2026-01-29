@@ -98,7 +98,7 @@ func (p *StarSystemDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p *StarSystemDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
-	distance := core.EuclidianDistance(state.State.Player.Position, p.system.Position)
+	distance := core.EuclidianDistance(state.State.Player.Position, p.system.Location.Position)
 	distanceStyled := fmt.Sprintf(" (%v AU)", humanize.Comma(int64(distance)))
 	distanceStyled = p.theme.DimmedStyle.Render(distanceStyled)
 
@@ -123,7 +123,7 @@ func (p *StarSystemDetailsPane) View() string {
 	}
 
 	if !p.system.Scouted && !p.system.Colonized {
-		noDataMsg := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Bold(true).Render("<No Data for System>")
+		noDataMsg := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Bold(true).Render("<No data for system>")
 		return lipgloss.JoinVertical(lipgloss.Left, headerStyled, noDataMsg)
 	}
 
@@ -140,6 +140,7 @@ func (p StarSystemDetailsPane) createInfoTable() table.Model {
 
 	return infoTable
 }
+
 func (p *StarSystemDetailsPane) createColumns() []table.Column {
 
 	return []table.Column{
@@ -155,7 +156,7 @@ func (p *StarSystemDetailsPane) createRows() []table.Row {
 	for _, planet := range p.system.Planets {
 		populationString := fmt.Sprintf("%v (%v)", humanize.Comma(int64(planet.Population)), strconv.Itoa(planet.PopulationGrowthRate))
 
-		radialDistance := core.EuclidianDistance(planet.Position, p.system.Position)
+		radialDistance := core.EuclidianDistance(planet.Location.Position, p.system.Location.Position)
 
 		var row table.Row
 		if planet.Scouted || planet.Colonized {
@@ -175,7 +176,7 @@ func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 		"Ship Management",
 		&state.State.ShipManager,
 		func(ship *models.Ship) {
-			order := orders.NewScoutDestinationOrder(ship, models.Destination{Position: p.system.Position, Entity: p.system.Planets[p.createInfoTable().Cursor()]}, state.State.CurrentTick+40)
+			order := orders.NewScoutDestinationOrder(ship, models.Location{Position: p.system.Location.Position, Entity: p.system.Planets[p.createInfoTable().Cursor()]}, state.State.CurrentTick+40)
 			state.State.OrderScheduler.Push(order)
 		},
 	)

@@ -1,6 +1,9 @@
 package ui
 
 import (
+	"math"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/elitracy/planets/core"
@@ -27,7 +30,11 @@ func NewLoadingBarPane(startTick, endTick core.Tick) *LoadingBarPane {
 func (p *LoadingBarPane) Init() tea.Cmd { return nil }
 
 func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
 	switch msg := msg.(type) {
+	case paneResizeMsg:
+		p.width = msg.width
+		p.height = msg.height
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
@@ -61,5 +68,6 @@ func (p *LoadingBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *LoadingBarPane) View() string {
-	return p.progress.View()
+	filled := int(math.Ceil((float64(p.width) * p.progress.Percent())))
+	return strings.Repeat("█", filled) + strings.Repeat("░", p.width-filled)
 }

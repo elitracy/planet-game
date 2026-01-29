@@ -1,8 +1,6 @@
 package models
 
-import (
-	core "github.com/elitracy/planets/core"
-)
+import "github.com/elitracy/planets/core"
 
 type StarSystem struct {
 	*CoreEntity
@@ -15,7 +13,7 @@ func CreateStarSystem(name string, planets []*Planet, position core.Position) *S
 	return &StarSystem{
 		CoreEntity: &CoreEntity{
 			Name:     name,
-			Position: position,
+			Location: Location{Position: position},
 		},
 		Planets:   planets,
 		Colonized: false,

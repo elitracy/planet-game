@@ -52,8 +52,8 @@ type GameState struct {
 	ShipManager     models.ShipManager
 }
 
-func (gs *GameState) CreatePlayer(position core.Position) models.Player {
-	player := models.Player{Position: position}
+func (gs *GameState) CreatePlayer(location models.Location) models.Player {
+	player := models.Player{Location: location}
 	gs.Player = player
 	return player
 }
@@ -66,9 +66,9 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 	system_names = slices.Delete(system_names, system_name_idx, system_name_idx+1)
 
 	system_position := core.Position{
-		X: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
-		Y: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
-		Z: rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST,
+		X: int64(rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST),
+		Y: int64(rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST),
+		Z: int64(rand.Intn(MAX_STAR_SYSTEM_DIST-MIN_STAR_SYSTEM_DIST) + MIN_STAR_SYSTEM_DIST),
 	}
 
 	system := models.CreateStarSystem(system_name, []*models.Planet{}, system_position)
@@ -78,9 +78,9 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 
 	for range num_planets {
 		position := core.Position{
-			X: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST + system_position.X,
-			Y: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST + system_position.Y,
-			Z: rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST) + MIN_PLANET_DIST + system_position.Z,
+			X: int64(rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST)) + MIN_PLANET_DIST + system_position.X,
+			Y: int64(rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST)) + MIN_PLANET_DIST + system_position.Y,
+			Z: int64(rand.Intn(MAX_PLANET_DIST-MIN_PLANET_DIST)) + MIN_PLANET_DIST + system_position.Z,
 		}
 		planet_positions = append(planet_positions, position)
 	}

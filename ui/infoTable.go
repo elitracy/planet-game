@@ -41,9 +41,13 @@ func (p *InfoTablePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
+	default:
+		model, cmd := p.table.Update(msg)
+		p.table = model
+		return p, cmd
 	}
-
 	return p, nil
+
 }
 
 func (p *InfoTablePane) View() string {

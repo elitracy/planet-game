@@ -3,16 +3,18 @@ package core
 import (
 	"fmt"
 	"math"
+
+	"github.com/dustin/go-humanize"
 )
 
 type Position struct {
-	X int
-	Y int
-	Z int
+	X int64
+	Y int64
+	Z int64
 }
 
 func (l Position) String() string {
-	return fmt.Sprintf("(%d, %d, %d)", l.X, l.Y, l.Z)
+	return fmt.Sprintf("(%v, %v, %v)", humanize.Comma(l.X), humanize.Comma(l.Y), humanize.Comma(l.Z))
 }
 
 func EuclidianDistance(l1 Position, l2 Position) float64 {

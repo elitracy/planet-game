@@ -11,15 +11,15 @@ import (
 type ScoutPositionOrder struct {
 	*Order
 	ship        *models.Ship
-	destination models.Destination
+	destination models.Location
 }
 
-func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTick core.Tick) *Order {
+func NewScoutDestinationOrder(ship *models.Ship, dest models.Location, execTick core.Tick) *Order {
 	name := ""
 	if dest.Entity != nil {
 		name = dest.Entity.GetName()
 	} else {
-		name = dest.Entity.GetPosition().String()
+		name = dest.Entity.GetLocation().Position.String()
 	}
 	order := &ScoutPositionOrder{
 		Order: &Order{
@@ -31,12 +31,8 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTi
 		destination: dest,
 	}
 
-	d := core.EuclidianDistance(ship.Position, dest.Position)
+	d := core.EuclidianDistance(ship.GetLocation().Position, dest.Position)
 	t := d / ship.Velocity.Vector()
-
-	initialPos := ship.GetPosition()
-
-	logging.Info("Distance: %v", d)
 
 	travelAction := actions.NewMoveEntityAction(
 		ship,
@@ -47,7 +43,7 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Destination, execTi
 
 	returnAction := actions.NewMoveEntityAction(
 		ship,
-		models.Destination{Position: initialPos},
+		ship.GetLocation(),
 		order.ExecuteTick+core.Tick(t),
 		core.Tick(t),
 	)

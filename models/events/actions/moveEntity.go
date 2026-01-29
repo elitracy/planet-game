@@ -12,10 +12,10 @@ import (
 type MoveEntityAction struct {
 	*Action
 
-	Destination models.Destination
+	Destination models.Location
 }
 
-func NewMoveEntityAction(target models.Entity, dest models.Destination, executeTick core.Tick, duration core.Tick) *MoveEntityAction {
+func NewMoveEntityAction(target models.Entity, dest models.Location, executeTick core.Tick, duration core.Tick) *MoveEntityAction {
 
 	action := &MoveEntityAction{
 		Action: &Action{
@@ -33,7 +33,7 @@ func NewMoveEntityAction(target models.Entity, dest models.Destination, executeT
 
 func (a *MoveEntityAction) Execute() {
 	if shipEntity, ok := a.TargetEntity.(*models.Ship); ok {
-		shipEntity.Position = a.Destination.Position
+		shipEntity.Location = a.Destination
 		logging.Info("%v: Moved Ship", shipEntity.GetName())
 	}
 }

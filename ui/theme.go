@@ -30,7 +30,7 @@ func GetPaneTheme(pane ManagedPane) UITheme {
 	var theme = Theme
 
 	if !focused {
-		theme.FocusedStyle = theme.DimmedStyle
+		theme.FocusedStyle = theme.BlurredStyle
 	}
 
 	return theme

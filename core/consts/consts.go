@@ -17,5 +17,5 @@ const (
 	PULSES_PER_CYCLE    = 365
 
 	//ships
-	SCOUT_VELOCITY = 500
+	SCOUT_VELOCITY = 50
 )

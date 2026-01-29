@@ -94,11 +94,11 @@ func (p *ShipManagementPane) View() string {
 		if idx == p.cursor {
 			p.currentShipID = ship.GetID()
 
-			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetPosition())
+			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetLocation())
 			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
 			row = p.theme.FocusedStyle.Render(row)
 		} else {
-			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetPosition())
+			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetLocation())
 			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
 			row = p.theme.BlurredStyle.Render(row)
 		}
