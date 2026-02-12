@@ -2,15 +2,16 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/engine"
 )
 
 type TitlePane struct {
-	*Pane
+	*engine.Pane
 }
 
 func NewTitlePane(text string) *TitlePane {
 	return &TitlePane{
-		Pane: &Pane{
+		Pane: &engine.Pane{
 			title: text,
 		},
 	}

@@ -7,13 +7,14 @@ import (
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/events/orders"
-	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/models"
+	"github.com/elitracy/planets/game/orders"
 )
 
 type CreateColonyPane struct {
-	*Pane
+	*engine.Pane
 	planet     *models.Planet
 	focusIndex int
 	inputs     []textinput.Model
@@ -37,9 +38,9 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					p.planet.Name = p.inputs[0].Value()
 				}
 
-				createColonyOrder := orders.NewCreateColonyOrder(p.planet, state.State.CurrentTick)
+				createColonyOrder := orders.NewCreateColonyOrder(p.planet, game.State.CurrentTick)
 
-				state.State.OrderScheduler.Push(createColonyOrder)
+				game.State.OrderScheduler.Push(createColonyOrder)
 				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())
 			}
 
@@ -149,10 +150,8 @@ func (p *CreateColonyPane) View() string {
 func NewCreateColonyPane(title string, planet *models.Planet) *CreateColonyPane {
 
 	p := &CreateColonyPane{
-		inputs: make([]textinput.Model, 4),
-		Pane: &Pane{
-			title: title,
-		},
+		inputs:     make([]textinput.Model, 4),
+		Pane:       engine.NewPane(title, nil),
 		planet:     planet,
 		cursorMode: cursor.CursorStatic,
 	}

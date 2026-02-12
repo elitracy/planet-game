@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/game/models"
 	"github.com/elitracy/planets/models/events/orders"
 	"github.com/elitracy/planets/state"
 )

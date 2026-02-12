@@ -1,0 +1,30 @@
+package models
+
+import "github.com/elitracy/planets/engine"
+
+type StarSystem struct {
+	*CoreEntity
+	Planets   []*Planet
+	Scouted   bool
+	Colonized bool
+}
+
+func CreateStarSystem(name string, planets []*Planet, position engine.Position) *StarSystem {
+	return &StarSystem{
+		CoreEntity: &CoreEntity{
+			Name:     name,
+			Location: Location{Position: position},
+		},
+		Planets:   planets,
+		Colonized: false,
+	}
+}
+
+func (s *StarSystem) Tick() {
+	for _, planet := range s.Planets {
+		planet.Tick()
+		if planet.Colonized {
+			s.Colonized = true
+		}
+	}
+}

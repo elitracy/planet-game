@@ -4,42 +4,38 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/logging"
-	"github.com/elitracy/planets/models/events"
-	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/orders"
 )
 
 type OrderDetailsPane struct {
-	*Pane
+	*engine.Pane
 	theme          UITheme
-	orderInfoTable ManagedPane
+	orderInfoTable engine.ManagedPane
 	order          *orders.Order
-	progressBars   map[events.EventID]core.PaneID
+	progressBars   map[engine.EventID]engine.PaneID
 }
 
 func NewOrderDetailsPane(order *orders.Order) *OrderDetailsPane {
 	return &OrderDetailsPane{
-		Pane: &Pane{
-			title: order.GetName(),
-			keys:  NewKeyBindings(),
-		},
+		Pane:  engine.NewPane(order.GetName(), engine.NewKeyBindings()),
 		order: order,
 	}
 }
 
 func (p *OrderDetailsPane) Init() tea.Cmd {
-	p.keys.
-		Set(Quit, "q").
-		Set(Back, "esc").
-		Set(Up, "k").
-		Set(Down, "j")
+	p.GetKeys().
+		Set(engine.Quit, "q").
+		Set(engine.Back, "esc").
+		Set(engine.Up, "k").
+		Set(engine.Down, "j")
 
 	keymaps := make(map[string]func() tea.Cmd)
-	keymaps[p.keys.Get(Select)] = func() tea.Cmd {
+	keymaps[p.GetKeys().Get(engine.Select)] = func() tea.Cmd {
 		return tea.Sequence(pushDetailStackCmd(p.orderInfoTable.ID()), pushFocusStackCmd(p.orderInfoTable.ID()))
 	}
-	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
+	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
 
@@ -53,7 +49,7 @@ func (p *OrderDetailsPane) Init() tea.Cmd {
 
 	PaneManager.AddPane(p.orderInfoTable)
 	for _, action := range p.order.Actions {
-		logging.Info("actionID: %v", action.GetID())
+		engine.Info("actionID: %v", action.GetID())
 	}
 	return nil
 }
@@ -63,8 +59,7 @@ func (p *OrderDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		p.width = msg.width
-		p.height = msg.height
+		p.SetSize(msg.width, msg.height)
 
 		msg.width = 15
 		for _, paneID := range p.progressBars {
@@ -74,9 +69,9 @@ func (p *OrderDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			progressBar = model.(ManagedPane)
 		}
 		return p, tea.Batch(cmds...)
-	case core.TickMsg:
+	case engine.TickMsg:
 		p.orderInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
-	case core.UITickMsg:
+	case game.UITickMsg:
 		p.initProgressBars()
 		p.orderInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
@@ -97,7 +92,7 @@ func (p *OrderDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	model, cmd := p.orderInfoTable.Update(msg)
 	cmds = append(cmds, cmd)
-	p.orderInfoTable = model.(ManagedPane)
+	p.orderInfoTable = model.(engine.ManagedPane)
 	return p, tea.Batch(cmds...)
 }
 
@@ -105,7 +100,7 @@ func (p *OrderDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.Title()
-	titleStyled := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
+	titleStyled := Style.Width(p.Width()).AlignHorizontal(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
 
 	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.orderInfoTable.View())
 }
@@ -129,7 +124,7 @@ func (p *OrderDetailsPane) createColumns() []table.Column {
 		{Title: "Completion Time", Width: 15},
 		{Title: "Status", Width: 15},
 	}
-	if p.order.Status == events.EventExecuting {
+	if p.order.Status == engine.EventExecuting {
 		columns = append(columns, table.Column{Title: "Progress", Width: 15})
 	}
 
@@ -146,12 +141,12 @@ func (p *OrderDetailsPane) createRows() []table.Row {
 		var row table.Row
 
 		switch action.GetStatus() {
-		case events.EventPending:
+		case engine.EventPending:
 			row = table.Row{action.GetDescription(), start, end, "Pending"}
-		case events.EventExecuting:
+		case engine.EventExecuting:
 			paneID := p.progressBars[action.GetID()]
 			row = table.Row{action.GetDescription(), start, end, "In Progress", PaneManager.Panes[paneID].View()}
-		case events.EventComplete:
+		case engine.EventComplete:
 			row = table.Row{action.GetDescription(), start, end, "Complete"}
 		}
 
@@ -164,7 +159,7 @@ func (p *OrderDetailsPane) createRows() []table.Row {
 
 func (p *OrderDetailsPane) initProgressBars() {
 	if p.progressBars == nil {
-		p.progressBars = make(map[events.EventID]core.PaneID)
+		p.progressBars = make(map[engine.EventID]engine.PaneID)
 	}
 
 	for _, action := range p.order.Actions {
@@ -172,7 +167,7 @@ func (p *OrderDetailsPane) initProgressBars() {
 			progressBar := NewProgressBarPane(action.GetStartTick(), action.GetStartTick()+action.GetDuration())
 			id := PaneManager.AddPane(progressBar)
 			p.progressBars[action.GetID()] = id
-			logging.Info("creating progress bar: %v", action.GetDescription())
+			engine.Info("creating progress bar: %v", action.GetDescription())
 
 		}
 	}
