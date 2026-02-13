@@ -77,6 +77,8 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	p.currentShipID = p.sortedShips[p.cursor].GetID()
+
 	return p, nil
 }
 
@@ -89,7 +91,6 @@ func (p *ShipManagementPane) View() string {
 	for _, ship := range p.sortedShips {
 		var row string
 		if idx == p.cursor {
-			p.currentShipID = ship.GetID()
 
 			row = fmt.Sprintf("%s - %s", ship.GetName(), ship.GetLocation())
 			row = Style.Border(lipgloss.NormalBorder()).Padding(0, 1).Render(row)
