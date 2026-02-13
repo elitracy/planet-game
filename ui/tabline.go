@@ -5,19 +5,20 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/engine"
 )
 
 type TabLinePane struct {
-	*Pane
+	*engine.Pane
 
 	cursor int
-	tabs   []ManagedPane
+	tabs   []engine.ManagedPane
 	theme  UITheme
 }
 
-func NewTablinePane(tabs []ManagedPane) *TabLinePane {
+func NewTablinePane(tabs []engine.ManagedPane) *TabLinePane {
 	pane := &TabLinePane{
-		Pane: &Pane{},
+		Pane: engine.NewPane("Tabs", nil),
 		tabs: tabs,
 	}
 
@@ -30,16 +31,15 @@ func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.Pane.id {
-			p.Pane.width = msg.width - 2
-			p.Pane.height = msg.height
+		if msg.paneID == p.Pane.ID() {
+			p.SetSize(msg.width-2, msg.height)
 
 			return p, nil
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return p, popMainFocusCmd(p.Pane.id)
+			return p, popMainFocusCmd(p.Pane.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		case "shift+tab":

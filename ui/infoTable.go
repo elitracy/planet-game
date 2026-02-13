@@ -4,10 +4,11 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/engine"
 )
 
 type InfoTablePane struct {
-	*Pane
+	*engine.Pane
 	table   table.Model
 	keymaps map[string]func() tea.Cmd
 	theme   UITheme
@@ -15,7 +16,7 @@ type InfoTablePane struct {
 
 func NewInfoTablePane(table table.Model, keymaps map[string]func() tea.Cmd) *InfoTablePane {
 	pane := &InfoTablePane{
-		Pane:    &Pane{title: "Info Table"},
+		Pane:    engine.NewPane("Info Table", nil),
 		table:   table,
 		keymaps: keymaps,
 	}

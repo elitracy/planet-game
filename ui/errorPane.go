@@ -1,16 +1,19 @@
 package ui
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/elitracy/planets/engine"
+)
 
 type ErrorPane struct {
-	*Pane
+	*engine.Pane
 
 	errorMsg string
 }
 
 func NewErrorPane(errorMsg string) *ErrorPane {
 	return &ErrorPane{
-		Pane:     &Pane{},
+		Pane:     &engine.Pane{},
 		errorMsg: errorMsg,
 	}
 }

@@ -2,6 +2,24 @@ package ui
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/engine"
+)
+
+// Blackbag color palette
+const (
+	ColorFg       = lipgloss.Color("#d0e8ff")
+	ColorFgBright = lipgloss.Color("#ffffff")
+	ColorFgDim    = lipgloss.Color("#a0c5e0")
+	ColorFgMuted  = lipgloss.Color("#7099ba")
+	ColorOrange   = lipgloss.Color("#ff8800")
+	ColorRedLight = lipgloss.Color("#ff6b6b")
+	ColorCyan     = lipgloss.Color("#66d9ef")
+	ColorCyanDim  = lipgloss.Color("#4db8cc")
+	ColorBlue     = lipgloss.Color("#78b9ff")
+	ColorBlueDim  = lipgloss.Color("#5588cc")
+	ColorTeal     = lipgloss.Color("#3eb489")
+	ColorComment  = lipgloss.Color("#556677")
+	ColorBorder   = lipgloss.Color("#5a6a7a")
 )
 
 type UITheme struct {
@@ -15,16 +33,16 @@ type UITheme struct {
 }
 
 var Theme = UITheme{
-	FocusedStyle:        Style.Foreground(lipgloss.Color("205")),
-	BlurredStyle:        Style.Foreground(lipgloss.Color("240")),
-	DimmedStyle:         Style.Foreground(lipgloss.Color("248")),
-	CursorStyle:         Style.Foreground(lipgloss.Color("205")),
-	NoStyle:             Style,
-	HelpStyle:           Style.Foreground(lipgloss.Color("240")),
-	CursorModeHelpStyle: Style.Foreground(lipgloss.Color("244")),
+	FocusedStyle:        Style.Foreground(ColorOrange),
+	BlurredStyle:        Style.Foreground(ColorFgMuted),
+	DimmedStyle:         Style.Foreground(ColorFgDim),
+	CursorStyle:         Style.Foreground(ColorOrange),
+	NoStyle:             Style.Foreground(ColorFg),
+	HelpStyle:           Style.Foreground(ColorComment),
+	CursorModeHelpStyle: Style.Foreground(ColorFgMuted),
 }
 
-func GetPaneTheme(pane ManagedPane) UITheme {
+func GetPaneTheme(pane engine.ManagedPane) UITheme {
 	focused := PaneManager.PeekFocusStack() == pane.ID()
 
 	var theme = Theme

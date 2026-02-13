@@ -6,21 +6,22 @@ import (
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/config"
 )
 
 type ProgressBarPane struct {
-	*Pane
+	*engine.Pane
 
-	startTick core.Tick
-	endTick   core.Tick
+	startTick engine.Tick
+	endTick   engine.Tick
 	progress  progress.Model
 }
 
-func NewProgressBarPane(startTick, endTick core.Tick) *ProgressBarPane {
+func NewProgressBarPane(startTick, endTick engine.Tick) *ProgressBarPane {
 	return &ProgressBarPane{
-		Pane:      &Pane{},
+		Pane:      engine.NewPane("Progress Bar", nil),
 		progress:  progress.New(progress.WithDefaultGradient()),
 		startTick: startTick,
 		endTick:   endTick,
@@ -33,25 +34,24 @@ func (p *ProgressBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		p.width = msg.width
-		p.height = msg.height
+		p.SetSize(msg.width, msg.height)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return p, popMainFocusCmd(p.Pane.id)
+			return p, popMainFocusCmd(p.Pane.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}
 
-	case core.UITickMsg:
-		if state.State.CurrentTick >= p.endTick {
+	case config.UITickMsg:
+		if game.State.CurrentTick >= p.endTick {
 			cmd := p.progress.SetPercent(1.0)
 			return p, cmd
 		}
 
-		if state.State.CurrentTick >= p.startTick {
+		if game.State.CurrentTick >= p.startTick {
 			duration := float64(p.endTick - p.startTick)
-			elapsed := float64(state.State.CurrentTick - p.startTick)
+			elapsed := float64(game.State.CurrentTick - p.startTick)
 			percent := elapsed / duration
 			cmd := p.progress.SetPercent(percent)
 			return p, cmd
@@ -66,6 +66,6 @@ func (p *ProgressBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (p *ProgressBarPane) View() string {
-	filled := int(math.Ceil((float64(p.width) * p.progress.Percent())))
-	return strings.Repeat("█", filled) + strings.Repeat("░", p.width-filled)
+	filled := int(math.Ceil((float64(p.Width()) * p.progress.Percent())))
+	return strings.Repeat("█", filled) + strings.Repeat("░", p.Width()-filled)
 }

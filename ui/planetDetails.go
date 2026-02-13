@@ -8,30 +8,31 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
-	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/models"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game/config"
+	"github.com/elitracy/planets/game/models"
 )
 
 type PlanetDetailsPane struct {
-	*Pane
+	*engine.Pane
 
-	infoTable ManagedPane
+	infoTable engine.ManagedPane
 	planet    *models.Planet
 	theme     UITheme
 }
 
 func (p *PlanetDetailsPane) Init() tea.Cmd {
-	p.keys.
-		Set(Quit, "q").
-		Set(Back, "esc").
-		Set(Up, "k").
-		Set(Down, "j").
-		Set(Colonize, "c").
-		Set(Quit, "q")
+	p.GetKeys().
+		Set(engine.Quit, "q").
+		Set(engine.Back, "esc").
+		Set(engine.Up, "k").
+		Set(engine.Down, "j").
+		Set(engine.Colonize, "c").
+		Set(engine.Quit, "q")
 
 	keymaps := make(map[string]func() tea.Cmd)
 
-	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
+	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
 
@@ -50,26 +51,25 @@ func (p *PlanetDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case core.TickMsg:
+	case engine.TickMsg:
 		p.infoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
-	case core.UITickMsg:
+	case config.UITickMsg:
 		p.infoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case paneResizeMsg:
-		p.height = msg.height
-		p.width = msg.width
+		p.SetSize(msg.width, msg.height)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case p.keys.Get(Colonize):
+		case p.GetKeys().Get(engine.Colonize):
 			return p.handleColonization()
-		case p.keys.Get(Back):
+		case p.GetKeys().Get(engine.Back):
 			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
-		case p.keys.Get(Quit):
+		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}
 	}
 
 	model, cmd := p.infoTable.Update(msg)
-	p.infoTable = model.(ManagedPane)
+	p.infoTable = model.(engine.ManagedPane)
 
 	cmds = append(cmds, cmd)
 
@@ -82,9 +82,9 @@ func (p *PlanetDetailsPane) View() string {
 	title := p.planet.Name
 
 	population := fmt.Sprintf("Population: %v", humanize.Comma(int64(p.planet.Population)))
-	populationStyled := p.theme.DimmedStyle.Width(p.width).AlignHorizontal(lipgloss.Center).Render(population)
+	populationStyled := p.theme.DimmedStyle.Width(p.Width()).AlignHorizontal(lipgloss.Center).Render(population)
 
-	titleStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).Render(title)
+	titleStyled := Style.Width(p.Width()).Align(lipgloss.Center).Bold(true).Render(title)
 
 	header := lipgloss.JoinVertical(lipgloss.Center, titleStyled, populationStyled)
 	headerStyled := Style.PaddingBottom(1).Render(header)
@@ -98,10 +98,7 @@ func (p *PlanetDetailsPane) View() string {
 func NewPlanetDetailsPane(title string, planet *models.Planet) *PlanetDetailsPane {
 
 	return &PlanetDetailsPane{
-		Pane: &Pane{
-			title: title,
-			keys:  NewKeyBindings(),
-		},
+		Pane:   engine.NewPane(title, engine.NewKeyBindings()),
 		planet: planet,
 	}
 }

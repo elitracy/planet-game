@@ -8,44 +8,42 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
-	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/events/orders"
-	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/config"
+	"github.com/elitracy/planets/game/models"
+	"github.com/elitracy/planets/game/orders"
 )
 
 type StarSystemDetailsPane struct {
-	*Pane
+	*engine.Pane
 
 	system          *models.StarSystem
 	theme           UITheme
-	systemInfoTable ManagedPane
+	systemInfoTable engine.ManagedPane
 }
 
 func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemDetailsPane {
 	return &StarSystemDetailsPane{
-		Pane: &Pane{
-			title: title,
-			keys:  NewKeyBindings(),
-		},
+		Pane:   engine.NewPane(title, engine.NewKeyBindings()),
 		system: system,
 	}
 }
 
 func (p *StarSystemDetailsPane) Init() tea.Cmd {
-	p.keys.
-		Set(Quit, "q").
-		Set(Back, "esc").
-		Set(Up, "k").
-		Set(Down, "j").
-		Set(Select, "enter")
+	p.GetKeys().
+		Set(engine.Quit, "q").
+		Set(engine.Back, "esc").
+		Set(engine.Up, "k").
+		Set(engine.Down, "j").
+		Set(engine.Select, "enter")
 
 	keymaps := make(map[string]func() tea.Cmd)
 
-	keymaps[p.keys.Get(Back)] = func() tea.Cmd {
+	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
-	keymaps[p.keys.Get(Select)] = func() tea.Cmd {
+	keymaps[p.GetKeys().Get(engine.Select)] = func() tea.Cmd {
 		cursor := p.systemInfoTable.(*InfoTablePane).table.Cursor()
 		planet := p.system.Planets[cursor]
 
@@ -72,15 +70,15 @@ func (p *StarSystemDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case core.TickMsg:
+	case engine.TickMsg:
 		p.systemInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
-	case core.UITickMsg:
+	case config.UITickMsg:
 		p.systemInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
 		switch msg.String() {
-		case p.keys.Get(Colonize):
+		case p.GetKeys().Get(engine.Colonize):
 			return p.handleColonizeOrder()
-		case p.keys.Get(Scout):
+		case p.GetKeys().Get(engine.Scout):
 			return p.handleScoutOrder()
 		case "esc":
 			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
@@ -91,14 +89,14 @@ func (p *StarSystemDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	model, cmd := p.systemInfoTable.Update(msg)
 	cmds = append(cmds, cmd)
-	p.systemInfoTable = model.(ManagedPane)
+	p.systemInfoTable = model.(engine.ManagedPane)
 	return p, tea.Batch(cmds...)
 }
 
 func (p *StarSystemDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
-	distance := core.EuclidianDistance(state.State.Player.Position, p.system.Location.Position)
+	distance := engine.EuclidianDistance(game.State.Player.Position, p.system.Location.Position)
 	distanceStyled := fmt.Sprintf(" (%v AU)", humanize.Comma(int64(distance)))
 	distanceStyled = p.theme.DimmedStyle.Render(distanceStyled)
 
@@ -106,24 +104,24 @@ func (p *StarSystemDetailsPane) View() string {
 	titleStyled := Style.Bold(true).Render(title)
 
 	header := lipgloss.JoinHorizontal(lipgloss.Top, titleStyled, distanceStyled)
-	headerStyled := Style.Width(p.width).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(header)
+	headerStyled := Style.Width(p.Width()).Align(lipgloss.Center).Bold(true).PaddingBottom(1).Render(header)
 
-	p.keys.Set(Back, "esc")
+	p.GetKeys().Set(engine.Back, "esc")
 
 	if !p.system.Planets[p.createInfoTable().Cursor()].Colonized {
-		p.keys.Set(Colonize, "c")
+		p.GetKeys().Set(engine.Colonize, "c")
 	} else {
-		p.keys.Set(Select, "enter")
+		p.GetKeys().Set(engine.Select, "enter")
 	}
 
 	if !p.system.Scouted {
-		p.keys.Set(Scout, "s")
+		p.GetKeys().Set(engine.Scout, "s")
 	} else {
-		p.keys.Set(Colonize, "c")
+		p.GetKeys().Set(engine.Colonize, "c")
 	}
 
 	if !p.system.Scouted && !p.system.Colonized {
-		noDataMsg := Style.Width(p.width).AlignHorizontal(lipgloss.Center).Bold(true).Render("<No data for system>")
+		noDataMsg := Style.Width(p.Width()).AlignHorizontal(lipgloss.Center).Bold(true).Render("<No data for system>")
 		return lipgloss.JoinVertical(lipgloss.Left, headerStyled, noDataMsg)
 	}
 
@@ -156,7 +154,7 @@ func (p *StarSystemDetailsPane) createRows() []table.Row {
 	for _, planet := range p.system.Planets {
 		populationString := fmt.Sprintf("%v (%v)", humanize.Comma(int64(planet.Population)), strconv.Itoa(planet.PopulationGrowthRate))
 
-		radialDistance := core.EuclidianDistance(planet.Location.Position, p.system.Location.Position)
+		radialDistance := engine.EuclidianDistance(planet.Location.Position, p.system.Location.Position)
 
 		var row table.Row
 		if planet.Scouted || planet.Colonized {
@@ -174,7 +172,7 @@ func (p *StarSystemDetailsPane) createRows() []table.Row {
 func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	pane := CreateNewShipManagementPane(
 		"Ship Management",
-		&state.State.ShipManager,
+		&game.State.ShipManager,
 		func(ship *models.Ship) {
 			order := orders.NewScoutDestinationOrder(
 				ship,
@@ -182,8 +180,8 @@ func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 					Position: p.system.Location.Position,
 					Entity:   p.system.Planets[p.createInfoTable().Cursor()],
 				},
-				state.State.CurrentTick+100)
-			state.State.OrderScheduler.Push(order)
+				game.State.CurrentTick+100)
+			game.State.PushOrder(order)
 		},
 	)
 

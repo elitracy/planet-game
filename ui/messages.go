@@ -2,20 +2,20 @@ package ui
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/elitracy/planets/core"
+	"github.com/elitracy/planets/engine"
 )
 
-type setMainFocusMsg struct{ id core.PaneID }
+type setMainFocusMsg struct{ id engine.PaneID }
 
-func setMainFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return setMainFocusMsg{id} } }
+func setMainFocusCmd(id engine.PaneID) tea.Cmd { return func() tea.Msg { return setMainFocusMsg{id} } }
 
-type popMainFocusMsg struct{ id core.PaneID }
+type popMainFocusMsg struct{ id engine.PaneID }
 
-func popMainFocusCmd(id core.PaneID) tea.Cmd { return func() tea.Msg { return popMainFocusMsg{id} } }
+func popMainFocusCmd(id engine.PaneID) tea.Cmd { return func() tea.Msg { return popMainFocusMsg{id} } }
 
-type pushDetailStackMsg struct{ id core.PaneID }
+type pushDetailStackMsg struct{ id engine.PaneID }
 
-func pushDetailStackCmd(id core.PaneID) tea.Cmd {
+func pushDetailStackCmd(id engine.PaneID) tea.Cmd {
 	return func() tea.Msg { return pushDetailStackMsg{id} }
 }
 
@@ -32,18 +32,18 @@ func flushDetailStackCmd() tea.Cmd {
 }
 
 type paneResizeMsg struct {
-	paneID core.PaneID
+	paneID engine.PaneID
 	width  int
 	height int
 }
 
-func paneResizeCmd(id core.PaneID, width, height int) tea.Cmd {
+func paneResizeCmd(id engine.PaneID, width, height int) tea.Cmd {
 	return func() tea.Msg { return paneResizeMsg{paneID: id, width: width, height: height} }
 }
 
-type pushFocusStackMsg struct{ id core.PaneID }
+type pushFocusStackMsg struct{ id engine.PaneID }
 
-func pushFocusStackCmd(id core.PaneID) tea.Cmd {
+func pushFocusStackCmd(id engine.PaneID) tea.Cmd {
 	return func() tea.Msg { return pushFocusStackMsg{id} }
 }
 

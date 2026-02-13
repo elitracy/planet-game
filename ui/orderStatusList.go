@@ -3,30 +3,27 @@ package ui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/models/events"
-	"github.com/elitracy/planets/models/events/orders"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game/orders"
 )
 
-var orderStatusTypes = []events.EventStatus{
-	events.EventPending,
-	events.EventExecuting,
-	events.EventComplete,
-	events.EventFailed,
+var orderStatusTypes = []engine.EventStatus{
+	engine.EventPending,
+	engine.EventExecuting,
+	engine.EventComplete,
+	engine.EventFailed,
 }
 
 type OrderStatusListPane struct {
-	*Pane
+	*engine.Pane
 	cursor         int
-	orderScheduler *events.EventScheduler[*orders.Order]
+	orderScheduler *engine.EventScheduler[*orders.Order]
 	theme          UITheme
 }
 
-func NewOrderStatusListPane(title string, orderScheduler *events.EventScheduler[*orders.Order]) *OrderStatusListPane {
+func NewOrderStatusListPane(title string, orderScheduler *engine.EventScheduler[*orders.Order]) *OrderStatusListPane {
 	pane := &OrderStatusListPane{
-		Pane: &Pane{
-			title: title,
-			keys:  NewKeyBindings(),
-		},
+		Pane:           engine.NewPane(title, engine.NewKeyBindings()),
 		cursor:         0,
 		orderScheduler: orderScheduler,
 	}
@@ -35,14 +32,14 @@ func NewOrderStatusListPane(title string, orderScheduler *events.EventScheduler[
 }
 
 func (p *OrderStatusListPane) Init() tea.Cmd {
-	p.keys.
-		Set(Quit, "q").
-		Set(Select, "enter").
-		Set(Back, "esc").
-		Set(Up, "k").
-		Set(Down, "j")
+	p.GetKeys().
+		Set(engine.Quit, "q").
+		Set(engine.Select, "enter").
+		Set(engine.Back, "esc").
+		Set(engine.Up, "k").
+		Set(engine.Down, "j")
 
-	orderList := NewOrderListPane(events.EventStatus(p.cursor))
+	orderList := NewOrderListPane(engine.EventStatus(p.cursor))
 	paneID := PaneManager.AddPane(orderList)
 	return tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 }
@@ -51,31 +48,30 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		p.width = msg.width
-		p.height = msg.height
+		p.SetSize(msg.width, msg.height)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case p.keys.Get(Up):
+		case p.GetKeys().Get(engine.Up):
 			if p.cursor > 0 {
 				p.cursor--
 			}
 
-			orderList := NewOrderListPane(events.EventStatus(p.cursor))
+			orderList := NewOrderListPane(engine.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-		case p.keys.Get(Down):
+		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(orderStatusTypes)-1 {
 				p.cursor++
 			}
 
-			orderList := NewOrderListPane(events.EventStatus(p.cursor))
+			orderList := NewOrderListPane(engine.EventStatus(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
-		case p.keys.Get(Select):
+		case p.GetKeys().Get(engine.Select):
 			return p, tea.Sequence(pushFocusStackCmd(PaneManager.PeekDetailPaneStack().ID()))
-		case p.keys.Get(Back):
+		case p.GetKeys().Get(engine.Back):
 			return p, tea.Sequence(popFocusStackCmd())
-		case p.keys.Get(Quit):
+		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}
 	}
@@ -91,7 +87,7 @@ func (p *OrderStatusListPane) View() string {
 	rowIdx := 0
 	for status := range orderStatusTypes {
 
-		row := events.EventStatus(status).String()
+		row := engine.EventStatus(status).String()
 
 		if p.cursor == rowIdx {
 			row = p.theme.FocusedStyle.Render(row)
@@ -106,7 +102,7 @@ func (p *OrderStatusListPane) View() string {
 	infoContainer := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 	title := p.Pane.Title()
-	titleStyled := Style.Width(p.width).Bold(true).AlignHorizontal(lipgloss.Center).PaddingBottom(1).Render(title)
+	titleStyled := Style.Width(p.Width()).Bold(true).AlignHorizontal(lipgloss.Center).PaddingBottom(1).Render(title)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, infoContainer)
 

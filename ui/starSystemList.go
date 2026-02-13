@@ -7,16 +7,16 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/models/events/orders"
-	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/models"
+	"github.com/elitracy/planets/game/orders"
 )
 
 var filteredSystems []*models.StarSystem
 
 type StarSystemListPane struct {
-	*Pane
+	*engine.Pane
 
 	cursor    int
 	searching bool
@@ -33,10 +33,7 @@ func NewStarSystemListPane(title string, systems []*models.StarSystem) *StarSyst
 	ti.Width = 36
 
 	pane := &StarSystemListPane{
-		Pane: &Pane{
-			title: title,
-			keys:  NewKeyBindings(),
-		},
+		Pane:      engine.NewPane(title, engine.NewKeyBindings()),
 		systems:   systems,
 		searching: false,
 		textInput: ti,
@@ -63,12 +60,12 @@ func (p *StarSystemListPane) filterSystems() {
 }
 
 func (p *StarSystemListPane) Init() tea.Cmd {
-	p.keys.
-		Set(Quit, "q").
-		Set(Select, "enter").
-		Set(Down, "j").
-		Set(Up, "k").
-		Set(Search, "/")
+	p.GetKeys().
+		Set(engine.Quit, "q").
+		Set(engine.Select, "enter").
+		Set(engine.Down, "j").
+		Set(engine.Up, "k").
+		Set(engine.Search, "/")
 	filteredSystems = p.systems
 
 	if len(filteredSystems) == 0 {
@@ -85,25 +82,24 @@ func (p *StarSystemListPane) Init() tea.Cmd {
 func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.Pane.id {
-			p.Pane.width = msg.width - 2
-			p.Pane.height = msg.height
+		if msg.paneID == p.Pane.ID() {
+			p.SetSize(msg.width-2, msg.height)
 
 			return p, nil
 		}
-	case core.TickMsg:
+	case engine.TickMsg:
 
-		p.keys.
-			Unset(Scout).
-			Unset(Select)
+		p.GetKeys().
+			Unset(engine.Scout).
+			Unset(engine.Select)
 
 		system := p.systems[p.cursor]
 		if !system.Scouted && !system.Colonized {
-			p.keys.Set(Scout, "s")
+			p.GetKeys().Set(engine.Scout, "s")
 		}
 
 		if system.Scouted || system.Colonized {
-			p.keys.Set(Select, "enter")
+			p.GetKeys().Set(engine.Select, "enter")
 		}
 
 	case tea.KeyMsg:
@@ -113,7 +109,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.textInput.Blur()
 				p.searching = false
 				p.cursor = 0
-				p.keys.Unset(Back)
+				p.GetKeys().Unset(engine.Back)
 			}
 
 			var cmd tea.Cmd
@@ -135,21 +131,21 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		switch msg.String() {
-		case p.keys.Get(Search):
+		case p.GetKeys().Get(engine.Search):
 			p.searching = true
 			p.textInput.Focus()
 			p.cursor = 0
-			p.keys.Set(Back, "esc")
+			p.GetKeys().Set(engine.Back, "esc")
 
 			return p, textinput.Blink
-		case p.keys.Get(Scout):
+		case p.GetKeys().Get(engine.Scout):
 			return p.handleScoutOrder()
-		case p.keys.Get(Select):
+		case p.GetKeys().Get(engine.Select):
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
-		case p.keys.Get(Up):
+		case p.GetKeys().Get(engine.Up):
 			if p.cursor > 0 {
 				p.cursor--
 			} else {
@@ -165,7 +161,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 
-		case p.keys.Get(Down):
+		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(filteredSystems)-1 {
 				p.cursor++
 			} else {
@@ -182,7 +178,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			paneID := PaneManager.AddPane(systemInfoPane)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 
-		case p.keys.Get(Quit):
+		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}
 	}
@@ -221,7 +217,7 @@ func (p *StarSystemListPane) View() string {
 		systemList = lipgloss.JoinVertical(lipgloss.Left, systemRows...)
 	}
 
-	systemList = Style.Width(p.width).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
+	systemList = Style.Width(p.Width()).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)
 
@@ -232,13 +228,10 @@ func (p *StarSystemListPane) View() string {
 func (p *StarSystemListPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	pane := CreateNewShipManagementPane(
 		"Ship Management",
-		&state.State.ShipManager,
+		&game.State.ShipManager,
 		func(ship *models.Ship) {
-			order := orders.NewScoutDestinationOrder(ship, models.Location{Position: p.systems[p.cursor].Location.Position, Entity: p.systems[p.cursor]}, state.State.CurrentTick+40)
-			state.State.OrderScheduler.Push(order)
-			for _, action := range order.Actions {
-				state.State.ActionScheduler.Push(action)
-			}
+			order := orders.NewScoutDestinationOrder(ship, models.Location{Position: p.systems[p.cursor].Location.Position, Entity: p.systems[p.cursor]}, game.State.CurrentTick+40)
+			game.State.PushOrder(order)
 		},
 	)
 

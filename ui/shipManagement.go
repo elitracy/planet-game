@@ -6,12 +6,13 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elitracy/planets/models"
-	"github.com/elitracy/planets/state"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/models"
 )
 
 type ShipManagementPane struct {
-	*Pane
+	*engine.Pane
 	cursor        int
 	currentShipID int
 	sortedShips   []*models.Ship
@@ -22,10 +23,7 @@ type ShipManagementPane struct {
 
 func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, callback func(ship *models.Ship)) *ShipManagementPane {
 	pane := &ShipManagementPane{
-		Pane: &Pane{
-			title: title,
-			keys:  NewKeyBindings(),
-		},
+		Pane:     engine.NewPane(title, engine.NewKeyBindings()),
 		manager:  shipManager,
 		OnSelect: callback,
 	}
@@ -34,12 +32,12 @@ func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, 
 }
 
 func (p *ShipManagementPane) Init() tea.Cmd {
-	p.keys.
-		Set(Select, "enter").
-		Set(Back, "esc").
-		Set(Up, "k").
-		Set(Down, "j").
-		Set(Quit, "q")
+	p.GetKeys().
+		Set(engine.Select, "enter").
+		Set(engine.Back, "esc").
+		Set(engine.Up, "k").
+		Set(engine.Down, "j").
+		Set(engine.Quit, "q")
 
 	for _, ship := range p.manager.Ships {
 		p.sortedShips = append(p.sortedShips, ship)
@@ -55,27 +53,26 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case paneResizeMsg:
-		if msg.paneID == p.Pane.id {
-			p.Pane.width = msg.width - 2
-			p.Pane.height = msg.height
+		if msg.paneID == p.Pane.ID() {
+			p.SetSize(msg.width-2, msg.height)
 
 			return p, nil
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
-		case p.keys.Get(Select):
-			p.OnSelect(state.State.ShipManager.Ships[p.currentShipID])
-		case p.keys.Get(Up):
+		case p.GetKeys().Get(engine.Select):
+			p.OnSelect(game.State.ShipManager.Ships[p.currentShipID])
+		case p.GetKeys().Get(engine.Up):
 			if p.cursor > 0 {
 				p.cursor--
 			}
-		case p.keys.Get(Down):
+		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(p.sortedShips)-1 {
 				p.cursor++
 			}
-		case p.keys.Get(Back):
+		case p.GetKeys().Get(engine.Back):
 			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
-		case p.keys.Get(Quit):
+		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}
 	}
@@ -110,7 +107,7 @@ func (p *ShipManagementPane) View() string {
 	content := lipgloss.JoinVertical(lipgloss.Left, rows...)
 
 	title := "Ships"
-	title = Style.Width(p.Pane.width).AlignHorizontal(lipgloss.Center).Render(title)
+	title = Style.Width(p.Pane.Width()).AlignHorizontal(lipgloss.Center).Render(title)
 
 	content = lipgloss.JoinVertical(lipgloss.Left, title, content)
 

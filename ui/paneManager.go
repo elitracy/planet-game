@@ -1,15 +1,15 @@
 package ui
 
 import (
+	"fmt"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game"
+	"github.com/elitracy/planets/game/config"
 	"golang.org/x/term"
-
-	"github.com/elitracy/planets/core"
-	"github.com/elitracy/planets/core/logging"
-	"github.com/elitracy/planets/state"
 )
 
 var mainWidthPercentage float32
@@ -21,18 +21,19 @@ var detailWidth int
 var detailHeight int
 
 type paneManager struct {
-	*Pane
+	*engine.Pane
 
-	TabLine         ManagedPane
-	StatusLine      ManagedPane
-	MainPane        ManagedPane
-	DetailPaneStack []ManagedPane
+	TabLine         engine.ManagedPane
+	StatusLine      engine.ManagedPane
+	MainPane        engine.ManagedPane
+	DetailPaneStack []engine.ManagedPane
 
-	Panes      map[core.PaneID]ManagedPane
-	currentID  core.PaneID
-	focusStack []core.PaneID
+	Panes      map[engine.PaneID]engine.ManagedPane
+	currentID  engine.PaneID
+	focusStack []engine.PaneID
+	state      *game.GameState
 
-	CurrentUITick core.Tick
+	CurrentUITick engine.Tick
 }
 
 var PaneManager *paneManager
@@ -43,36 +44,35 @@ func NewPaneManager() *paneManager {
 
 	width, height, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		logging.Error("Failed to intialize Pane Manager: %v", err)
-		return nil
+		panic(fmt.Sprintf("Failed to initialize Pane Manager: %v", err))
 	}
 
 	pm := &paneManager{
-		Panes:         make(map[core.PaneID]ManagedPane),
+		Panes:         make(map[engine.PaneID]engine.ManagedPane),
 		currentID:     0,
 		CurrentUITick: 0,
-		TabLine:       NewTablinePane([]ManagedPane{}),
-		StatusLine:    NewStatusLinePane(state.State.CurrentTick),
-		Pane: &Pane{
-			width:  width,
-			height: height,
-		},
+		TabLine:       NewTablinePane([]engine.ManagedPane{}),
+		StatusLine:    NewStatusLinePane(game.State.CurrentTick),
+		Pane:          engine.NewPane("Pane Manager", nil),
+		state:         game.State,
 	}
+
+	pm.SetSize(width, height)
 
 	mainWidthPercentage = .25
 
-	mainWidth = int(float32(pm.width) * mainWidthPercentage)
-	detailWidth = int(float32(pm.width) * (1 - mainWidthPercentage))
+	mainWidth = int(float32(pm.Width()) * mainWidthPercentage)
+	detailWidth = int(float32(pm.Width()) * (1 - mainWidthPercentage))
 
-	mainHeight = pm.height
-	detailHeight = pm.height
+	mainHeight = pm.Height()
+	detailHeight = pm.Height()
 
 	pm.Panes[-1] = NewErrorPane("No content.")
 
 	return pm
 }
 
-func (p *paneManager) PushFocusStack(id core.PaneID) {
+func (p *paneManager) PushFocusStack(id engine.PaneID) {
 	p.focusStack = append(p.focusStack, id)
 	pane := p.Panes[id]
 	p.StatusLine.(*StatusLinePane).SetKeys(pane.GetKeys())
@@ -89,7 +89,7 @@ func (p *paneManager) PopFocusStack() {
 	p.StatusLine.(*StatusLinePane).SetKeys(p.Panes[paneID].GetKeys())
 }
 
-func (p *paneManager) PeekFocusStack() core.PaneID {
+func (p *paneManager) PeekFocusStack() engine.PaneID {
 	if len(p.focusStack) <= 0 {
 		return -1
 	}
@@ -97,15 +97,15 @@ func (p *paneManager) PeekFocusStack() core.PaneID {
 	return p.focusStack[len(p.focusStack)-1]
 }
 
-func (p *paneManager) AddTab(pane ManagedPane) {
+func (p *paneManager) AddTab(pane engine.ManagedPane) {
 	p.TabLine.(*TabLinePane).tabs = append(p.TabLine.(*TabLinePane).tabs, pane)
 }
 
-func (p *paneManager) SetMainPane(pane ManagedPane) {
+func (p *paneManager) SetMainPane(pane engine.ManagedPane) {
 	p.MainPane = pane
 }
 
-func (p *paneManager) PushDetailPaneStack(pane ManagedPane) {
+func (p *paneManager) PushDetailPaneStack(pane engine.ManagedPane) {
 	p.DetailPaneStack = append(p.DetailPaneStack, pane)
 }
 
@@ -120,7 +120,7 @@ func (p *paneManager) PopDetailPaneStack() {
 	p.RemovePane(pane.ID())
 }
 
-func (p *paneManager) PeekDetailPaneStack() ManagedPane {
+func (p *paneManager) PeekDetailPaneStack() engine.ManagedPane {
 	if len(p.DetailPaneStack) <= 0 {
 		return NewErrorPane("No detail selected")
 	}
@@ -160,8 +160,8 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds,
 		paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight),
 		paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight),
-		core.TickCmd(state.State.CurrentTick),
-		core.UITickCmd(p.CurrentUITick),
+		engine.TickCmd(p.state.CurrentTick),
+		config.UITickCmd(p.CurrentUITick),
 	)
 
 	p.PushFocusStack(p.MainPane.ID())
@@ -179,7 +179,7 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case paneResizeMsg:
 		if pane, ok := p.Panes[msg.paneID]; ok {
 			model, _ := pane.Update(msg)
-			p.Panes[msg.paneID] = model.(ManagedPane)
+			p.Panes[msg.paneID] = model.(engine.ManagedPane)
 		}
 	case setMainFocusMsg:
 		if pane, ok := p.Panes[msg.id]; ok {
@@ -204,13 +204,12 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case flushFocusStackMsg:
 		p.focusStack = nil
 	case tea.WindowSizeMsg:
-		p.Pane.width = msg.Width
-		p.Pane.height = msg.Height
-	case core.TickMsg:
-		cmds := []tea.Cmd{core.TickCmd(state.State.CurrentTick)}
+		p.SetSize(msg.Width, msg.Height)
+	case engine.TickMsg:
+		cmds := []tea.Cmd{engine.TickCmd(p.state.CurrentTick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
-			p.Panes[id] = model.(ManagedPane)
+			p.Panes[id] = model.(engine.ManagedPane)
 
 			cmds = append(cmds, cmd)
 		}
@@ -229,12 +228,12 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return p, tea.Batch(cmds...)
 
-	case core.UITickMsg:
+	case config.UITickMsg:
 		p.CurrentUITick++
-		cmds := []tea.Cmd{core.UITickCmd(p.CurrentUITick)}
+		cmds := []tea.Cmd{config.UITickCmd(p.CurrentUITick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
-			p.Panes[id] = model.(ManagedPane)
+			p.Panes[id] = model.(engine.ManagedPane)
 
 			cmds = append(cmds, cmd)
 		}
@@ -261,14 +260,14 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if pane, ok := p.Panes[p.PeekFocusStack()]; ok {
 			model, cmd := pane.Update(msg)
-			p.Panes[p.PeekFocusStack()] = model.(ManagedPane)
+			p.Panes[p.PeekFocusStack()] = model.(engine.ManagedPane)
 			return p, cmd
 		}
 	default:
 		var cmds []tea.Cmd
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
-			p.Panes[id] = model.(ManagedPane)
+			p.Panes[id] = model.(engine.ManagedPane)
 			cmds = append(cmds, cmd)
 		}
 		return p, tea.Batch(cmds...)
@@ -284,11 +283,11 @@ func (p *paneManager) View() string {
 	}
 	detailContent := p.PeekDetailPaneStack().View()
 
-	tabLineStyle := Style.Width(p.width).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
-	statusLineStyle := Style.Width(p.width).Border(lipgloss.NormalBorder(), true, false, false, false).Render(p.StatusLine.View())
+	tabLineStyle := Style.Width(p.Width()).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
+	statusLineStyle := Style.Width(p.Width()).Border(lipgloss.NormalBorder(), true, false, false, false).Render(p.StatusLine.View())
 
-	mainHeight = p.height - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
-	detailHeight = p.height - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
+	mainHeight = p.Height() - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
+	detailHeight = p.Height() - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
 
 	mainStyled := Style.Height(mainHeight).Width(mainWidth).Border(lipgloss.NormalBorder(), false, true, false, false).Padding(0, 1).Render(mainContent)
 	detailStyled := Style.Padding(0, 1).Render(detailContent)
@@ -298,7 +297,7 @@ func (p *paneManager) View() string {
 	return lipgloss.JoinVertical(lipgloss.Top, tabLineStyle, contentView, statusLineStyle)
 }
 
-func (p *paneManager) AddPane(pane ManagedPane) core.PaneID {
+func (p *paneManager) AddPane(pane engine.ManagedPane) engine.PaneID {
 	p.currentID++
 	id := p.currentID
 	pane.SetID(id)
@@ -309,4 +308,4 @@ func (p *paneManager) AddPane(pane ManagedPane) core.PaneID {
 	return id
 }
 
-func (p *paneManager) RemovePane(id core.PaneID) { delete(p.Panes, id) }
+func (p *paneManager) RemovePane(id engine.PaneID) { delete(p.Panes, id) }
