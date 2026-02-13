@@ -31,6 +31,7 @@ func InitState() {
 
 	for _, planet := range startingSystem.Planets {
 		planet.Colonized = true
+		game.State.ColonizedPlanets = append(game.State.ColonizedPlanets, planet)
 	}
 
 	game.State.CreatePlayer(startingPlanet.GetLocation())

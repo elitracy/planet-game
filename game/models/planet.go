@@ -23,6 +23,7 @@ type Planet struct {
 	Population           int
 	PopulationGrowthRate int
 	Colonized            bool
+	Colonize             func()
 	Scouted              bool
 
 	Resources
@@ -48,7 +49,7 @@ type Constructions struct {
 	SolarGrids []constructions.SolarGrid
 }
 
-func CreatePlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) Planet {
+func NewPlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) Planet {
 	planet := Planet{
 		CoreEntity: &CoreEntity{
 			Name:     name,

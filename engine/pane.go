@@ -6,6 +6,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type PaneID int
+
 type Pane struct {
 	id     PaneID
 	title  string

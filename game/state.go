@@ -8,6 +8,7 @@ import (
 	"github.com/elitracy/planets/engine"
 	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/actions"
+	"github.com/elitracy/planets/game/events"
 	"github.com/elitracy/planets/game/models"
 	"github.com/elitracy/planets/game/orders"
 )
@@ -43,13 +44,15 @@ var (
 )
 
 type GameState struct {
-	CurrentTick     engine.Tick
-	StarSystems     []*models.StarSystem
-	Player          models.Player
-	OrderScheduler  task.TaskScheduler[*orders.Order]
-	ActionScheduler task.TaskScheduler[*actions.Action]
-	CompletedOrders []*orders.Order
-	ShipManager     models.ShipManager
+	CurrentTick      engine.Tick
+	StarSystems      []*models.StarSystem
+	Player           models.Player
+	OrderScheduler   task.TaskScheduler[*orders.Order]
+	ActionScheduler  task.TaskScheduler[*actions.Action]
+	CompletedOrders  []*orders.Order
+	ShipManager      models.ShipManager
+	ColonizedPlanets []*models.Planet
+	ActiveEvents     []*events.Event
 }
 
 func (gs *GameState) CreatePlayer(location models.Location) models.Player {
@@ -94,7 +97,7 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 	for i := range num_planets {
 		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
 
-		planet := models.CreatePlanet(
+		planet := models.NewPlanet(
 			system_name+"-"+planet_names[i],
 			planet_positions[i],
 			starting_population,
