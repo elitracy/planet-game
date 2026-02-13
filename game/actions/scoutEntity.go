@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/models"
 )
 
@@ -19,7 +20,7 @@ func NewScoutEntityAction(entity models.Entity, startTick engine.Tick, duration 
 			Description:  fmt.Sprintf("Survey %v", entity.GetName()),
 			StartTick:    startTick,
 			Duration:     duration,
-			Status:       engine.EventPending,
+			Status:       task.Pending,
 		},
 	}
 

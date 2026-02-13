@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/models"
 	"github.com/elitracy/planets/game/models/constructions"
 )
@@ -20,7 +21,7 @@ func NewBuildFarmAction(targetEntity models.Entity, startTick engine.Tick, durat
 			Description:  fmt.Sprintf("Building a farm on %v", targetEntity.GetName()),
 			StartTick:    startTick,
 			Duration:     duration,
-			Status:       engine.EventPending,
+			Status:       task.Pending,
 		},
 	}
 

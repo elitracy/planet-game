@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/models"
 )
 
@@ -19,7 +20,7 @@ func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, durati
 			Description:  fmt.Sprintf("Colonize %v", targetEntity.GetName()),
 			StartTick:    startTick,
 			Duration:     duration,
-			Status:       engine.EventPending,
+			Status:       task.Pending,
 		},
 	}
 

@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/config"
 	"github.com/elitracy/planets/game/models/constructions"
 	"github.com/elitracy/planets/game/models/resources"
@@ -100,11 +101,11 @@ func CreatePlanet(name string, position engine.Position, pop, num_farms, num_min
 	return planet
 }
 
-func (p *Planet) PushOrder(order engine.Event) {
+func (p *Planet) PushOrder(order task.Task) {
 	p.OrderQueue = append(p.OrderQueue, order)
 }
 
-func (p *Planet) PopOrder() engine.Event {
+func (p *Planet) PopOrder() task.Task {
 	if len(p.OrderQueue) == 0 {
 		return nil
 	}

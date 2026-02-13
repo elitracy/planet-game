@@ -2,6 +2,7 @@ package orders
 
 import (
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/actions"
 	"github.com/elitracy/planets/game/models"
 )
@@ -16,7 +17,7 @@ func NewCreateColonyOrder(planet *models.Planet, startTick engine.Tick) *Order {
 		Order: &Order{
 			Name:      "Create Colony",
 			StartTick: startTick,
-			Status:    engine.EventPending,
+			Status:    task.Pending,
 		},
 		planet: planet,
 	}

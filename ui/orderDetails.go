@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/config"
 	"github.com/elitracy/planets/game/orders"
 )
@@ -14,7 +15,7 @@ type OrderDetailsPane struct {
 	theme          UITheme
 	orderInfoTable engine.ManagedPane
 	order          *orders.Order
-	progressBars   map[engine.EventID]engine.PaneID
+	progressBars   map[task.TaskID]engine.PaneID
 }
 
 func NewOrderDetailsPane(order *orders.Order) *OrderDetailsPane {
@@ -124,7 +125,7 @@ func (p *OrderDetailsPane) createColumns() []table.Column {
 		{Title: "Completion Time", Width: 15},
 		{Title: "Status", Width: 15},
 	}
-	if p.order.Status == engine.EventExecuting {
+	if p.order.Status == task.Executing {
 		columns = append(columns, table.Column{Title: "Progress", Width: 15})
 	}
 
@@ -141,12 +142,12 @@ func (p *OrderDetailsPane) createRows() []table.Row {
 		var row table.Row
 
 		switch action.GetStatus() {
-		case engine.EventPending:
+		case task.Pending:
 			row = table.Row{action.GetDescription(), start, end, "Pending"}
-		case engine.EventExecuting:
+		case task.Executing:
 			paneID := p.progressBars[action.GetID()]
 			row = table.Row{action.GetDescription(), start, end, "In Progress", PaneManager.Panes[paneID].View()}
-		case engine.EventComplete:
+		case task.Complete:
 			row = table.Row{action.GetDescription(), start, end, "Complete"}
 		}
 
@@ -159,7 +160,7 @@ func (p *OrderDetailsPane) createRows() []table.Row {
 
 func (p *OrderDetailsPane) initProgressBars() {
 	if p.progressBars == nil {
-		p.progressBars = make(map[engine.EventID]engine.PaneID)
+		p.progressBars = make(map[task.TaskID]engine.PaneID)
 	}
 
 	for _, action := range p.order.Actions {

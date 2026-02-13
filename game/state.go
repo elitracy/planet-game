@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/actions"
 	"github.com/elitracy/planets/game/models"
 	"github.com/elitracy/planets/game/orders"
@@ -45,8 +46,8 @@ type GameState struct {
 	CurrentTick     engine.Tick
 	StarSystems     []*models.StarSystem
 	Player          models.Player
-	OrderScheduler  engine.EventScheduler[*orders.Order]
-	ActionScheduler engine.EventScheduler[*actions.Action]
+	OrderScheduler  task.TaskScheduler[*orders.Order]
+	ActionScheduler task.TaskScheduler[*actions.Action]
 	CompletedOrders []*orders.Order
 	ShipManager     models.ShipManager
 }

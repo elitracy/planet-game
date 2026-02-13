@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/orders"
 )
 
@@ -9,33 +10,33 @@ func (state *GameState) TickOrders() {
 	for _, order := range state.OrderScheduler.PriorityQueue {
 
 		switch order.GetStatus() {
-		case engine.EventPending:
+		case task.Pending:
 			if order.GetStartTick() <= state.CurrentTick {
 				engine.Info("[%s] Executing Order: %v", order.GetName(), order.GetID())
-				order.SetStatus(engine.EventExecuting)
+				order.SetStatus(task.Executing)
 				for _, action := range order.GetActions() {
 					if action.GetStartTick() == state.CurrentTick {
-						action.SetStatus(engine.EventExecuting)
+						action.SetStatus(task.Executing)
 					}
 				}
 			}
-		case engine.EventExecuting:
+		case task.Executing:
 			complete := true
 			for _, action := range order.GetActions() {
-				if action.GetStatus() != engine.EventComplete {
+				if action.GetStatus() != task.Complete {
 					complete = false
 				}
 
-				if action.GetStatus() == engine.EventFailed {
-					order.SetStatus(engine.EventFailed)
+				if action.GetStatus() == task.Failed {
+					order.SetStatus(task.Failed)
 				}
 			}
 
 			if complete {
-				order.SetStatus(engine.EventComplete)
+				order.SetStatus(task.Complete)
 			}
 
-		case engine.EventComplete:
+		case task.Complete:
 			poppedOrder := state.OrderScheduler.Pop()
 			if poppedOrder.GetID() != order.GetID() {
 				engine.Error("Order Scheduler out of sync")
@@ -47,7 +48,7 @@ func (state *GameState) TickOrders() {
 
 			engine.Info("[%v] Completed Order: %v", order.GetName(), order.GetID())
 
-		case engine.EventFailed:
+		case task.Failed:
 			engine.Error("[%v] Order Failed: %v", order.GetName(), order.GetID())
 		}
 	}
@@ -56,18 +57,18 @@ func (state *GameState) TickOrders() {
 func (state *GameState) TickActions() {
 	for _, action := range state.ActionScheduler.PriorityQueue {
 		switch action.GetStatus() {
-		case engine.EventPending:
+		case task.Pending:
 			if action.GetStartTick() <= state.CurrentTick {
-				action.SetStatus(engine.EventExecuting)
+				action.SetStatus(task.Executing)
 			}
-		case engine.EventExecuting:
+		case task.Executing:
 			if action.GetStartTick()+action.GetDuration() <= state.CurrentTick {
 				if action.Execute != nil {
 					action.Execute()
 				}
-				action.SetStatus(engine.EventComplete)
+				action.SetStatus(task.Complete)
 			}
-		case engine.EventComplete:
+		case task.Complete:
 			poppedAction := state.ActionScheduler.Pop()
 			if poppedAction.GetID() != action.GetID() {
 				engine.Error("Action Scheduler out of sync")
@@ -77,7 +78,7 @@ func (state *GameState) TickActions() {
 
 			engine.Info("[%v] Completed Action: %v", action.GetDescription(), action.GetID())
 
-		case engine.EventFailed:
+		case task.Failed:
 			engine.Error("[%v] Action Failed: %v", action.GetDescription(), action.GetID())
 
 		}
