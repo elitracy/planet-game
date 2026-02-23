@@ -16,8 +16,11 @@ const NUM_STAR_SYSTEMS = 3
 const START_YEAR_TICK = 2049 * config.TICKS_PER_CYCLE
 
 func InitState() {
-	game.State = &game.GameState{}
-	game.State.CurrentTick = engine.Tick(rand.Intn(START_YEAR_TICK) + START_YEAR_TICK)
+	game.State = &game.GameState{
+		ColonizedPlanets: make(map[models.EntityID]*models.Planet),
+		CurrentTick:      engine.Tick(rand.Intn(START_YEAR_TICK) + START_YEAR_TICK),
+	}
+
 	engine.SetTick(&game.State.CurrentTick)
 
 	for range NUM_STAR_SYSTEMS {
@@ -32,7 +35,7 @@ func InitState() {
 
 	for _, planet := range startingSystem.Planets {
 		planet.Colonized = true
-		game.State.ColonizedPlanets = append(game.State.ColonizedPlanets, planet)
+		game.State.ColonizedPlanets[planet.GetID()] = planet
 	}
 
 	game.State.CreatePlayer(startingPlanet.GetLocation())

@@ -18,19 +18,6 @@ const (
 	STARTING_ENERGY_CONSUMPTION_RATE  = 1
 )
 
-type Planet struct {
-	*CoreEntity
-	Population           int
-	PopulationGrowthRate int
-	Colonized            bool
-	Colonize             func()
-	Scouted              bool
-
-	Resources
-	Stabilities
-	Constructions
-}
-
 type Resources struct {
 	Food     resources.Food
 	Minerals resources.Mineral
@@ -47,6 +34,19 @@ type Constructions struct {
 	Farms      []constructions.Farm
 	Mines      []constructions.Mine
 	SolarGrids []constructions.SolarGrid
+}
+
+type Planet struct {
+	*CoreEntity
+	Population           int
+	PopulationGrowthRate int
+	Colonized            bool
+	Colonize             func()
+	Scouted              bool
+
+	Resources
+	Stabilities
+	Constructions
 }
 
 func NewPlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) Planet {

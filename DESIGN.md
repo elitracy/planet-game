@@ -101,7 +101,7 @@ Pending → Executing → Complete
 - [x] Game tick loop (8 ticks/sec)
 - [x] Population growth (based on food surplus)
 - [ ] Resource scarcity consequences (starvation, power outages)
-- [ ] Threat/Event system (pirate raids, discoveries, disasters)
+- [ ] Threat/Event system (attacks, discoveries, disasters)
 - [ ] Win/Lose conditions
 - [ ] Save/Load game state
 

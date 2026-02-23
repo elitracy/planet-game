@@ -14,7 +14,7 @@ import (
 type ShipManagementPane struct {
 	*engine.Pane
 	cursor        int
-	currentShipID int
+	currentShipID models.EntityID
 	sortedShips   []*models.Ship
 	manager       *models.ShipManager
 	OnSelect      func(ship *models.Ship)

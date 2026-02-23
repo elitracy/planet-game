@@ -4,26 +4,10 @@ import (
 	"math/rand"
 
 	"github.com/elitracy/planets/engine"
-	"github.com/elitracy/planets/game/config"
+	"github.com/elitracy/planets/game/models"
 )
 
 func (state *GameState) TickEvents() {
-	if State.CurrentTick%(config.TICKS_PER_PULSE) != 0 {
-		return
-	}
-
-	for _, system := range state.StarSystems {
-		for _, planet := range system.Planets {
-			for _, chance := range state.EventManager.Events {
-				if planet.Colonized && rand.Float64() < chance.Probability {
-					event := chance.New(planet, state.CurrentTick)
-					engine.Info("Starting Event: %v: %v", event.Description, event.Target.GetName())
-					state.EventManager.Add(event, state.CurrentTick)
-				}
-			}
-		}
-	}
-
 	for _, event := range state.EventManager.ActiveEvents {
 		elapsed := state.CurrentTick - event.Start
 
@@ -41,4 +25,34 @@ func (state *GameState) TickEvents() {
 		}
 
 	}
+
+	if state.CurrentTick < state.EventManager.NextEvent {
+		return
+	}
+
+	var planet *models.Planet
+	planetIndex := rand.Intn(len(state.ColonizedPlanets))
+	engine.Info("idx: %v", planetIndex)
+	engine.Info("planets: %v", state.ColonizedPlanets)
+	for _, p := range state.ColonizedPlanets {
+		if planetIndex == 0 {
+			planet = p
+			break
+		}
+		planetIndex--
+	}
+
+	engine.Info("Planet: %v", planet.GetName())
+
+	for _, chance := range state.EventManager.Events {
+		if rand.Float64() < chance.Probability {
+			event := chance.New(planet, state.CurrentTick)
+			engine.Info("Starting Event: %v: %v", event.Description, event.Target.GetName())
+
+			state.EventManager.Add(event, state.CurrentTick)
+			state.EventManager.RollNextEventInterval(state.CurrentTick)
+			break
+		}
+	}
+
 }

@@ -51,7 +51,7 @@ type GameState struct {
 	ActionScheduler  task.TaskScheduler[*actions.Action]
 	CompletedOrders  []*orders.Order
 	ShipManager      *models.ShipManager
-	ColonizedPlanets []*models.Planet
+	ColonizedPlanets map[models.EntityID]*models.Planet
 	EventManager     *events.EventManager
 }
 
@@ -117,5 +117,15 @@ func (state *GameState) PushOrder(order *orders.Order) {
 	state.OrderScheduler.Push(order)
 	for _, action := range order.Actions {
 		state.ActionScheduler.Push(action)
+	}
+}
+
+func (state *GameState) UpdateColonizedPlanets() {
+	for _, system := range state.StarSystems {
+		for _, planet := range system.Planets {
+			if planet.Colonized {
+				state.ColonizedPlanets[planet.ID] = planet
+			}
+		}
 	}
 }
