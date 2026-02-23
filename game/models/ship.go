@@ -33,6 +33,12 @@ type ShipManager struct {
 	currentID int
 }
 
+func NewShipManager() *ShipManager {
+	return &ShipManager{
+		Ships: make(map[int]*Ship),
+	}
+}
+
 func (m ShipManager) GetShip(id int) *Ship { return m.Ships[id] }
 
 func (m *ShipManager) AddShip(ship *Ship) {

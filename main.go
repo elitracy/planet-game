@@ -7,6 +7,7 @@ import (
 	"github.com/elitracy/planets/engine"
 	"github.com/elitracy/planets/game"
 	"github.com/elitracy/planets/game/config"
+	"github.com/elitracy/planets/game/events"
 	"github.com/elitracy/planets/game/models"
 	"github.com/elitracy/planets/ui"
 )
@@ -37,7 +38,8 @@ func InitState() {
 	game.State.CreatePlayer(startingPlanet.GetLocation())
 	engine.Ok("Player Initialized")
 
-	game.State.ShipManager.Ships = make(map[int]*models.Ship)
+	game.State.ShipManager = models.NewShipManager()
+	game.State.EventManager = events.NewEventManager()
 
 	for range 5 {
 		name := fmt.Sprintf("Hermes %03d", rand.Intn(1000))

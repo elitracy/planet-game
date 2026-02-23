@@ -50,9 +50,9 @@ type GameState struct {
 	OrderScheduler   task.TaskScheduler[*orders.Order]
 	ActionScheduler  task.TaskScheduler[*actions.Action]
 	CompletedOrders  []*orders.Order
-	ShipManager      models.ShipManager
+	ShipManager      *models.ShipManager
 	ColonizedPlanets []*models.Planet
-	ActiveEvents     []*events.Event
+	EventManager     *events.EventManager
 }
 
 func (gs *GameState) CreatePlayer(location models.Location) models.Player {

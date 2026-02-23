@@ -48,7 +48,7 @@ func (l *Logger) run() {
 	log.SetFlags(0)
 
 	for msg := range l.queue {
-		timeTick := fmt.Sprintf("%s%s|%05d%s", colorGrey, msg.Time.Format("15:04:05.000"), msg.Tick, colorReset)
+		timeTick := fmt.Sprintf("%s%s%s", colorGrey, msg.Time.Format("15:04:05.000"), colorReset)
 		log.Printf("%s %s[%s] %s %s%s\n", timeTick, msg.Color, msg.Level, msg.Filename, msg.Message, colorReset)
 	}
 }

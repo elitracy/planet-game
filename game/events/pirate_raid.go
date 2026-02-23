@@ -4,25 +4,24 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/game/config"
 	"github.com/elitracy/planets/game/models"
 )
 
 func NewPirateRaid(targetEntity models.Entity, tick engine.Tick) *Event {
 	return &Event{
 		Name:        "Pirate Raid",
-		Description: fmt.Sprintf("Pirates are attacking %v", targetEntity.GetName()),
+		Description: fmt.Sprintf("Pirates are attacking"),
 		Severity:    Moderate,
 		Target:      targetEntity,
-		Deadline:    tick + engine.TICKS_PER_SECOND*20,
 		Resolved:    false,
 		Effect: func() {
 			if planet, ok := targetEntity.(*models.Planet); ok {
-				planet.Resources.Minerals.Quantity -= int(float64(planet.Resources.Minerals.Quantity) * .5)
-				planet.Resources.Food.Quantity -= int(float64(planet.Resources.Food.Quantity) * .5)
-				planet.Resources.Energy.Quantity -= int(float64(planet.Resources.Energy.Quantity) * .5)
+				planet.Resources.Minerals.Quantity -= int(float64(planet.Resources.Minerals.Quantity) * .1)
+				planet.Resources.Food.Quantity -= int(float64(planet.Resources.Food.Quantity) * .1)
+				planet.Resources.Energy.Quantity -= int(float64(planet.Resources.Energy.Quantity) * .1)
 			}
 		},
-		Resolve: func() {},
 		Expire: func() {
 			if planet, ok := targetEntity.(*models.Planet); ok {
 				planet.Resources.Minerals.Quantity -= int(float64(planet.Resources.Minerals.Quantity) * .20)
@@ -30,5 +29,7 @@ func NewPirateRaid(targetEntity models.Entity, tick engine.Tick) *Event {
 				planet.Resources.Energy.Quantity -= int(float64(planet.Resources.Energy.Quantity) * .20)
 			}
 		},
+		Duration: config.TICKS_PER_PULSE * 20,
+		Interval: config.TICKS_PER_PULSE,
 	}
 }

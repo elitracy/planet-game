@@ -6,6 +6,11 @@ import (
 	"github.com/elitracy/planets/game/orders"
 )
 
+func (state *GameState) TickTasks() {
+	state.TickOrders()
+	state.TickActions()
+}
+
 func (state *GameState) TickOrders() {
 	for _, order := range state.OrderScheduler.PriorityQueue {
 

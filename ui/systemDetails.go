@@ -172,7 +172,7 @@ func (p *StarSystemDetailsPane) createRows() []table.Row {
 func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	pane := CreateNewShipManagementPane(
 		"Ship Management",
-		&game.State.ShipManager,
+		game.State.ShipManager,
 		func(ship *models.Ship) {
 			order := orders.NewScoutDestinationOrder(
 				ship,
