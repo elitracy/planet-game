@@ -10,9 +10,10 @@ import (
 
 type ColonizeAction struct {
 	*Action
+	OnColonize func()
 }
 
-func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, duration engine.Tick) *ColonizeAction {
+func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, duration engine.Tick, onExecute func()) *ColonizeAction {
 
 	action := &ColonizeAction{
 		Action: &Action{
@@ -21,19 +22,9 @@ func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, durati
 			StartTick:    startTick,
 			Duration:     duration,
 			Status:       task.Pending,
+			Execute:      onExecute,
 		},
 	}
 
-	action.Action.Execute = func() {
-		if system, ok := action.Action.TargetEntity.(*models.StarSystem); ok {
-			system.Colonized = true
-			return
-		}
-
-		if planet, ok := action.Action.TargetEntity.(*models.Planet); ok {
-			planet.Colonized = true
-			return
-		}
-	}
 	return action
 }

@@ -41,7 +41,6 @@ type Planet struct {
 	Population           int
 	PopulationGrowthRate int
 	Colonized            bool
-	Colonize             func()
 	Scouted              bool
 
 	Resources

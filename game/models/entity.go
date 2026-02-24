@@ -19,6 +19,7 @@ type Entity interface {
 	GetName() string
 	GetLocation() Location
 	GetOrders() []task.Task
+	String() string
 }
 
 func (e CoreEntity) GetID() EntityID        { return e.ID }
@@ -26,6 +27,7 @@ func (e *CoreEntity) SetID(id EntityID)     { e.ID = id }
 func (e CoreEntity) GetName() string        { return e.Name }
 func (e CoreEntity) GetLocation() Location  { return e.Location }
 func (e CoreEntity) GetOrders() []task.Task { return e.OrderQueue }
+func (e CoreEntity) String() string         { return e.GetName() }
 
 type EntityManager struct {
 	Entities  map[EntityID]Entity

@@ -38,7 +38,14 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					p.planet.Name = p.inputs[0].Value()
 				}
 
-				createColonyOrder := orders.NewCreateColonyOrder(p.planet, game.State.CurrentTick)
+				createColonyOrder := orders.NewCreateColonyOrder(
+					p.planet,
+					game.State.CurrentTick,
+					func() {
+						p.planet.Colonized = true
+						game.State.ColonizedPlanets[p.planet.GetID()] = p.planet
+					},
+				)
 
 				game.State.PushOrder(createColonyOrder)
 				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())
