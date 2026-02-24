@@ -46,22 +46,17 @@ var (
 type GameState struct {
 	CurrentTick      engine.Tick
 	StarSystems      []*models.StarSystem
-	Player           models.Player
+	Player           *models.Player
 	OrderScheduler   task.TaskScheduler[*orders.Order]
 	ActionScheduler  task.TaskScheduler[*actions.Action]
 	CompletedOrders  []*orders.Order
-	ShipManager      *models.ShipManager
+	Ships            map[models.EntityID]*models.Ship
 	ColonizedPlanets map[models.EntityID]*models.Planet
 	EventManager     *events.EventManager
+	EntityManager    *models.EntityManager
 }
 
-func (gs *GameState) CreatePlayer(location models.Location) models.Player {
-	player := models.Player{Location: location}
-	gs.Player = player
-	return player
-}
-
-func (gs *GameState) GenerateStarSystem() *models.StarSystem {
+func (state *GameState) GenerateStarSystem() *models.StarSystem {
 
 	system_name_idx := rand.Intn(len(system_names))
 	system_name := system_names[system_name_idx]
@@ -105,10 +100,11 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 			STARTING_MINES,
 			STARTING_SOLAR_GRIDS,
 		)
-		system.Planets = append(system.Planets, &planet)
-
+		system.Planets = append(system.Planets, planet)
+		state.EntityManager.Add(planet)
 	}
 
+	state.EntityManager.Add(system)
 	return system
 
 }

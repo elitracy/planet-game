@@ -27,26 +27,3 @@ func CreateNewShip(name string, location Location, shipType ShipType) *Ship {
 
 	return ship
 }
-
-type ShipManager struct {
-	Ships     map[EntityID]*Ship
-	currentID EntityID
-}
-
-func NewShipManager() *ShipManager {
-	return &ShipManager{
-		Ships: make(map[EntityID]*Ship),
-	}
-}
-
-func (m ShipManager) GetShip(id EntityID) *Ship { return m.Ships[id] }
-
-func (m *ShipManager) AddShip(ship *Ship) {
-	ship.ID = m.GetNextID()
-	m.Ships[ship.GetID()] = ship
-}
-
-func (m *ShipManager) GetNextID() EntityID {
-	m.currentID++
-	return m.currentID
-}

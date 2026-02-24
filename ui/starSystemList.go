@@ -228,7 +228,7 @@ func (p *StarSystemListPane) View() string {
 func (p *StarSystemListPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	pane := CreateNewShipManagementPane(
 		"Ship Management",
-		game.State.ShipManager,
+		game.State.Ships,
 		func(ship *models.Ship) {
 			order := orders.NewScoutDestinationOrder(ship, models.Location{Position: p.systems[p.cursor].Location.Position, Entity: p.systems[p.cursor]}, game.State.CurrentTick+40)
 			game.State.PushOrder(order)

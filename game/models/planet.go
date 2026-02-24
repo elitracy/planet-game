@@ -49,8 +49,8 @@ type Planet struct {
 	Constructions
 }
 
-func NewPlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) Planet {
-	planet := Planet{
+func NewPlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) *Planet {
+	planet := &Planet{
 		CoreEntity: &CoreEntity{
 			Name:     name,
 			Location: Location{Position: position},
