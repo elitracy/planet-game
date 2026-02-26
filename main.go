@@ -61,14 +61,17 @@ func InitState() {
 func InitUI() {
 	ui.InitPaneManager()
 
-	orderStatusList := ui.NewOrderStatusListPane("Orders", &game.State.OrderScheduler)
+	orderStatusListPane := ui.NewOrderStatusListPane("Orders", &game.State.OrderScheduler)
 	systemsPane := ui.NewStarSystemListPane("Systems", game.State.StarSystems)
+	messagesPane := ui.NewMessagePane("Messages", game.State.EventManager)
 
-	ui.PaneManager.AddPane(orderStatusList)
+	ui.PaneManager.AddPane(orderStatusListPane)
 	ui.PaneManager.AddPane(systemsPane)
+	ui.PaneManager.AddPane(messagesPane)
 
 	ui.PaneManager.AddTab(systemsPane)
-	ui.PaneManager.AddTab(orderStatusList)
+	ui.PaneManager.AddTab(orderStatusListPane)
+	ui.PaneManager.AddTab(messagesPane)
 
 }
 

@@ -18,7 +18,6 @@ type Pane struct {
 
 func (p Pane) String() string {
 	return fmt.Sprintf("[%v] %v (%vx%v)", p.id, p.title, p.width, p.height)
-
 }
 
 func (p *Pane) ID() PaneID                { return p.id }

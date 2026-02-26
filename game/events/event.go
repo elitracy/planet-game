@@ -44,14 +44,13 @@ type Event struct {
 
 type EventManager struct {
 	Events       []EventChance
-	ActiveEvents map[EventID]*Event
+	ActiveEvents []*Event
 	currentID    EventID
 	NextEvent    engine.Tick
 }
 
 func NewEventManager() *EventManager {
 	return &EventManager{
-		ActiveEvents: make(map[EventID]*Event),
 		Events: []EventChance{
 			{0.5, NewPirateRaid},
 			{0.5, NewMineralDiscovery},
@@ -63,7 +62,7 @@ func NewEventManager() *EventManager {
 func (em *EventManager) Add(event *Event, start engine.Tick) EventID {
 	event.ID = em.currentID
 	event.Start = start
-	em.ActiveEvents[event.ID] = event
+	em.ActiveEvents = append(em.ActiveEvents, event)
 	em.currentID++
 
 	return event.ID

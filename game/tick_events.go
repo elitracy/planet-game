@@ -3,7 +3,6 @@ package game
 import (
 	"math/rand"
 
-	"github.com/elitracy/planets/engine"
 	"github.com/elitracy/planets/game/models"
 )
 
@@ -32,8 +31,6 @@ func (state *GameState) TickEvents() {
 
 	var planet *models.Planet
 	planetIndex := rand.Intn(len(state.ColonizedPlanets))
-	engine.Info("idx: %v", planetIndex)
-	engine.Info("planets: %v", state.ColonizedPlanets)
 	for _, p := range state.ColonizedPlanets {
 		if planetIndex == 0 {
 			planet = p
@@ -42,12 +39,9 @@ func (state *GameState) TickEvents() {
 		planetIndex--
 	}
 
-	engine.Info("Planet: %v", planet.GetName())
-
 	for _, chance := range state.EventManager.Events {
 		if rand.Float64() < chance.Probability {
 			event := chance.New(planet, state.CurrentTick)
-			engine.Info("Starting Event: %v: %v", event.Description, event.Target.GetName())
 
 			state.EventManager.Add(event, state.CurrentTick)
 			state.EventManager.RollNextEventInterval(state.CurrentTick)

@@ -10,7 +10,7 @@ import (
 func NewMineralDiscovery(targetEntity models.Entity, tick engine.Tick) *Event {
 	return &Event{
 		Name:        "Mineral Discovery",
-		Description: fmt.Sprintf("A mineral deposit has been found on an asteroid!"),
+		Description: fmt.Sprintf("A mineral deposit has been found near %v", targetEntity.GetName()),
 		Severity:    Moderate,
 		Target:      targetEntity,
 		Resolved:    false,

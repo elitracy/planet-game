@@ -49,9 +49,6 @@ func (p *OrderDetailsPane) Init() tea.Cmd {
 	)
 
 	PaneManager.AddPane(p.orderInfoTable)
-	for _, action := range p.order.Actions {
-		engine.Info("actionID: %v", action.GetID())
-	}
 	return nil
 }
 

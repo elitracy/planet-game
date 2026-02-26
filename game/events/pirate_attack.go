@@ -11,7 +11,7 @@ import (
 func NewPirateRaid(targetEntity models.Entity, tick engine.Tick) *Event {
 	return &Event{
 		Name:        "Pirate Raid",
-		Description: fmt.Sprintf("Pirates are attacking"),
+		Description: fmt.Sprintf("Pirates are attacking %v", targetEntity.GetName()),
 		Severity:    Moderate,
 		Target:      targetEntity,
 		Resolved:    false,
