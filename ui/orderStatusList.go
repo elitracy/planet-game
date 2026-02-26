@@ -4,24 +4,25 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/orders"
 )
 
-var orderStatusTypes = []engine.EventStatus{
-	engine.EventPending,
-	engine.EventExecuting,
-	engine.EventComplete,
-	engine.EventFailed,
+var orderStatusTypes = []task.Status{
+	task.Pending,
+	task.Executing,
+	task.Complete,
+	task.Failed,
 }
 
 type OrderStatusListPane struct {
 	*engine.Pane
 	cursor         int
-	orderScheduler *engine.EventScheduler[*orders.Order]
+	orderScheduler *task.TaskScheduler[*orders.Order]
 	theme          UITheme
 }
 
-func NewOrderStatusListPane(title string, orderScheduler *engine.EventScheduler[*orders.Order]) *OrderStatusListPane {
+func NewOrderStatusListPane(title string, orderScheduler *task.TaskScheduler[*orders.Order]) *OrderStatusListPane {
 	pane := &OrderStatusListPane{
 		Pane:           engine.NewPane(title, engine.NewKeyBindings()),
 		cursor:         0,
@@ -39,7 +40,7 @@ func (p *OrderStatusListPane) Init() tea.Cmd {
 		Set(engine.Up, "k").
 		Set(engine.Down, "j")
 
-	orderList := NewOrderListPane(engine.EventStatus(p.cursor))
+	orderList := NewOrderListPane(task.Status(p.cursor))
 	paneID := PaneManager.AddPane(orderList)
 	return tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 }
@@ -56,7 +57,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 
-			orderList := NewOrderListPane(engine.EventStatus(p.cursor))
+			orderList := NewOrderListPane(task.Status(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 		case p.GetKeys().Get(engine.Down):
@@ -64,7 +65,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 
-			orderList := NewOrderListPane(engine.EventStatus(p.cursor))
+			orderList := NewOrderListPane(task.Status(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
 			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
 		case p.GetKeys().Get(engine.Select):
@@ -87,7 +88,7 @@ func (p *OrderStatusListPane) View() string {
 	rowIdx := 0
 	for status := range orderStatusTypes {
 
-		row := engine.EventStatus(status).String()
+		row := task.Status(status).String()
 
 		if p.cursor == rowIdx {
 			row = p.theme.FocusedStyle.Render(row)

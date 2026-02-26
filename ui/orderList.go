@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dustin/go-humanize"
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game"
 	"github.com/elitracy/planets/game/orders"
 )
@@ -18,12 +19,12 @@ type OrderListPane struct {
 	cursor         int
 	filteredOrders []*orders.Order
 	orderInfoTable engine.ManagedPane
-	progressBars   map[engine.EventID]engine.PaneID
-	status         engine.EventStatus
+	progressBars   map[task.TaskID]engine.PaneID
+	status         task.Status
 	theme          UITheme
 }
 
-func NewOrderListPane(status engine.EventStatus) *OrderListPane {
+func NewOrderListPane(status task.Status) *OrderListPane {
 	pane := &OrderListPane{
 		Pane:   engine.NewPane("Order List", engine.NewKeyBindings()),
 		status: status,
@@ -142,7 +143,7 @@ func (p *OrderListPane) View() string {
 
 func (p *OrderListPane) initProgressBars() {
 	if p.progressBars == nil {
-		p.progressBars = make(map[engine.EventID]engine.PaneID)
+		p.progressBars = make(map[task.TaskID]engine.PaneID)
 	}
 
 	for _, order := range p.filteredOrders {
@@ -172,12 +173,12 @@ func (p OrderListPane) createInfoTable() table.Model {
 func (p *OrderListPane) createColumns() []table.Column {
 
 	switch p.status {
-	case engine.EventPending:
+	case task.Pending:
 		return []table.Column{
 			{Title: "Order", Width: 25},
 			{Title: "Time to Execution", Width: 40},
 		}
-	case engine.EventExecuting:
+	case task.Executing:
 		return []table.Column{
 			{Title: "Order", Width: 25},
 			{Title: "Completion Time", Width: 25},
@@ -200,12 +201,12 @@ func (p *OrderListPane) createRows() []table.Row {
 		}
 
 		switch p.status {
-		case engine.EventPending:
+		case task.Pending:
 			duration := (order.GetStartTick() - game.State.CurrentTick).ToDuration(engine.TICKS_PER_SECOND)
 
 			row := table.Row{order.GetName(), humanize.Time(time.Now().Add(duration))}
 			rows = append(rows, row)
-		case engine.EventExecuting:
+		case task.Executing:
 			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
 			duration := (order.GetStartTick() + order.GetDuration() - game.State.CurrentTick).ToDuration(engine.TICKS_PER_SECOND)
 
@@ -223,7 +224,7 @@ func (p *OrderListPane) createRows() []table.Row {
 func (p *OrderListPane) filterOrders() {
 	p.filteredOrders = []*orders.Order{}
 
-	if p.status == engine.EventComplete {
+	if p.status == task.Complete {
 		p.filteredOrders = game.State.CompletedOrders
 		return
 	}

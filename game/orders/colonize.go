@@ -2,6 +2,7 @@ package orders
 
 import (
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/actions"
 	"github.com/elitracy/planets/game/models"
 )
@@ -11,12 +12,12 @@ type CreateColonyOrder struct {
 	planet *models.Planet
 }
 
-func NewCreateColonyOrder(planet *models.Planet, startTick engine.Tick) *Order {
+func NewCreateColonyOrder(planet *models.Planet, startTick engine.Tick, onExecute func()) *Order {
 	order := &CreateColonyOrder{
 		Order: &Order{
 			Name:      "Create Colony",
 			StartTick: startTick,
-			Status:    engine.EventPending,
+			Status:    task.Pending,
 		},
 		planet: planet,
 	}
@@ -43,6 +44,7 @@ func NewCreateColonyOrder(planet *models.Planet, startTick engine.Tick) *Order {
 		planet,
 		order.StartTick,
 		engine.TICKS_PER_SECOND*10,
+		onExecute,
 	)
 
 	order.AddAction(createFarmAction.Action)

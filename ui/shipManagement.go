@@ -7,24 +7,23 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elitracy/planets/engine"
-	"github.com/elitracy/planets/game"
 	"github.com/elitracy/planets/game/models"
 )
 
 type ShipManagementPane struct {
 	*engine.Pane
 	cursor        int
-	currentShipID int
+	currentShipID models.EntityID
 	sortedShips   []*models.Ship
-	manager       *models.ShipManager
+	ships         map[models.EntityID]*models.Ship
 	OnSelect      func(ship *models.Ship)
 	theme         UITheme
 }
 
-func CreateNewShipManagementPane(title string, shipManager *models.ShipManager, callback func(ship *models.Ship)) *ShipManagementPane {
+func CreateNewShipManagementPane(title string, ships map[models.EntityID]*models.Ship, callback func(ship *models.Ship)) *ShipManagementPane {
 	pane := &ShipManagementPane{
 		Pane:     engine.NewPane(title, engine.NewKeyBindings()),
-		manager:  shipManager,
+		ships:    ships,
 		OnSelect: callback,
 	}
 
@@ -39,7 +38,7 @@ func (p *ShipManagementPane) Init() tea.Cmd {
 		Set(engine.Down, "j").
 		Set(engine.Quit, "q")
 
-	for _, ship := range p.manager.Ships {
+	for _, ship := range p.ships {
 		p.sortedShips = append(p.sortedShips, ship)
 	}
 	sort.Slice(p.sortedShips, func(i, j int) bool {
@@ -61,7 +60,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case p.GetKeys().Get(engine.Select):
-			p.OnSelect(game.State.ShipManager.Ships[p.currentShipID])
+			p.OnSelect(p.ships[p.currentShipID])
 		case p.GetKeys().Get(engine.Up):
 			if p.cursor > 0 {
 				p.cursor--

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/models"
 )
 
@@ -21,7 +22,7 @@ func NewMoveEntityAction(target models.Entity, dest models.Location, startTick e
 			Description:  fmt.Sprintf("Send %v to %v", target.GetName(), dest),
 			StartTick:    startTick,
 			Duration:     duration,
-			Status:       engine.EventPending,
+			Status:       task.Pending,
 		},
 		Destination: dest,
 	}

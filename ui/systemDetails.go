@@ -96,7 +96,7 @@ func (p *StarSystemDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p *StarSystemDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
-	distance := engine.EuclidianDistance(game.State.Player.Position, p.system.Location.Position)
+	distance := engine.EuclidianDistance(game.State.Player.GetLocation().Position, p.system.Location.Position)
 	distanceStyled := fmt.Sprintf(" (%v AU)", humanize.Comma(int64(distance)))
 	distanceStyled = p.theme.DimmedStyle.Render(distanceStyled)
 
@@ -172,7 +172,7 @@ func (p *StarSystemDetailsPane) createRows() []table.Row {
 func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	pane := CreateNewShipManagementPane(
 		"Ship Management",
-		&game.State.ShipManager,
+		game.State.Ships,
 		func(ship *models.Ship) {
 			order := orders.NewScoutDestinationOrder(
 				ship,

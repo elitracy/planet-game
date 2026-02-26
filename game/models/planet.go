@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/config"
 	"github.com/elitracy/planets/game/models/constructions"
 	"github.com/elitracy/planets/game/models/resources"
@@ -16,18 +17,6 @@ const (
 	STARTING_ENERGY                   = 10000
 	STARTING_ENERGY_CONSUMPTION_RATE  = 1
 )
-
-type Planet struct {
-	*CoreEntity
-	Population           int
-	PopulationGrowthRate int
-	Colonized            bool
-	Scouted              bool
-
-	Resources
-	Stabilities
-	Constructions
-}
 
 type Resources struct {
 	Food     resources.Food
@@ -47,8 +36,20 @@ type Constructions struct {
 	SolarGrids []constructions.SolarGrid
 }
 
-func CreatePlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) Planet {
-	planet := Planet{
+type Planet struct {
+	*CoreEntity
+	Population           int
+	PopulationGrowthRate int
+	Colonized            bool
+	Scouted              bool
+
+	Resources
+	Stabilities
+	Constructions
+}
+
+func NewPlanet(name string, position engine.Position, pop, num_farms, num_mines, num_solar_grids int) *Planet {
+	planet := &Planet{
 		CoreEntity: &CoreEntity{
 			Name:     name,
 			Location: Location{Position: position},
@@ -100,11 +101,11 @@ func CreatePlanet(name string, position engine.Position, pop, num_farms, num_min
 	return planet
 }
 
-func (p *Planet) PushOrder(order engine.Event) {
+func (p *Planet) PushOrder(order task.Task) {
 	p.OrderQueue = append(p.OrderQueue, order)
 }
 
-func (p *Planet) PopOrder() engine.Event {
+func (p *Planet) PopOrder() task.Task {
 	if len(p.OrderQueue) == 0 {
 		return nil
 	}

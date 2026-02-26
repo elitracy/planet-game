@@ -4,14 +4,16 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/models"
 )
 
 type ColonizeAction struct {
 	*Action
+	OnColonize func()
 }
 
-func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, duration engine.Tick) *ColonizeAction {
+func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, duration engine.Tick, onExecute func()) *ColonizeAction {
 
 	action := &ColonizeAction{
 		Action: &Action{
@@ -19,20 +21,10 @@ func NewColonizeAction(targetEntity models.Entity, startTick engine.Tick, durati
 			Description:  fmt.Sprintf("Colonize %v", targetEntity.GetName()),
 			StartTick:    startTick,
 			Duration:     duration,
-			Status:       engine.EventPending,
+			Status:       task.Pending,
+			Execute:      onExecute,
 		},
 	}
 
-	action.Action.Execute = func() {
-		if system, ok := action.Action.TargetEntity.(*models.StarSystem); ok {
-			system.Colonized = true
-			return
-		}
-
-		if planet, ok := action.Action.TargetEntity.(*models.Planet); ok {
-			planet.Colonized = true
-			return
-		}
-	}
 	return action
 }

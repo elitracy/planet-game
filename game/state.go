@@ -6,7 +6,9 @@ import (
 	"sort"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/actions"
+	"github.com/elitracy/planets/game/events"
 	"github.com/elitracy/planets/game/models"
 	"github.com/elitracy/planets/game/orders"
 )
@@ -42,22 +44,19 @@ var (
 )
 
 type GameState struct {
-	CurrentTick     engine.Tick
-	StarSystems     []*models.StarSystem
-	Player          models.Player
-	OrderScheduler  engine.EventScheduler[*orders.Order]
-	ActionScheduler engine.EventScheduler[*actions.Action]
-	CompletedOrders []*orders.Order
-	ShipManager     models.ShipManager
+	CurrentTick      engine.Tick
+	StarSystems      []*models.StarSystem
+	Player           *models.Player
+	OrderScheduler   task.TaskScheduler[*orders.Order]
+	ActionScheduler  task.TaskScheduler[*actions.Action]
+	CompletedOrders  []*orders.Order
+	Ships            map[models.EntityID]*models.Ship
+	ColonizedPlanets map[models.EntityID]*models.Planet
+	EventManager     *events.EventManager
+	EntityManager    *models.EntityManager
 }
 
-func (gs *GameState) CreatePlayer(location models.Location) models.Player {
-	player := models.Player{Location: location}
-	gs.Player = player
-	return player
-}
-
-func (gs *GameState) GenerateStarSystem() *models.StarSystem {
+func (state *GameState) GenerateStarSystem() *models.StarSystem {
 
 	system_name_idx := rand.Intn(len(system_names))
 	system_name := system_names[system_name_idx]
@@ -93,7 +92,7 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 	for i := range num_planets {
 		starting_population := rand.Intn(MAX_START_POP-MIN_START_POP) + MIN_START_POP
 
-		planet := models.CreatePlanet(
+		planet := models.NewPlanet(
 			system_name+"-"+planet_names[i],
 			planet_positions[i],
 			starting_population,
@@ -101,10 +100,11 @@ func (gs *GameState) GenerateStarSystem() *models.StarSystem {
 			STARTING_MINES,
 			STARTING_SOLAR_GRIDS,
 		)
-		system.Planets = append(system.Planets, &planet)
-
+		system.Planets = append(system.Planets, planet)
+		state.EntityManager.Add(planet)
 	}
 
+	state.EntityManager.Add(system)
 	return system
 
 }
@@ -113,5 +113,15 @@ func (state *GameState) PushOrder(order *orders.Order) {
 	state.OrderScheduler.Push(order)
 	for _, action := range order.Actions {
 		state.ActionScheduler.Push(action)
+	}
+}
+
+func (state *GameState) UpdateColonizedPlanets() {
+	for _, system := range state.StarSystems {
+		for _, planet := range system.Planets {
+			if planet.Colonized {
+				state.ColonizedPlanets[planet.ID] = planet
+			}
+		}
 	}
 }

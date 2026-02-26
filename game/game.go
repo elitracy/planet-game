@@ -6,7 +6,8 @@ import (
 
 func (state *GameState) Update(tick engine.Tick) {
 	state.CurrentTick = tick
-	state.TickOrders()
-	state.TickActions()
+
+	state.TickEvents()
+	state.TickTasks()
 	state.TickSystems()
 }

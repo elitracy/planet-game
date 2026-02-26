@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elitracy/planets/engine"
+	"github.com/elitracy/planets/engine/task"
 	"github.com/elitracy/planets/game/actions"
 	"github.com/elitracy/planets/game/config"
 	"github.com/elitracy/planets/game/models"
@@ -31,7 +32,7 @@ func NewScoutDestinationOrder(ship *models.Ship, dest models.Location, startTick
 		Order: &Order{
 			Name:      "Scout " + name,
 			StartTick: startTick,
-			Status:    engine.EventPending,
+			Status:    task.Pending,
 		},
 		ship:        ship,
 		destination: dest,

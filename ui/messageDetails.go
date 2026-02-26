@@ -9,25 +9,16 @@ import (
 	"github.com/elitracy/planets/game/events"
 )
 
-type MessagePane struct {
+type MessageDetailsPane struct {
 	*engine.Pane
+	message *events.Event
 
-	cursor         int
-	events         *events.EventManager
-	eventInfoTable engine.ManagedPane
-	theme          UITheme
+	theme     UITheme
+	cursor    int
+	infoTable engine.ManagedPane
 }
 
-func NewMessagePane(title string, events *events.EventManager) *MessagePane {
-	pane := &MessagePane{
-		Pane:   engine.NewPane(title, engine.NewKeyBindings()),
-		events: events,
-	}
-
-	return pane
-}
-
-func (p *MessagePane) Init() tea.Cmd {
+func (p *MessageDetailsPane) Init() tea.Cmd {
 	p.GetKeys().
 		Set(engine.Quit, "q").
 		Set(engine.Back, "esc").
@@ -35,34 +26,30 @@ func (p *MessagePane) Init() tea.Cmd {
 		Set(engine.Down, "j")
 
 	keymaps := make(map[string]func() tea.Cmd)
-	// keymaps[p.GetKeys().Get(engine.Select)] = func() tea.Cmd {
-	// 	return tea.Sequence(pushDetailStackCmd(p.eventInfoTable.ID()), pushFocusStackCmd(p.eventInfoTable.ID()))
-	// }
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
 	}
 
 	infoTable := p.createInfoTable()
-	p.eventInfoTable = NewInfoTablePane(
+	p.infoTable = NewInfoTablePane(
 		infoTable,
 		keymaps,
 	)
 
-	PaneManager.AddPane(p.eventInfoTable)
+	PaneManager.AddPane(p.infoTable)
 
 	return nil
 }
 
-func (p *MessagePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
+func (p *MessageDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		p.SetSize(msg.width, msg.height)
 	case engine.TickMsg:
-		p.eventInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
+		p.infoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
 	case config.UITickMsg:
-		p.eventInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
+		p.infoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
 		switch msg.String() {
 		case p.GetKeys().Get(engine.Up):
@@ -71,7 +58,7 @@ func (p *MessagePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			engine.Info("up")
 		case p.GetKeys().Get(engine.Down):
-			if p.cursor < len(p.events.ActiveEvents) {
+			if p.cursor < len(p.infoTable.(*InfoTablePane).table.Rows()) {
 				p.cursor++
 			}
 			engine.Info("down")
@@ -82,24 +69,24 @@ func (p *MessagePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	model, cmd := p.eventInfoTable.Update(msg)
+	model, cmd := p.infoTable.Update(msg)
 	cmds = append(cmds, cmd)
-	p.eventInfoTable = model.(engine.ManagedPane)
+	p.infoTable = model.(engine.ManagedPane)
 
 	return p, tea.Batch(cmds...)
 
 }
 
-func (p *MessagePane) View() string {
+func (p *MessageDetailsPane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.Title()
 	titleStyled := Style.Width(p.Width()).AlignHorizontal(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
 
-	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.eventInfoTable.View())
+	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.infoTable.View())
 }
 
-func (p MessagePane) createInfoTable() table.Model {
+func (p MessageDetailsPane) createInfoTable() table.Model {
 	infoTable := table.New(
 		table.WithColumns(p.createColumns()),
 		table.WithRows(p.createRows()),
@@ -110,22 +97,26 @@ func (p MessagePane) createInfoTable() table.Model {
 	return infoTable
 }
 
-func (p *MessagePane) createColumns() []table.Column {
+func (p *MessageDetailsPane) createColumns() []table.Column {
 
 	columns := []table.Column{
-		{Title: "", Width: 35},
+		{Title: "Title", Width: 15},
+		{Title: "Body", Width: 35},
+		{Title: "Severity", Width: 10},
+		{Title: "Target", Width: 20},
+		{Title: "Time Remaining", Width: 20},
 	}
 	return columns
 }
 
-func (p *MessagePane) createRows() []table.Row {
+func (p *MessageDetailsPane) createRows() []table.Row {
 
 	rows := []table.Row{}
 
-	for _, event := range p.events.ActiveEvents {
-		row := table.Row{event.Description}
-		rows = append(rows, row)
-	}
+	// for _, event := range p..ActiveEvents {
+	// 	row := table.Row{event.Description}
+	// 	rows = append(rows, row)
+	// }
 
 	return rows
 }

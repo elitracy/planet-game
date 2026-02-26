@@ -27,20 +27,3 @@ func CreateNewShip(name string, location Location, shipType ShipType) *Ship {
 
 	return ship
 }
-
-type ShipManager struct {
-	Ships     map[int]*Ship
-	currentID int
-}
-
-func (m ShipManager) GetShip(id int) *Ship { return m.Ships[id] }
-
-func (m *ShipManager) AddShip(ship *Ship) {
-	ship.ID = m.GetNextID()
-	m.Ships[ship.GetID()] = ship
-}
-
-func (m *ShipManager) GetNextID() int {
-	m.currentID++
-	return m.currentID
-}
