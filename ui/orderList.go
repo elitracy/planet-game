@@ -50,7 +50,7 @@ func (p *OrderListPane) Init() tea.Cmd {
 		pane := NewOrderDetailsPane(order)
 		paneID := PaneManager.AddPane(pane)
 
-		return tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+		return tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 	}
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())

@@ -76,7 +76,7 @@ func (p *StarSystemListPane) Init() tea.Cmd {
 	systemInfoPane := NewSystemInfoPane(system.Name, system)
 	paneID := PaneManager.AddPane(systemInfoPane)
 
-	return pushDetailStackCmd(paneID)
+	return pushLayoutPaneCmd(paneID)
 }
 
 func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -124,7 +124,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				system := filteredSystems[p.cursor]
 				systemInfoPane := NewSystemInfoPane(system.Name, system)
 				paneID := PaneManager.AddPane(systemInfoPane)
-				cmds = append(cmds, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID)))
+				cmds = append(cmds, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID)))
 			}
 
 			return p, tea.Sequence(cmds...)
@@ -144,7 +144,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+			return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 		case p.GetKeys().Get(engine.Up):
 			if p.cursor > 0 {
 				p.cursor--
@@ -159,7 +159,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			system := filteredSystems[p.cursor]
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
 
 		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(filteredSystems)-1 {
@@ -176,7 +176,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			systemInfoPane := NewSystemInfoPane(system.Name, system)
 			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
 
 		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
@@ -236,5 +236,5 @@ func (p *StarSystemListPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	)
 
 	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+	return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 }

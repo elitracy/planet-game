@@ -12,21 +12,13 @@ import (
 	"golang.org/x/term"
 )
 
-var mainWidthPercentage float32
-
-var mainWidth int
-var mainHeight int
-
-var detailWidth int
-var detailHeight int
-
 type paneManager struct {
 	*engine.Pane
 
-	TabLine         engine.ManagedPane
-	StatusLine      engine.ManagedPane
-	MainPane        engine.ManagedPane
-	DetailPaneStack []engine.ManagedPane
+	TabLine    engine.ManagedPane
+	StatusLine engine.ManagedPane
+	layout     *engine.LayoutNode
+	tabLayouts map[engine.PaneID]*engine.LayoutNode
 
 	Panes      map[engine.PaneID]engine.ManagedPane
 	currentID  engine.PaneID
@@ -102,43 +94,12 @@ func (p *paneManager) AddTab(pane engine.ManagedPane) {
 }
 
 func (p *paneManager) SetMainPane(pane engine.ManagedPane) {
-	p.MainPane = pane
-}
-
-func (p *paneManager) PushDetailPaneStack(pane engine.ManagedPane) {
-	p.DetailPaneStack = append(p.DetailPaneStack, pane)
-}
-
-func (p *paneManager) PopDetailPaneStack() {
-	if len(p.DetailPaneStack) <= 0 {
-		return
-	}
-
-	pane := p.DetailPaneStack[len(p.DetailPaneStack)-1]
-	p.DetailPaneStack = p.DetailPaneStack[:len(p.DetailPaneStack)-1]
-
-	p.RemovePane(pane.ID())
-}
-
-func (p *paneManager) PeekDetailPaneStack() engine.ManagedPane {
-	if len(p.DetailPaneStack) <= 0 {
-		return NewErrorPane("No detail selected")
-	}
-
-	return p.DetailPaneStack[len(p.DetailPaneStack)-1]
-}
-
-func (p *paneManager) FlushDetailPaneStack() {
-	p.DetailPaneStack = nil
+	p.layout = p.tabLayouts[pane.ID()]
 }
 
 func (p *paneManager) Init() tea.Cmd {
 
 	var cmds []tea.Cmd
-
-	if p.MainPane == nil {
-		p.SetMainPane(p.TabLine.(*TabLinePane).tabs[0])
-	}
 
 	if p.TabLine != nil {
 		cmds = append(cmds, p.TabLine.Init())
@@ -148,18 +109,8 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds = append(cmds, p.StatusLine.Init())
 	}
 
-	if p.MainPane != nil {
-		cmds = append(cmds, p.MainPane.Init())
-	}
-
-	if p.PeekDetailPaneStack() != nil {
-		cmds = append(cmds, p.PeekDetailPaneStack().Init())
-	}
-
 	cmds = append(
 		cmds,
-		paneResizeCmd(p.MainPane.ID(), mainWidth, mainHeight),
-		paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight),
 		engine.TickCmd(p.state.CurrentTick),
 		config.UITickCmd(p.CurrentUITick),
 	)
@@ -170,11 +121,6 @@ func (p *paneManager) Init() tea.Cmd {
 }
 
 func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	if p.MainPane == nil {
-		p.MainPane = NewErrorPane("No content selected")
-	}
-
 	switch msg := msg.(type) {
 	case paneResizeMsg:
 		if pane, ok := p.Panes[msg.paneID]; ok {
@@ -186,8 +132,9 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.SetMainPane(pane)
 			return p, tea.Sequence(paneResizeCmd(pane.ID(), mainWidth, mainHeight), p.MainPane.Init())
 		}
-	case pushDetailStackMsg:
+	case pushLayoutPaneMsg:
 		if pane, ok := p.Panes[msg.id]; ok {
+			p.layout.Push(engine.NewLayoutNode(pane))
 			pane.SetSize(detailWidth, detailHeight)
 			p.PushDetailPaneStack(pane)
 			return p, tea.Sequence(paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight))
@@ -278,21 +225,16 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (p *paneManager) View() string {
 	mainContent := "No tab selected"
-	if p.MainPane != nil {
-		mainContent = p.MainPane.View()
+
+	if len(p.layout.Children) == 0 && p.layout.Pane == nil {
+		return mainContent
 	}
-	detailContent := p.PeekDetailPaneStack().View()
 
 	tabLineStyle := Style.Width(p.Width()).Border(lipgloss.NormalBorder(), false, false, true, false).Render(p.TabLine.View())
 	statusLineStyle := Style.Width(p.Width()).Border(lipgloss.NormalBorder(), true, false, false, false).Render(p.StatusLine.View())
 
-	mainHeight = p.Height() - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
-	detailHeight = p.Height() - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
-
-	mainStyled := Style.Height(mainHeight).Width(mainWidth).Border(lipgloss.NormalBorder(), false, true, false, false).Padding(0, 1).Render(mainContent)
-	detailStyled := Style.Padding(0, 1).Render(detailContent)
-
-	contentView := lipgloss.JoinHorizontal(lipgloss.Left, mainStyled, detailStyled)
+	contentHeight := p.Height() - lipgloss.Height(tabLineStyle) - lipgloss.Height(statusLineStyle)
+	contentView := p.layout.Render(p.Width(), contentHeight)
 
 	return lipgloss.JoinVertical(lipgloss.Top, tabLineStyle, contentView, statusLineStyle)
 }

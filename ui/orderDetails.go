@@ -34,7 +34,7 @@ func (p *OrderDetailsPane) Init() tea.Cmd {
 
 	keymaps := make(map[string]func() tea.Cmd)
 	keymaps[p.GetKeys().Get(engine.Select)] = func() tea.Cmd {
-		return tea.Sequence(pushDetailStackCmd(p.orderInfoTable.ID()), pushFocusStackCmd(p.orderInfoTable.ID()))
+		return tea.Sequence(pushLayoutPaneCmd(p.orderInfoTable.ID()), pushFocusStackCmd(p.orderInfoTable.ID()))
 	}
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
 		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())

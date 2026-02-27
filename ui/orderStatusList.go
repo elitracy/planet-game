@@ -42,7 +42,7 @@ func (p *OrderStatusListPane) Init() tea.Cmd {
 
 	orderList := NewOrderListPane(task.Status(p.cursor))
 	paneID := PaneManager.AddPane(orderList)
-	return tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+	return tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
 }
 
 func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -59,7 +59,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			orderList := NewOrderListPane(task.Status(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
-			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
 		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(orderStatusTypes)-1 {
 				p.cursor++
@@ -67,7 +67,7 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			orderList := NewOrderListPane(task.Status(p.cursor))
 			paneID := PaneManager.AddPane(orderList)
-			return p, tea.Sequence(popDetailStackCmd(), pushDetailStackCmd(paneID))
+			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
 		case p.GetKeys().Get(engine.Select):
 			return p, tea.Sequence(pushFocusStackCmd(PaneManager.PeekDetailPaneStack().ID()))
 		case p.GetKeys().Get(engine.Back):

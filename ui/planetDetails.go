@@ -149,5 +149,5 @@ func (p *PlanetDetailsPane) handleColonization() (tea.Model, tea.Cmd) {
 	)
 
 	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+	return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 }

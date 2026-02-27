@@ -53,7 +53,7 @@ func (p *StarSystemDetailsPane) Init() tea.Cmd {
 
 		pane := NewPlanetDetailsPane("Planet Info", p.system.Planets[cursor])
 		paneID := PaneManager.AddPane(pane)
-		return tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+		return tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 	}
 
 	infoTable := p.createInfoTable()
@@ -186,7 +186,7 @@ func (p *StarSystemDetailsPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	)
 
 	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+	return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 }
 
 func (p *StarSystemDetailsPane) handleColonizeOrder() (tea.Model, tea.Cmd) {
@@ -197,5 +197,5 @@ func (p *StarSystemDetailsPane) handleColonizeOrder() (tea.Model, tea.Cmd) {
 	)
 
 	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushDetailStackCmd(paneID), pushFocusStackCmd(paneID))
+	return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
 }

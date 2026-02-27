@@ -13,10 +13,13 @@ type popMainFocusMsg struct{ id engine.PaneID }
 
 func popMainFocusCmd(id engine.PaneID) tea.Cmd { return func() tea.Msg { return popMainFocusMsg{id} } }
 
-type pushDetailStackMsg struct{ id engine.PaneID }
+type pushLayoutPaneMsg struct {
+	id, targetID engine.PaneID
+	direction    engine.LayoutDirection
+}
 
-func pushDetailStackCmd(id engine.PaneID) tea.Cmd {
-	return func() tea.Msg { return pushDetailStackMsg{id} }
+func pushLayoutPaneCmd(id, targetID engine.PaneID, direction engine.LayoutDirection) tea.Cmd {
+	return func() tea.Msg { return pushLayoutPaneMsg{id, targetID, direction} }
 }
 
 type popDetailStackMsg struct{}
