@@ -66,8 +66,45 @@ Background Events
 
 
 Left Off:
-- stick with focus stack?
-- want to explicitly tell pm what the active pane is for tab view
-    - how can I do both?
+- Layout migration
 
+Layout Migration TODO
+=====================
 
+Pane Manager Struct:
+- [ ] Remove MainPane field
+- [ ] Remove DetailPaneStack field
+- [ ] Remove globals: mainWidthPercentage, mainWidth, mainHeight, detailWidth, detailHeight
+- [ ] Add layout *engine.LayoutNode field
+- [ ] Add tabLayouts map[engine.PaneID]*engine.LayoutNode field
+
+Remove Methods:
+- [ ] PushDetailPaneStack
+- [ ] PopDetailPaneStack
+- [ ] PeekDetailPaneStack
+- [ ] FlushDetailPaneStack
+
+Update SetMainPane:
+- [ ] Swap p.layout to the tab's layout from tabLayouts map
+
+Update View():
+- [ ] Keep tab line and status line rendering
+- [ ] Compute contentHeight = total - tab - status
+- [ ] Replace two-column render with p.layout.Render(p.Width(), contentHeight)
+
+Update Update():
+- [ ] pushDetailStackMsg -> p.layout.Push(...)
+- [ ] popDetailStackMsg -> p.layout.Pop(...)
+- [ ] setMainFocusMsg -> swap p.layout to new tab's layout
+- [ ] flushDetailStackMsg -> reset layout to tab's original tree
+- [ ] Remove paneResizeMsg handling (layout handles sizing in Render)
+
+Update Init():
+- [ ] Build initial layout from first tab
+- [ ] Remove resize commands
+
+Tab Layouts:
+- [ ] Each tab provides its default layout when added
+- [ ] Star systems tab -> horizontal split (0.25 list | 0.75 detail)
+- [ ] Messages tab -> single leaf (full width)
+- [ ] Orders tab -> horizontal split or full width

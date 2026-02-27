@@ -1,0 +1,152 @@
+package engine
+
+import (
+	"slices"
+
+	"github.com/charmbracelet/lipgloss"
+)
+
+type LayoutDirection int
+
+const (
+	LayoutHorizontal LayoutDirection = iota
+	LayoutVertical
+)
+
+type LayoutNode struct {
+	Pane      ManagedPane
+	Direction LayoutDirection
+	Ratio     float32
+	Children  []*LayoutNode
+}
+
+func NewLayoutNode(pane ManagedPane, direction LayoutDirection, ratio float32) *LayoutNode {
+	return &LayoutNode{
+		Pane:      pane,
+		Direction: direction,
+		Ratio:     ratio,
+	}
+}
+
+func (n *LayoutNode) isLeaf() bool {
+	return n.Pane != nil
+}
+
+func (n *LayoutNode) FindChild(paneID PaneID) *LayoutNode {
+	if n.isLeaf() && n.Pane.ID() == paneID {
+		return n
+	}
+
+	for _, layout := range n.Children {
+		p := layout.FindChild(paneID)
+		if p != nil {
+			return p
+		}
+	}
+
+	return nil
+}
+
+func (n *LayoutNode) FindParent(paneID PaneID) (int, *LayoutNode) {
+	for i, layout := range n.Children {
+		if layout.isLeaf() && layout.Pane.ID() == paneID {
+			return i, n
+		} else {
+			idx, l := layout.FindParent(paneID)
+			if l != nil {
+				return idx, l
+			}
+		}
+	}
+
+	return -1, nil
+}
+
+func (n *LayoutNode) RemoveChild(index int) {
+	n.Children = append(n.Children[:index], n.Children[index+1:]...)
+}
+
+func (n *LayoutNode) Pop(paneID PaneID) *LayoutNode {
+	idx, parent := n.FindParent(paneID)
+	child := parent.Children[idx]
+
+	parent.RemoveChild(idx)
+
+	if len(parent.Children) == 1 {
+		parentRatio := parent.Ratio
+		parent = parent.Children[0]
+		parent.Children = nil
+		parent.Ratio = parentRatio
+	}
+
+	for _, layout := range parent.Children {
+		layout.Ratio /= (1 - child.Ratio)
+	}
+
+	return child
+}
+
+func (n *LayoutNode) Push(layout *LayoutNode, targetPaneID PaneID) {
+	idx, parent := n.FindParent(targetPaneID)
+	child := parent.Children[idx]
+
+	if parent.Direction == layout.Direction {
+		parent.Children = slices.Insert(parent.Children, idx+1, layout)
+		ratioScale := 1 - layout.Ratio
+		for _, child := range parent.Children {
+			child.Ratio *= ratioScale
+		}
+	} else {
+		targetRatio := 1 - layout.Ratio
+		targetPane := child.Pane
+		child.Pane = nil
+		child.Children = []*LayoutNode{NewLayoutNode(targetPane, layout.Direction, targetRatio), layout}
+	}
+
+}
+
+func (n *LayoutNode) Render(width, height int) string {
+
+	if n.isLeaf() {
+		n.Pane.SetSize(width, height)
+		return n.Pane.View()
+	}
+
+	var panes []string
+
+	remaining := width
+	if n.Direction == LayoutVertical {
+		remaining = height
+	}
+
+	for i, child := range n.Children {
+		var childWidth, childHeight = width, height
+
+		switch n.Direction {
+		case LayoutVertical:
+			if i == len(n.Children)-1 {
+				childHeight = remaining
+			} else {
+				childHeight = int(height * int(child.Ratio))
+				remaining -= childHeight
+			}
+		default: // LayoutHorizontal
+			if i == len(n.Children)-1 {
+				childWidth = remaining
+			} else {
+				childWidth = int(width * int(child.Ratio))
+				remaining -= childWidth
+			}
+
+		}
+
+		panes = append(panes, child.Render(childWidth, childHeight))
+	}
+
+	switch n.Direction {
+	case LayoutVertical:
+		return lipgloss.JoinHorizontal(lipgloss.Top, panes...)
+	default: // LayoutHorizontal
+		return lipgloss.JoinVertical(lipgloss.Left, panes...)
+	}
+}
