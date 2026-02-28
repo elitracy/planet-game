@@ -51,12 +51,6 @@ func (p *ShipManagementPane) Init() tea.Cmd {
 func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		if msg.paneID == p.Pane.ID() {
-			p.SetSize(msg.width-2, msg.height)
-
-			return p, nil
-		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case p.GetKeys().Get(engine.Select):
@@ -70,7 +64,7 @@ func (p *ShipManagementPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor++
 			}
 		case p.GetKeys().Get(engine.Back):
-			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+			return p, tea.Sequence(popLayoutCmd(), popFocusStackCmd())
 		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}

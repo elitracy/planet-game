@@ -43,21 +43,14 @@ func NewPaneManager() *paneManager {
 		Panes:         make(map[engine.PaneID]engine.ManagedPane),
 		currentID:     0,
 		CurrentUITick: 0,
-		TabLine:       NewTablinePane([]engine.ManagedPane{}),
+		tabLayouts:    make(map[engine.PaneID]*engine.LayoutNode),
+		TabLine:       NewTablinePane(),
 		StatusLine:    NewStatusLinePane(game.State.CurrentTick),
 		Pane:          engine.NewPane("Pane Manager", nil),
 		state:         game.State,
 	}
 
 	pm.SetSize(width, height)
-
-	mainWidthPercentage = .25
-
-	mainWidth = int(float32(pm.Width()) * mainWidthPercentage)
-	detailWidth = int(float32(pm.Width()) * (1 - mainWidthPercentage))
-
-	mainHeight = pm.Height()
-	detailHeight = pm.Height()
 
 	pm.Panes[-1] = NewErrorPane("No content.")
 
@@ -89,8 +82,10 @@ func (p *paneManager) PeekFocusStack() engine.PaneID {
 	return p.focusStack[len(p.focusStack)-1]
 }
 
-func (p *paneManager) AddTab(pane engine.ManagedPane) {
-	p.TabLine.(*TabLinePane).tabs = append(p.TabLine.(*TabLinePane).tabs, pane)
+func (p *paneManager) AddTab(layout *engine.LayoutNode) {
+	p.TabLine.(*TabLinePane).tabs = append(p.TabLine.(*TabLinePane).tabs, layout)
+	p.tabLayouts[layout.Pane.ID()] = layout
+
 }
 
 func (p *paneManager) SetMainPane(pane engine.ManagedPane) {
@@ -109,41 +104,30 @@ func (p *paneManager) Init() tea.Cmd {
 		cmds = append(cmds, p.StatusLine.Init())
 	}
 
+	firstTab := p.TabLine.(*TabLinePane).tabs[0]
+	p.layout = p.tabLayouts[firstTab.Pane.ID()]
+	p.PushFocusStack(firstTab.Pane.ID())
+
 	cmds = append(
 		cmds,
 		engine.TickCmd(p.state.CurrentTick),
 		config.UITickCmd(p.CurrentUITick),
 	)
 
-	p.PushFocusStack(p.MainPane.ID())
-
 	return tea.Sequence(cmds...)
 }
 
 func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		if pane, ok := p.Panes[msg.paneID]; ok {
-			model, _ := pane.Update(msg)
-			p.Panes[msg.paneID] = model.(engine.ManagedPane)
-		}
-	case setMainFocusMsg:
-		if pane, ok := p.Panes[msg.id]; ok {
-			p.SetMainPane(pane)
-			return p, tea.Sequence(paneResizeCmd(pane.ID(), mainWidth, mainHeight), p.MainPane.Init())
-		}
-	case pushLayoutPaneMsg:
-		if pane, ok := p.Panes[msg.id]; ok {
-			p.layout.Push(engine.NewLayoutNode(pane))
-			pane.SetSize(detailWidth, detailHeight)
-			p.PushDetailPaneStack(pane)
-			return p, tea.Sequence(paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight))
-		}
-	case popDetailStackMsg:
-		p.PopDetailPaneStack()
-		return p, tea.Sequence(paneResizeCmd(p.PeekDetailPaneStack().ID(), detailWidth, detailHeight))
-	case flushDetailStackMsg:
-		p.FlushDetailPaneStack()
+	case setLayoutMsg:
+		p.layout = msg.layout
+		return p, nil
+	case pushLayoutMsg:
+		p.layout.Push(msg.layout, msg.targetPaneID)
+		return p, nil
+	case popLayoutMsg:
+		p.layout.Pop(p.PeekFocusStack())
+		return p, nil
 	case pushFocusStackMsg:
 		p.PushFocusStack(msg.id)
 	case popFocusStackMsg:

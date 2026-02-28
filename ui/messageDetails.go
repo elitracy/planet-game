@@ -27,7 +27,7 @@ func (p *MessageDetailsPane) Init() tea.Cmd {
 
 	keymaps := make(map[string]func() tea.Cmd)
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
-		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+		return tea.Sequence(popLayoutCmd(), popFocusStackCmd())
 	}
 
 	infoTable := p.createInfoTable()
@@ -44,8 +44,6 @@ func (p *MessageDetailsPane) Init() tea.Cmd {
 func (p *MessageDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		p.SetSize(msg.width, msg.height)
 	case engine.TickMsg:
 		p.infoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
 	case config.UITickMsg:
@@ -63,7 +61,7 @@ func (p *MessageDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			engine.Info("down")
 		case p.GetKeys().Get(engine.Back):
-			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
+			return p, tea.Sequence(popFocusStackCmd(), popLayoutCmd())
 		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}

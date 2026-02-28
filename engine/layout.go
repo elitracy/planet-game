@@ -67,7 +67,17 @@ func (n *LayoutNode) RemoveChild(index int) {
 }
 
 func (n *LayoutNode) Pop(paneID PaneID) *LayoutNode {
+	if n.FindChild(paneID) == nil {
+		Error("pane does not exist: %v", paneID)
+		return nil
+	}
+
 	idx, parent := n.FindParent(paneID)
+
+	if idx == -1 || parent == nil {
+		return nil
+	}
+
 	child := parent.Children[idx]
 
 	parent.RemoveChild(idx)
@@ -87,7 +97,26 @@ func (n *LayoutNode) Pop(paneID PaneID) *LayoutNode {
 }
 
 func (n *LayoutNode) Push(layout *LayoutNode, targetPaneID PaneID) {
+
+	if n.FindChild(targetPaneID) == nil {
+		Error("Target Pane ID does not exist: %v", targetPaneID)
+		return
+	}
+
 	idx, parent := n.FindParent(targetPaneID)
+	if idx == -1 {
+		pane := n.Pane
+		n.Pane = nil
+		n.Direction = layout.Direction
+
+		n.Children = append(n.Children,
+			NewLayoutNode(pane, n.Direction, 1-layout.Ratio),
+			layout,
+		)
+
+		return
+	}
+
 	child := parent.Children[idx]
 
 	if parent.Direction == layout.Direction {

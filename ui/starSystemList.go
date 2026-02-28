@@ -22,6 +22,7 @@ type StarSystemListPane struct {
 	searching bool
 	textInput textinput.Model
 	systems   []*models.StarSystem
+	systemInfoPane engine.ManagedPane
 	theme     UITheme
 }
 
@@ -74,19 +75,15 @@ func (p *StarSystemListPane) Init() tea.Cmd {
 
 	system := filteredSystems[p.cursor]
 	systemInfoPane := NewSystemInfoPane(system.Name, system)
-	paneID := PaneManager.AddPane(systemInfoPane)
+	PaneManager.AddPane(systemInfoPane)
+	layout := engine.NewLayoutNode(systemInfoPane, engine.LayoutHorizontal, 0.75)
+	p.systemInfoPane = systemInfoPane
 
-	return pushLayoutPaneCmd(paneID)
+	return pushLayoutCmd(layout, p.ID())
 }
 
 func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		if msg.paneID == p.Pane.ID() {
-			p.SetSize(msg.width-2, msg.height)
-
-			return p, nil
-		}
 	case engine.TickMsg:
 
 		p.GetKeys().
@@ -122,9 +119,8 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if len(filteredSystems) > 0 {
 				system := filteredSystems[p.cursor]
-				systemInfoPane := NewSystemInfoPane(system.Name, system)
-				paneID := PaneManager.AddPane(systemInfoPane)
-				cmds = append(cmds, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID)))
+				p.systemInfoPane.SetTitle(system.Name)
+				p.systemInfoPane.(*StarSystemDetailsPane).System = system
 			}
 
 			return p, tea.Sequence(cmds...)
@@ -141,10 +137,7 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case p.GetKeys().Get(engine.Scout):
 			return p.handleScoutOrder()
 		case p.GetKeys().Get(engine.Select):
-			system := filteredSystems[p.cursor]
-			systemInfoPane := NewSystemInfoPane(system.Name, system)
-			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
+			return p, tea.Sequence(pushFocusStackCmd(p.systemInfoPane.ID()))
 		case p.GetKeys().Get(engine.Up):
 			if p.cursor > 0 {
 				p.cursor--
@@ -157,9 +150,8 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			system := filteredSystems[p.cursor]
-			systemInfoPane := NewSystemInfoPane(system.Name, system)
-			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
+			p.systemInfoPane.(*StarSystemDetailsPane).System = system
+			p.systemInfoPane.SetTitle(system.Name)
 
 		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(filteredSystems)-1 {
@@ -173,11 +165,8 @@ func (p *StarSystemListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			system := filteredSystems[p.cursor]
-
-			systemInfoPane := NewSystemInfoPane(system.Name, system)
-			paneID := PaneManager.AddPane(systemInfoPane)
-			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
-
+			p.systemInfoPane.(*StarSystemDetailsPane).System = system
+			p.systemInfoPane.SetTitle(system.Name)
 		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}
@@ -236,5 +225,8 @@ func (p *StarSystemListPane) handleScoutOrder() (tea.Model, tea.Cmd) {
 	)
 
 	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
+
+	layout := engine.NewLayoutNode(pane, engine.LayoutHorizontal, 0.75)
+
+	return p, tea.Sequence(pushLayoutCmd(layout, p.ID()), pushFocusStackCmd(paneID))
 }

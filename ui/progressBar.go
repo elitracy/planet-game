@@ -33,12 +33,8 @@ func (p *ProgressBarPane) Init() tea.Cmd { return nil }
 func (p *ProgressBarPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		p.SetSize(msg.width, msg.height)
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "esc":
-			return p, popMainFocusCmd(p.Pane.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

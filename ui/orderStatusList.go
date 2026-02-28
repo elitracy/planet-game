@@ -19,6 +19,7 @@ type OrderStatusListPane struct {
 	*engine.Pane
 	cursor         int
 	orderScheduler *task.TaskScheduler[*orders.Order]
+	orderList *engine.LayoutNode
 	theme          UITheme
 }
 
@@ -41,15 +42,17 @@ func (p *OrderStatusListPane) Init() tea.Cmd {
 		Set(engine.Down, "j")
 
 	orderList := NewOrderListPane(task.Status(p.cursor))
-	paneID := PaneManager.AddPane(orderList)
-	return tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
+	PaneManager.AddPane(orderList)
+	layout := engine.NewLayoutNode(orderList, engine.LayoutHorizontal, 0.75)
+	p.orderList = layout
+
+
+	return tea.Sequence(popLayoutCmd(), pushLayoutCmd(layout, p.ID()))
 }
 
 func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		p.SetSize(msg.width, msg.height)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case p.GetKeys().Get(engine.Up):
@@ -57,19 +60,16 @@ func (p *OrderStatusListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.cursor--
 			}
 
-			orderList := NewOrderListPane(task.Status(p.cursor))
-			paneID := PaneManager.AddPane(orderList)
-			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
+			p.orderList.Pane.(*OrderListPane).Status = task.Status(p.cursor)
 		case p.GetKeys().Get(engine.Down):
 			if p.cursor < len(orderStatusTypes)-1 {
 				p.cursor++
 			}
 
-			orderList := NewOrderListPane(task.Status(p.cursor))
-			paneID := PaneManager.AddPane(orderList)
-			return p, tea.Sequence(popDetailStackCmd(), pushLayoutPaneCmd(paneID))
+			engine.Info("order list pane: %v", p.orderList)
+			p.orderList.Pane.(*OrderListPane).Status = task.Status(p.cursor)
 		case p.GetKeys().Get(engine.Select):
-			return p, tea.Sequence(pushFocusStackCmd(PaneManager.PeekDetailPaneStack().ID()))
+			return p, tea.Sequence(pushFocusStackCmd(p.orderList.Pane.ID()))
 		case p.GetKeys().Get(engine.Back):
 			return p, tea.Sequence(popFocusStackCmd())
 		case p.GetKeys().Get(engine.Quit):

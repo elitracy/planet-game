@@ -25,6 +25,7 @@ func (p *Pane) Width() int                { return p.width }
 func (p *Pane) Height() int               { return p.height }
 func (p *Pane) SetID(id PaneID)           { p.id = id }
 func (p *Pane) Title() string             { return p.title }
+func (p *Pane) SetTitle(title string)     { p.title = title }
 func (p *Pane) Size() (int, int)          { return p.width, p.height }
 func (p *Pane) SetSize(w, h int)          { p.width, p.height = w, h }
 func (p *Pane) GetKeys() *KeyBindings     { return p.keys }
@@ -41,6 +42,7 @@ type ManagedPane interface {
 	Width() int
 	SetID(PaneID)
 	Title() string
+	SetTitle(string)
 	Size() (int, int)
 	SetSize(int, int)
 	GetKeys() *KeyBindings

@@ -5,43 +5,28 @@ import (
 	"github.com/elitracy/planets/engine"
 )
 
-type setMainFocusMsg struct{ id engine.PaneID }
-
-func setMainFocusCmd(id engine.PaneID) tea.Cmd { return func() tea.Msg { return setMainFocusMsg{id} } }
-
-type popMainFocusMsg struct{ id engine.PaneID }
-
-func popMainFocusCmd(id engine.PaneID) tea.Cmd { return func() tea.Msg { return popMainFocusMsg{id} } }
-
-type pushLayoutPaneMsg struct {
-	id, targetID engine.PaneID
-	direction    engine.LayoutDirection
+type setLayoutMsg struct {
+	layout *engine.LayoutNode
 }
 
-func pushLayoutPaneCmd(id, targetID engine.PaneID, direction engine.LayoutDirection) tea.Cmd {
-	return func() tea.Msg { return pushLayoutPaneMsg{id, targetID, direction} }
+func setLayoutCmd(layout *engine.LayoutNode) tea.Cmd {
+	return func() tea.Msg { return setLayoutMsg{layout} }
 }
 
-type popDetailStackMsg struct{}
-
-func popDetailStackCmd() tea.Cmd {
-	return func() tea.Msg { return popDetailStackMsg{} }
+type pushLayoutMsg struct {
+	layout       *engine.LayoutNode
+	targetPaneID engine.PaneID
 }
 
-type flushDetailStackMsg struct{}
-
-func flushDetailStackCmd() tea.Cmd {
-	return func() tea.Msg { return flushDetailStackMsg{} }
+func pushLayoutCmd(layout *engine.LayoutNode, targetPaneID engine.PaneID) tea.Cmd {
+	layout.Pane.Init()
+	return func() tea.Msg { return pushLayoutMsg{layout, targetPaneID} }
 }
 
-type paneResizeMsg struct {
-	paneID engine.PaneID
-	width  int
-	height int
-}
+type popLayoutMsg struct{}
 
-func paneResizeCmd(id engine.PaneID, width, height int) tea.Cmd {
-	return func() tea.Msg { return paneResizeMsg{paneID: id, width: width, height: height} }
+func popLayoutCmd() tea.Cmd {
+	return func() tea.Msg { return popLayoutMsg{} }
 }
 
 type pushFocusStackMsg struct{ id engine.PaneID }

@@ -33,7 +33,7 @@ func (p *PlanetDetailsPane) Init() tea.Cmd {
 	keymaps := make(map[string]func() tea.Cmd)
 
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
-		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+		return tea.Sequence(popLayoutCmd(), popFocusStackCmd())
 	}
 
 	infoTable := p.createInfoTable()
@@ -55,14 +55,12 @@ func (p *PlanetDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		p.infoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
 	case config.UITickMsg:
 		p.infoTable.(*InfoTablePane).table.SetRows(p.createRows())
-	case paneResizeMsg:
-		p.SetSize(msg.width, msg.height)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case p.GetKeys().Get(engine.Colonize):
 			return p.handleColonization()
 		case p.GetKeys().Get(engine.Back):
-			return p, tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+			return p, tea.Sequence(popLayoutCmd(), popFocusStackCmd())
 		case p.GetKeys().Get(engine.Quit):
 			return p, tea.Quit
 		}
@@ -149,5 +147,7 @@ func (p *PlanetDetailsPane) handleColonization() (tea.Model, tea.Cmd) {
 	)
 
 	paneID := PaneManager.AddPane(pane)
-	return p, tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
+	layout := engine.NewLayoutNode(pane, engine.LayoutHorizontal, 0.75)
+
+	return p, tea.Sequence(pushLayoutCmd(layout, p.ID()), pushFocusStackCmd(paneID))
 }

@@ -48,7 +48,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				)
 
 				game.State.PushOrder(createColonyOrder)
-				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())
+				return p, tea.Batch(popLayoutCmd(), popFocusStackCmd())
 			}
 
 			if p.cursorMode > 0 {
@@ -62,7 +62,7 @@ func (p *CreateColonyPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if p.cursorMode >= cursor.CursorHide {
-				return p, tea.Batch(popDetailStackCmd(), popFocusStackCmd())
+				return p, tea.Batch(popLayoutCmd(), popFocusStackCmd())
 			}
 
 			cmds := make([]tea.Cmd, len(p.inputs))

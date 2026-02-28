@@ -20,14 +20,14 @@ type OrderListPane struct {
 	filteredOrders []*orders.Order
 	orderInfoTable engine.ManagedPane
 	progressBars   map[task.TaskID]engine.PaneID
-	status         task.Status
+	Status         task.Status
 	theme          UITheme
 }
 
 func NewOrderListPane(status task.Status) *OrderListPane {
 	pane := &OrderListPane{
 		Pane:   engine.NewPane("Order List", engine.NewKeyBindings()),
-		status: status,
+		Status: status,
 	}
 
 	return pane
@@ -50,10 +50,12 @@ func (p *OrderListPane) Init() tea.Cmd {
 		pane := NewOrderDetailsPane(order)
 		paneID := PaneManager.AddPane(pane)
 
-		return tea.Sequence(pushLayoutPaneCmd(paneID), pushFocusStackCmd(paneID))
+		layout := engine.NewLayoutNode(pane, engine.LayoutHorizontal, 0.75)
+
+		return tea.Sequence(pushLayoutCmd(layout, p.ID()), pushFocusStackCmd(paneID))
 	}
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
-		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+		return tea.Sequence(popLayoutCmd(), popFocusStackCmd())
 	}
 
 	infoTable := p.createInfoTable()
@@ -75,17 +77,6 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		p.SetSize(msg.width, msg.height)
-
-		msg.width = 30
-		for _, paneID := range p.progressBars {
-			progressBar := PaneManager.Panes[paneID]
-			model, cmd := progressBar.Update(msg)
-			cmds = append(cmds, cmd)
-			progressBar = model.(engine.ManagedPane)
-		}
-		return p, tea.Batch(cmds...)
 	case engine.TickMsg:
 		p.filterOrders()
 		p.initProgressBars()
@@ -133,7 +124,7 @@ func (p *OrderListPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (p *OrderListPane) View() string {
 	p.theme = GetPaneTheme(p)
 
-	title := fmt.Sprintf("%v Orders", p.status)
+	title := fmt.Sprintf("%v Orders", p.Status)
 	titleStyled := Style.Width(p.Width()).Bold(true).Align(lipgloss.Center).PaddingBottom(1).Render(title)
 
 	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.orderInfoTable.View())
@@ -147,7 +138,7 @@ func (p *OrderListPane) initProgressBars() {
 	}
 
 	for _, order := range p.filteredOrders {
-		if order.GetStatus() != p.status {
+		if order.GetStatus() != p.Status {
 			continue
 		}
 		if _, ok := p.progressBars[order.ID]; !ok {
@@ -172,7 +163,7 @@ func (p OrderListPane) createInfoTable() table.Model {
 
 func (p *OrderListPane) createColumns() []table.Column {
 
-	switch p.status {
+	switch p.Status {
 	case task.Pending:
 		return []table.Column{
 			{Title: "Order", Width: 25},
@@ -196,11 +187,11 @@ func (p *OrderListPane) createRows() []table.Row {
 
 	rows := []table.Row{}
 	for _, order := range p.filteredOrders {
-		if order.GetStatus() != p.status {
+		if order.GetStatus() != p.Status {
 			continue
 		}
 
-		switch p.status {
+		switch p.Status {
 		case task.Pending:
 			duration := (order.GetStartTick() - game.State.CurrentTick).ToDuration(engine.TICKS_PER_SECOND)
 
@@ -208,6 +199,10 @@ func (p *OrderListPane) createRows() []table.Row {
 			rows = append(rows, row)
 		case task.Executing:
 			progressBar := PaneManager.Panes[p.progressBars[order.GetID()]]
+			if progressBar == nil {
+				continue
+			}
+
 			duration := (order.GetStartTick() + order.GetDuration() - game.State.CurrentTick).ToDuration(engine.TICKS_PER_SECOND)
 
 			row := table.Row{order.GetName(), humanize.Time(time.Now().Add(duration)), progressBar.View()}
@@ -224,13 +219,13 @@ func (p *OrderListPane) createRows() []table.Row {
 func (p *OrderListPane) filterOrders() {
 	p.filteredOrders = []*orders.Order{}
 
-	if p.status == task.Complete {
+	if p.Status == task.Complete {
 		p.filteredOrders = game.State.CompletedOrders
 		return
 	}
 
 	for _, order := range game.State.OrderScheduler.PriorityQueue {
-		if order.GetStatus() == p.status {
+		if order.GetStatus() == p.Status {
 			p.filteredOrders = append(p.filteredOrders, order)
 		}
 	}

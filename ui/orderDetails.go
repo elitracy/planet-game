@@ -34,19 +34,22 @@ func (p *OrderDetailsPane) Init() tea.Cmd {
 
 	keymaps := make(map[string]func() tea.Cmd)
 	keymaps[p.GetKeys().Get(engine.Select)] = func() tea.Cmd {
-		return tea.Sequence(pushLayoutPaneCmd(p.orderInfoTable.ID()), pushFocusStackCmd(p.orderInfoTable.ID()))
+
+		layout := engine.NewLayoutNode(p.orderInfoTable, engine.LayoutHorizontal, 0.75)
+
+		return tea.Sequence(
+			pushLayoutCmd(layout, p.ID()),
+			pushFocusStackCmd(p.orderInfoTable.ID()),
+		)
 	}
 	keymaps[p.GetKeys().Get(engine.Back)] = func() tea.Cmd {
-		return tea.Sequence(popDetailStackCmd(), popFocusStackCmd())
+		return tea.Sequence(popLayoutCmd(), popFocusStackCmd())
 	}
 
 	p.initProgressBars()
 
 	infoTable := p.createInfoTable()
-	p.orderInfoTable = NewInfoTablePane(
-		infoTable,
-		keymaps,
-	)
+	p.orderInfoTable = NewInfoTablePane(infoTable, keymaps)
 
 	PaneManager.AddPane(p.orderInfoTable)
 	return nil
@@ -56,17 +59,6 @@ func (p *OrderDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		p.SetSize(msg.width, msg.height)
-
-		msg.width = 15
-		for _, paneID := range p.progressBars {
-			progressBar := PaneManager.Panes[paneID]
-			model, cmd := progressBar.Update(msg)
-			cmds = append(cmds, cmd)
-			progressBar = model.(engine.ManagedPane)
-		}
-		return p, tea.Batch(cmds...)
 	case engine.TickMsg:
 		p.orderInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
 	case config.UITickMsg:
@@ -75,7 +67,7 @@ func (p *OrderDetailsPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
-			return p, tea.Sequence(popFocusStackCmd(), popDetailStackCmd())
+			return p, tea.Sequence(popFocusStackCmd(), popLayoutCmd())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		}

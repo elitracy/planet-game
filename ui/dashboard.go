@@ -23,10 +23,6 @@ func (p *DashboardPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "enter":
-			return p, setMainFocusCmd(p.Grid[p.ActiveRow][p.ActiveCol])
-		case "esc":
-			return p, popMainFocusCmd(p.Pane.ID())
 		case "h":
 			if p.ActiveCol > 0 {
 				p.ActiveCol--

@@ -11,15 +11,20 @@ import (
 type TabLinePane struct {
 	*engine.Pane
 
-	cursor int
-	tabs   []engine.ManagedPane
-	theme  UITheme
+	cursor    int
+	tabs      []*engine.LayoutNode
+	tabTitles []string
+	theme     UITheme
 }
 
-func NewTablinePane(tabs []engine.ManagedPane) *TabLinePane {
+func NewTablinePane() *TabLinePane {
 	pane := &TabLinePane{
 		Pane: engine.NewPane("Tabs", nil),
-		tabs: tabs,
+		tabTitles: []string{
+			"Systems",
+			"Orders",
+			"Messages",
+		},
 	}
 
 	return pane
@@ -30,16 +35,8 @@ func (p *TabLinePane) Init() tea.Cmd { return nil }
 func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
-	case paneResizeMsg:
-		if msg.paneID == p.Pane.ID() {
-			p.SetSize(msg.width-2, msg.height)
-
-			return p, nil
-		}
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "esc":
-			return p, popMainFocusCmd(p.Pane.ID())
 		case "ctrl+c", "q":
 			return p, tea.Quit
 		case "shift+tab":
@@ -48,13 +45,12 @@ func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				p.cursor = len(p.tabs) - 1
 			}
-			pane := p.tabs[p.cursor]
+			layout := p.tabs[p.cursor]
 
 			return p, tea.Sequence(
-				flushDetailStackCmd(),
+				setLayoutCmd(layout),
 				flushFocusStackCmd(),
-				setMainFocusCmd(pane.ID()),
-				pushFocusStackCmd(pane.ID()),
+				pushFocusStackCmd(layout.Pane.ID()),
 			)
 		case "tab":
 			if p.cursor < len(p.tabs)-1 {
@@ -62,13 +58,12 @@ func (p *TabLinePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				p.cursor = 0
 			}
-			pane := p.tabs[p.cursor]
+			layout := p.tabs[p.cursor]
 
 			return p, tea.Sequence(
-				flushDetailStackCmd(),
+				setLayoutCmd(layout),
 				flushFocusStackCmd(),
-				setMainFocusCmd(pane.ID()),
-				pushFocusStackCmd(pane.ID()),
+				pushFocusStackCmd(layout.Pane.ID()),
 			)
 		}
 
@@ -81,8 +76,8 @@ func (p *TabLinePane) View() string {
 
 	title := "Tabs: "
 	var tabs []string
-	for i, tab := range p.tabs {
-		tabTitle := fmt.Sprintf("[%v] ", tab.Title())
+	for i := range p.tabs {
+		tabTitle := fmt.Sprintf("[%v] ", p.tabTitles[i])
 		if p.cursor == i {
 			tabs = append(tabs, p.theme.FocusedStyle.Render(tabTitle))
 		} else {

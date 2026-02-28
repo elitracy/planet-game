@@ -61,18 +61,30 @@ func InitState() {
 func InitUI() {
 	ui.InitPaneManager()
 
-	orderStatusListPane := ui.NewOrderStatusListPane("Orders", &game.State.OrderScheduler)
-	systemsPane := ui.NewStarSystemListPane("Systems", game.State.StarSystems)
-	messagesPane := ui.NewMessagePane("Messages", game.State.EventManager)
+	ordersLayout := engine.NewLayoutNode(
+		ui.NewOrderStatusListPane("Orders", &game.State.OrderScheduler),
+		engine.LayoutHorizontal,
+		1.0,
+	)
 
-	ui.PaneManager.AddPane(orderStatusListPane)
-	ui.PaneManager.AddPane(systemsPane)
-	ui.PaneManager.AddPane(messagesPane)
+	systemsLayout := engine.NewLayoutNode(
+		ui.NewStarSystemListPane("Systems", game.State.StarSystems),
+		engine.LayoutHorizontal,
+		1.0,
+	)
+	messagesLayout := engine.NewLayoutNode(
+		ui.NewMessagePane("Messages", game.State.EventManager),
+		engine.LayoutHorizontal,
+		1.0,
+	)
 
-	ui.PaneManager.AddTab(systemsPane)
-	ui.PaneManager.AddTab(orderStatusListPane)
-	ui.PaneManager.AddTab(messagesPane)
+	ui.PaneManager.AddPane(ordersLayout.Pane)
+	ui.PaneManager.AddPane(systemsLayout.Pane)
+	ui.PaneManager.AddPane(messagesLayout.Pane)
 
+	ui.PaneManager.AddTab(systemsLayout)
+	ui.PaneManager.AddTab(ordersLayout)
+	ui.PaneManager.AddTab(messagesLayout)
 }
 
 func main() {

@@ -72,39 +72,39 @@ Layout Migration TODO
 =====================
 
 Pane Manager Struct:
-- [ ] Remove MainPane field
-- [ ] Remove DetailPaneStack field
-- [ ] Remove globals: mainWidthPercentage, mainWidth, mainHeight, detailWidth, detailHeight
-- [ ] Add layout *engine.LayoutNode field
-- [ ] Add tabLayouts map[engine.PaneID]*engine.LayoutNode field
+- [x] Remove MainPane field
+- [x] Remove DetailPaneStack field
+- [x] Remove globals: mainWidthPercentage, mainWidth, mainHeight, detailWidth, detailHeight
+- [x] Add layout *engine.LayoutNode field
+- [x] Add tabLayouts map[engine.PaneID]*engine.LayoutNode field
 
 Remove Methods:
-- [ ] PushDetailPaneStack
-- [ ] PopDetailPaneStack
-- [ ] PeekDetailPaneStack
-- [ ] FlushDetailPaneStack
+- [x] PushDetailPaneStack
+- [x] PopDetailPaneStack
+- [x] PeekDetailPaneStack
+- [x] FlushDetailPaneStack
 
 Update SetMainPane:
-- [ ] Swap p.layout to the tab's layout from tabLayouts map
+- [x] Swap p.layout to the tab's layout from tabLayouts map
 
 Update View():
-- [ ] Keep tab line and status line rendering
-- [ ] Compute contentHeight = total - tab - status
-- [ ] Replace two-column render with p.layout.Render(p.Width(), contentHeight)
+- [x] Keep tab line and status line rendering
+- [x] Compute contentHeight = total - tab - status
+- [x] Replace two-column render with p.layout.Render(p.Width(), contentHeight)
 
 Update Update():
-- [ ] pushDetailStackMsg -> p.layout.Push(...)
-- [ ] popDetailStackMsg -> p.layout.Pop(...)
-- [ ] setMainFocusMsg -> swap p.layout to new tab's layout
-- [ ] flushDetailStackMsg -> reset layout to tab's original tree
-- [ ] Remove paneResizeMsg handling (layout handles sizing in Render)
+- [x] pushDetailStackMsg -> p.layout.Push(...)
+- [x] popDetailStackMsg -> p.layout.Pop(...)
+- [x] setMainFocusMsg -> swap p.layout to new tab's layout
+- [x] flushDetailStackMsg -> reset layout to tab's original tree
+- [x] Remove paneResizeMsg handling (layout handles sizing in Render)
 
 Update Init():
-- [ ] Build initial layout from first tab
-- [ ] Remove resize commands
+- [x] Build initial layout from first tab
+- [x] Remove resize commands
 
 Tab Layouts:
-- [ ] Each tab provides its default layout when added
-- [ ] Star systems tab -> horizontal split (0.25 list | 0.75 detail)
-- [ ] Messages tab -> single leaf (full width)
-- [ ] Orders tab -> horizontal split or full width
+- [x] Each tab provides its default layout when added
+- [x] Star systems tab -> horizontal split (0.25 list | 0.75 detail)
+- [x] Messages tab -> single leaf (full width)
+- [x] Orders tab -> horizontal split or full width
