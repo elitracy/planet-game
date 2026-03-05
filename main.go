@@ -61,21 +61,19 @@ func InitState() {
 func InitUI() {
 	ui.InitPaneManager()
 
-	ordersLayout := engine.NewLayoutNode(
-		ui.NewOrderStatusListPane("Orders", &game.State.OrderScheduler),
-		engine.LayoutHorizontal,
-		1.0,
-	)
-
 	systemsLayout := engine.NewLayoutNode(
 		ui.NewStarSystemListPane("Systems", game.State.StarSystems),
-		engine.LayoutHorizontal,
-		1.0,
+		engine.LayoutHorizontal, 1.0,
 	)
+
+	ordersLayout := engine.NewLayoutNode(
+		ui.NewOrderStatusListPane("Orders", &game.State.OrderScheduler),
+		engine.LayoutHorizontal, 1.0,
+	)
+
 	messagesLayout := engine.NewLayoutNode(
 		ui.NewMessagePane("Messages", game.State.EventManager),
-		engine.LayoutHorizontal,
-		1.0,
+		engine.LayoutHorizontal, 1.0,
 	)
 
 	ui.PaneManager.AddPane(ordersLayout.Pane)

@@ -18,7 +18,6 @@ type paneManager struct {
 	TabLine    engine.ManagedPane
 	StatusLine engine.ManagedPane
 	layout     *engine.LayoutNode
-	tabLayouts map[engine.PaneID]*engine.LayoutNode
 
 	Panes      map[engine.PaneID]engine.ManagedPane
 	currentID  engine.PaneID
@@ -43,7 +42,6 @@ func NewPaneManager() *paneManager {
 		Panes:         make(map[engine.PaneID]engine.ManagedPane),
 		currentID:     0,
 		CurrentUITick: 0,
-		tabLayouts:    make(map[engine.PaneID]*engine.LayoutNode),
 		TabLine:       NewTablinePane(),
 		StatusLine:    NewStatusLinePane(game.State.CurrentTick),
 		Pane:          engine.NewPane("Pane Manager", nil),
@@ -84,12 +82,7 @@ func (p *paneManager) PeekFocusStack() engine.PaneID {
 
 func (p *paneManager) AddTab(layout *engine.LayoutNode) {
 	p.TabLine.(*TabLinePane).tabs = append(p.TabLine.(*TabLinePane).tabs, layout)
-	p.tabLayouts[layout.Pane.ID()] = layout
 
-}
-
-func (p *paneManager) SetMainPane(pane engine.ManagedPane) {
-	p.layout = p.tabLayouts[pane.ID()]
 }
 
 func (p *paneManager) Init() tea.Cmd {
@@ -105,7 +98,7 @@ func (p *paneManager) Init() tea.Cmd {
 	}
 
 	firstTab := p.TabLine.(*TabLinePane).tabs[0]
-	p.layout = p.tabLayouts[firstTab.Pane.ID()]
+	p.layout = firstTab
 	p.PushFocusStack(firstTab.Pane.ID())
 
 	cmds = append(
@@ -114,20 +107,28 @@ func (p *paneManager) Init() tea.Cmd {
 		config.UITickCmd(p.CurrentUITick),
 	)
 
-	return tea.Sequence(cmds...)
+	return tea.Batch(cmds...)
 }
 
 func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case setLayoutMsg:
+		if p.layout.Pane != nil {
+			cmd := p.layout.Pane.Init()
+			cmds = append(cmds, cmd)
+		}
 		p.layout = msg.layout
-		return p, nil
 	case pushLayoutMsg:
+		if p.layout.Pane != nil {
+			cmd := p.layout.Pane.Init()
+			cmds = append(cmds, cmd)
+		}
 		p.layout.Push(msg.layout, msg.targetPaneID)
-		return p, nil
 	case popLayoutMsg:
 		p.layout.Pop(p.PeekFocusStack())
-		return p, nil
 	case pushFocusStackMsg:
 		p.PushFocusStack(msg.id)
 	case popFocusStackMsg:
@@ -137,7 +138,7 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		p.SetSize(msg.Width, msg.Height)
 	case engine.TickMsg:
-		cmds := []tea.Cmd{engine.TickCmd(p.state.CurrentTick)}
+		cmds = []tea.Cmd{engine.TickCmd(p.state.CurrentTick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(engine.ManagedPane)
@@ -156,12 +157,10 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			p.StatusLine = model.(*StatusLinePane)
 			cmds = append(cmds, cmd)
 		}
-
-		return p, tea.Batch(cmds...)
 
 	case config.UITickMsg:
 		p.CurrentUITick++
-		cmds := []tea.Cmd{config.UITickCmd(p.CurrentUITick)}
+		cmds = []tea.Cmd{config.UITickCmd(p.CurrentUITick)}
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(engine.ManagedPane)
@@ -181,7 +180,6 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 
-		return p, tea.Batch(cmds...)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "tab", "shift+tab":
@@ -195,16 +193,14 @@ func (p *paneManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return p, cmd
 		}
 	default:
-		var cmds []tea.Cmd
 		for id, pane := range p.Panes {
 			model, cmd := pane.Update(msg)
 			p.Panes[id] = model.(engine.ManagedPane)
 			cmds = append(cmds, cmd)
 		}
-		return p, tea.Batch(cmds...)
 	}
 
-	return p, nil
+	return p, tea.Batch(cmds...)
 }
 
 func (p *paneManager) View() string {
@@ -228,8 +224,6 @@ func (p *paneManager) AddPane(pane engine.ManagedPane) engine.PaneID {
 	id := p.currentID
 	pane.SetID(id)
 	p.Panes[id] = pane
-
-	p.Panes[id].Init()
 
 	return id
 }

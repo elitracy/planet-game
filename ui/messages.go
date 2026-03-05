@@ -46,8 +46,9 @@ func (p *MessagePane) Init() tea.Cmd {
 	)
 
 	PaneManager.AddPane(p.eventInfoTable)
+	layout := engine.NewLayoutNode(p.eventInfoTable, engine.LayoutHorizontal, .5)
 
-	return nil
+	return pushLayoutCmd(layout, p.ID())
 }
 
 func (p *MessagePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -57,6 +58,9 @@ func (p *MessagePane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case engine.TickMsg:
 		p.eventInfoTable.(*InfoTablePane).SetTheme(GetPaneTheme(p))
 	case config.UITickMsg:
+		p.eventInfoTable.(*InfoTablePane).table.SetWidth(p.Width() - 2)
+		p.eventInfoTable.(*InfoTablePane).table.SetHeight(p.Height() - 2)
+		p.eventInfoTable.(*InfoTablePane).table.SetColumns(p.createColumns())
 		p.eventInfoTable.(*InfoTablePane).table.SetRows(p.createRows())
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -89,9 +93,11 @@ func (p *MessagePane) View() string {
 	p.theme = GetPaneTheme(p)
 
 	title := p.Title()
-	titleStyled := Style.Width(p.Width()).AlignHorizontal(lipgloss.Center).Bold(true).PaddingBottom(1).Render(title)
+	titleStyled := Style.Width(p.Width()).AlignHorizontal(lipgloss.Center).Bold(true).Render(title)
+	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.eventInfoTable.View())
+	content = Style.Height(p.Height()).Width(p.Width()).Render(content)
 
-	return lipgloss.JoinVertical(lipgloss.Left, titleStyled, p.eventInfoTable.View())
+	return content
 }
 
 func (p MessagePane) createInfoTable() table.Model {
@@ -99,7 +105,7 @@ func (p MessagePane) createInfoTable() table.Model {
 		table.WithColumns(p.createColumns()),
 		table.WithRows(p.createRows()),
 		table.WithFocused(true),
-		table.WithHeight(40),
+		table.WithHeight(p.Height()),
 	)
 
 	return infoTable
@@ -108,7 +114,7 @@ func (p MessagePane) createInfoTable() table.Model {
 func (p *MessagePane) createColumns() []table.Column {
 
 	columns := []table.Column{
-		{Title: "", Width: 35},
+		{Title: "", Width: int(float32(p.Width()) * .3)},
 	}
 	return columns
 }

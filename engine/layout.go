@@ -97,6 +97,8 @@ func (n *LayoutNode) Pop(paneID PaneID) *LayoutNode {
 }
 
 func (n *LayoutNode) Push(layout *LayoutNode, targetPaneID PaneID) {
+	Info("PUSH: looking for target %v", targetPaneID)
+	Info("PUSH: root isLeaf=%v, paneID=%v", n.isLeaf(), n.Pane)
 
 	if n.FindChild(targetPaneID) == nil {
 		Error("Target Pane ID does not exist: %v", targetPaneID)
@@ -137,9 +139,11 @@ func (n *LayoutNode) Push(layout *LayoutNode, targetPaneID PaneID) {
 func (n *LayoutNode) Render(width, height int) string {
 
 	if n.isLeaf() {
+		Info("RENDER leaf: %v", n.Pane.Title())
 		n.Pane.SetSize(width, height)
 		return n.Pane.View()
 	}
+	Info("RENDER branch: %v children, dir=%v", len(n.Children), n.Direction)
 
 	var panes []string
 
@@ -156,14 +160,14 @@ func (n *LayoutNode) Render(width, height int) string {
 			if i == len(n.Children)-1 {
 				childHeight = remaining
 			} else {
-				childHeight = int(height * int(child.Ratio))
+				childHeight = int(float32(height) * child.Ratio)
 				remaining -= childHeight
 			}
-		default: // LayoutHorizontal
+		case LayoutHorizontal:
 			if i == len(n.Children)-1 {
 				childWidth = remaining
 			} else {
-				childWidth = int(width * int(child.Ratio))
+				childWidth = int(float32(width) * child.Ratio)
 				remaining -= childWidth
 			}
 
@@ -174,8 +178,10 @@ func (n *LayoutNode) Render(width, height int) string {
 
 	switch n.Direction {
 	case LayoutVertical:
-		return lipgloss.JoinHorizontal(lipgloss.Top, panes...)
-	default: // LayoutHorizontal
-		return lipgloss.JoinVertical(lipgloss.Left, panes...)
+		return lipgloss.JoinVertical(lipgloss.Top, panes...)
+	case LayoutHorizontal:
+		return lipgloss.JoinHorizontal(lipgloss.Left, panes...)
 	}
+
+	return ""
 }

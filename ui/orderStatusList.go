@@ -107,5 +107,7 @@ func (p *OrderStatusListPane) View() string {
 
 	content := lipgloss.JoinVertical(lipgloss.Left, titleStyled, infoContainer)
 
+	content = Style.Height(p.Height()).Width(p.Width()).Render(content)
+
 	return content
 }

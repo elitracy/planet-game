@@ -74,7 +74,7 @@ func (p *StarSystemListPane) Init() tea.Cmd {
 	}
 
 	system := filteredSystems[p.cursor]
-	systemInfoPane := NewSystemInfoPane(system.Name, system)
+	systemInfoPane := NewSystemDetailsPane(system.Name, system)
 	PaneManager.AddPane(systemInfoPane)
 	layout := engine.NewLayoutNode(systemInfoPane, engine.LayoutHorizontal, 0.75)
 	p.systemInfoPane = systemInfoPane
@@ -206,7 +206,7 @@ func (p *StarSystemListPane) View() string {
 		systemList = lipgloss.JoinVertical(lipgloss.Left, systemRows...)
 	}
 
-	systemList = Style.Width(p.Width()).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
+	systemList = Style.Height(p.Height() - lipgloss.Height(p.textInput.View())  - 1).Width(p.Width()).Padding(0, 1).Border(lipgloss.RoundedBorder(), true, false, false, false).Render(systemList)
 
 	infoContainer := lipgloss.JoinVertical(lipgloss.Left, p.textInput.View(), systemList)
 

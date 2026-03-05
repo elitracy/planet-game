@@ -23,7 +23,7 @@ type StarSystemDetailsPane struct {
 	systemInfoTable engine.ManagedPane
 }
 
-func NewSystemInfoPane(title string, system *models.StarSystem) *StarSystemDetailsPane {
+func NewSystemDetailsPane(title string, system *models.StarSystem) *StarSystemDetailsPane {
 	return &StarSystemDetailsPane{
 		Pane:   engine.NewPane(title, engine.NewKeyBindings()),
 		System: system,
